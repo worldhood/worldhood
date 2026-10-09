@@ -633,7 +633,9 @@ function frame(now){
      police.observe(previous,car,mobility.cars,[]);
      impacts.collide(previous,car,[...mobility.people,...detailPeople],cyclists.riders,[...mobility.cars,...police.obstacles],police);
      if(r.collision==='building'){impacts.damage(car,Math.abs(previous.speed),'building');finale.buildingImpact({...car,speed:previous.speed},Math.abs(previous.speed),world,police);}
-    }distance=car.distance;
+    }else if(!r.crashed){const h=travel.hitPeople(previous,[...mobility.people,...detailPeople],impacts,{police,obstacles:travelObstacles()});
+     if(h?.fell){car=travel.actor;playerCars.sync(travel);toast(h.fell>5?'Ouch. You hit someone and went flying.':'You hit someone and came off. Press Enter to get back on.');lastToast=now;}else if(h?.bumped&&now-lastToast>1500){toast('Sorry!');lastToast=now;}}
+    distance=car.distance;
     if(r.collision&&now-lastToast>2200){if(r.collision==='boundary')showEdgeInvite();if(r.collision==='water')toast('The water is best enjoyed from the shore.');lastToast=now;}
    }
    const beforeTransitImpact=Math.abs(car.speed);

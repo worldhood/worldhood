@@ -23,9 +23,10 @@ export const GRAVITY=9.81,GROUND_FRICTION=7,BOUNCE=.22,GET_UP=1.6,WALK_BACK=1.5;
 // Police heat equivalent of each outcome (police.js incidentHeat 'pedestrian').
 export const SEVERITY_REPORT={stumble:2,down:6,thrown:12};
 
-export function impactSeverity(hitter='car',speed=0,{mass}={}){
+// `gentle`: a bump that never knocks anyone down (the player walking into someone).
+export function impactSeverity(hitter='car',speed=0,{mass,gentle=false}={}){
  const M=mass??HITTER_MASS[hitter]??HITTER_MASS.car,m=PEDESTRIAN_MASS,v=Math.abs(speed),mu=M*m/(M+m),energy=.5*mu*v*v,light=M<200;
- const level=energy<(light?SEVERITY.lightStumble:SEVERITY.stumble)?'stumble':energy<SEVERITY.thrown||light?'down':'thrown';
+ const level=gentle||energy<(light?SEVERITY.lightStumble:SEVERITY.stumble)?'stumble':energy<SEVERITY.thrown||light?'down':'thrown';
  // The person leaves with part of the hitter's momentum; the hitter keeps the rest.
  const share=M/(M+m);
  const out=level==='stumble'?Math.min(1.5,.4+v*share*.35):level==='down'?Math.min(4.5,v*share*.55):Math.min(15,v*share*.68);
@@ -137,9 +138,9 @@ export class ImpactSystem{
  // Any hitter knocking a person: `hitter` {x,z,heading,speed} with `kind`
  // (a HITTER_MASS key) or an explicit `mass`. Reports to the police scaled by
  // severity and tells listeners (crowd reactions). Returns the severity or null.
- hit(actor,hitter,{kind='car',mass,police=null,label='pedestrian'}={}){
+ hit(actor,hitter,{kind='car',mass,gentle,police=null,label='pedestrian'}={}){
   if(actor.knockdown||this.time<(actor.impactCooldown||0))return null;
-  const severity=impactSeverity(kind,hitter.speed,{mass});if(severity.speed<.6)return null;
+  const severity=impactSeverity(kind,hitter.speed,{mass,gentle});if(severity.speed<.6)return null;
   startKnockdown(actor,hitter,severity,this.time);this.actors.add(actor);
   police?.report('pedestrian',`${label}:${actor.id}`,SEVERITY_REPORT[severity.level]);
   const event={actor,severity,hitter:{x:hitter.x,z:hitter.z,heading:hitter.heading,speed:hitter.speed},kind,time:this.time};

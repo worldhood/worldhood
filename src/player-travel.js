@@ -1,6 +1,7 @@
 // Shared player travel for every city. Distances and speeds are world metres.
 import {insidePlayable,pointInPolygon} from './geo.js';
 import {makeCar} from './physics.js';
+import {sweptContact} from './contact-geometry.js';
 
 export const TRAVEL_MODES=Object.freeze({
  walk:{label:'On foot',speed:2,run:4.8,acceleration:8,braking:12,halfWidth:.28,halfLength:.28},
@@ -8,6 +9,8 @@ export const TRAVEL_MODES=Object.freeze({
  scooter:{label:'Scooter',speed:25/3.6,acceleration:2.8,braking:8,halfWidth:.3,halfLength:.62},
 });
 export const CRASH_SPEED=2.2; // m/s: slower bumps just stop the ride
+// Impact kinds (impacts.js HITTER_MASS) of the player's own body, and the speeds below which people simply step aside.
+export const HIT_KIND={walk:'walker',bike:'bicycle',scooter:'scooter'},HIT_SPEED={walker:1,bicycle:1.2,scooter:1.2};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 const gap=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const offset=(p,x,z)=>({x:p.x+x*Math.cos(p.heading)+z*Math.sin(p.heading),z:p.z-x*Math.sin(p.heading)+z*Math.cos(p.heading),heading:p.heading});
@@ -110,6 +113,24 @@ export class PlayerTravel{
   const spot=exitPosition(this.actor,this.mode,this.world,[...this.parked(),...obstacles])||from;
   this.actor=makeActor({x:spot.x,z:spot.z,heading:from.heading},'walk',from.distance);this.mode='walk';this.riding=null;this.sprint=false;this.transition=null;
   this.actor.knockdown={elapsed:.001,duration:clamp(1.8+speed*.3,2,4.5),prone:speed>4.5,side:ride.fallen.side};
+ }
+ // The player's body against pedestrians over one step (from: the body before it). A ride hits them by
+ // its mass and speed and a hard hit throws the rider off; on foot it is only a bump, a stumble and a
+ // grumble. Returns {kind,severity,actor,bumped|fell} for the first person hit, or null.
+ hitPeople(from,people,impacts,{police=null,obstacles=[]}={}){
+  const p=this.actor,kind=HIT_KIND[this.mode],speed=Math.abs(from.speed||0);
+  if(!kind||p.knockdown||this.transition||speed<HIT_SPEED[kind])return null;
+  const walk=kind==='walker',body={...from,halfWidth:p.halfWidth,halfLength:p.halfLength};
+  for(const a of people){
+   if(a.edge===null||a.knockdown||!Number.isFinite(a.x)||!sweptContact(body,p,a,true))continue;
+   const severity=impacts.hit(a,{x:from.x,z:from.z,heading:from.heading,speed:from.speed},{kind,gentle:walk,police:walk?null:police});
+   if(!severity)continue;
+   if(walk){police?.report('bump',a.id);p.speed=0;return {kind,severity,actor:a,bumped:true};}
+   if(severity.riderFalls){this.crash(speed,obstacles);return {kind,severity,actor:a,fell:speed};}
+   p.speed=Math.sign(p.speed||from.speed)*Math.min(Math.abs(p.speed),severity.vehicleSpeed);if(this.riding)this.riding.speed=p.speed;
+   return {kind,severity,actor:a};
+  }
+  return null;
  }
  startTransition(from){this.transition={from,elapsed:0,duration:.38};this.sprint=false;}
  advanceTransition(dt){if(this.transition){this.transition.elapsed+=Math.max(0,dt);if(this.transition.elapsed>=this.transition.duration)this.transition=null;}}

@@ -12,6 +12,7 @@ export const INCIDENT_WINDOW=12,CONTACT_COOLDOWN=3;
 export const RECKLESS={speed:75/3.6,turnSpeed:40/3.6,lateralAcceleration:5,pavementSpeed:30/3.6,duration:2,cooldown:8};
 export function incidentHeat(kind,speed=8){
  if(kind==='reckless')return 3;
+ if(kind==='bump')return 1; // shoving past someone on foot
  // Hitting a person: a stumble, a knock-down or a throw (impacts.js SEVERITY_REPORT); 7 when unknown.
  if(kind==='pedestrian')return speed<3?6:speed<9?7:10;
  if(!(speed>=CRASH_MIN_SPEED))return 0;
@@ -106,7 +107,7 @@ export class PoliceSimulation{
   this.recentIncidents.push(this.time);
   if(this.level>=4)this.surgeUntil=this.time+SURGE.duration;
   this.escape=0;this.lastSeen=null;this.repath=0;this.dispatch=Math.min(this.dispatch,this.time+.5);
-  this.message=kind==='reckless'?(before?'Reckless driving — wanted level increased.':'Reckless driving — a patrol is responding.'):kind==='pedestrian'?'Pedestrian hit — police alerted.':kind==='police'?'You hit a police car!':!before?'Crash reported — a patrol is responding.':this.level>before?'Another crash — wanted level increased.':'Crash reported.';
+  this.message=kind==='bump'?(this.level>before?'Shoving people — a patrol is responding.':null):kind==='reckless'?(before?'Reckless driving — wanted level increased.':'Reckless driving — a patrol is responding.'):kind==='pedestrian'?'Pedestrian hit — police alerted.':kind==='police'?'You hit a police car!':!before?'Crash reported — a patrol is responding.':this.level>before?'Another crash — wanted level increased.':'Crash reported.';
   this.onIncident?.(kind,id,speed,this.level);
   return true;
  }
@@ -267,7 +268,7 @@ export class PoliceSimulation{
   else if(this.escape>=escapeTime(this.level)*(surge?SURGE.escapeScale:1)){
    const was=this.level;this.heat=0;this.units=[...(this.parked||[])];this.lastSeen=null;this.intercept=null;
    this.recentIncidents=[];this.contacts.clear();this.recklessSeconds=0;this.recklessAt=-Infinity;this.surgeUntil=-Infinity;
-   this.message=was<=1?'The patrol gave up — wanted level cleared.':'Escaped — wanted level cleared.';
+   this.message=!was?null:was<=1?'The patrol gave up — wanted level cleared.':'Escaped — wanted level cleared.';
   }
  }
  snapshot(){return {level:this.level,heat:this.heat,busted:this.busted,seen:this.seen,surging:this.surging,status:this.busted?'BUSTED':!this.level?'CLEAR':this.bust?'STOPPED':this.escape>2?'SEARCHING':'PURSUIT',escapeSeconds:Math.max(0,Math.ceil(escapeTime(this.level)-this.escape)),bustProgress:Math.max(this.bust/this.bustTime,this.contact/CONTACT_BUST.time),bustSeconds:Math.ceil(Math.min(this.bustTime-this.bust,CONTACT_BUST.time-this.contact)),lastSeen:this.lastSeen?{...this.lastSeen}:null,units:this.units.map(({id,x,z,heading,speed,role})=>({id,x,z,heading,speed,role}))};}
