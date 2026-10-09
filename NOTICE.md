@@ -35,7 +35,7 @@ that the notices match the locked runtime packages and bundled fonts.
 | Bundled interface typefaces | SIL Open Font License 1.1; notices alongside each font | `public/fonts/` |
 | Helvetiker, Optimer and Gentilis typefaces for 3D signs | MgOpen font licence (Helvetiker/Optimer); SIL OFL 1.1 (Gentilis) | Imported from `three/examples/fonts`; full notices in `public/THIRD_PARTY_LICENSES.txt` |
 | Bundled JavaScript libraries | MIT, ISC and Unlicense; individual notices apply | `public/THIRD_PARTY_LICENSES.txt` |
-| Third-party marks | Not licensed by this project | `public/branding/helsinki-logo-white.svg`, `public/branding/bind-logo.svg` |
+| Third-party marks | Not licensed by this project | `public/branding/bind-logo.svg` |
 | Official Mapillary attribution logo | Mapillary Terms of Use; trademark retained by its owner | `public/branding/mapillary-logo.png`; provenance in `mapillary-source.json` |
 
 **Forking for another city?** Keep the MIT notice for the code, replace `public/data` with your own
@@ -150,9 +150,6 @@ they do not become MIT-licensed because the surrounding game code is MIT-license
 The original worldhood globe, city highlight and wordmark artwork are included under the project’s
 MIT licence. Embedded text outlines do not change the licences of the separately distributed fonts.
 
-- `public/branding/helsinki-logo-white.svg`: the City of Helsinki logo, from the
-  [Helsinki Design System](https://github.com/City-of-Helsinki/helsinki-design-system). It is a
-  trademark of the City of Helsinki and is not covered by this project's licence.
 - `public/branding/bind-logo.svg`: the Bind wordmark ([bindlegal.com](https://bindlegal.com/)), used for
   fictional in-game advertising with permission. It is a trademark of Bind and is not covered by this
   project's licence.

@@ -45,10 +45,9 @@ export async function createBindAds(data,stops,existing=[]){
  const group=new THREE.Group();group.name='Fictional Bind demo sponsorship';
  const [wide,tall,campaign]=await Promise.all([adTexture(false),adTexture(true),adTexture(false,true)]);
  const frameMat=new THREE.MeshStandardMaterial({color:'#283533',roughness:.55,metalness:.5});
- // Original City of Helsinki framed logo from its public design system.
- // Preserve its aspect ratio and clear space; fictional welcome-sign placement.
+ // Fictional welcome sign: the city's name in plain type, not the City of Helsinki's logo (a protected mark).
  const helsinki=document.createElement('canvas');helsinki.width=2048;helsinki.height=854;const hc=helsinki.getContext('2d');hc.fillStyle='#000000';hc.fillRect(0,0,2048,854);
- const helLogo=await new THREE.ImageLoader().loadAsync('/branding/helsinki-logo-white.svg'),lh=854*.78,lw=lh*130/60;hc.drawImage(helLogo,(2048-lw)/2,(854-lh)/2,lw,lh);
+ hc.fillStyle='#ffffff';hc.textAlign='center';hc.textBaseline='middle';hc.font='700 360px Arial, sans-serif';hc.fillText('Helsinki',1024,440);
  const ht=new THREE.CanvasTexture(helsinki);ht.colorSpace=THREE.SRGBColorSpace;
  const screenMats=[wide,tall,ht,campaign].map(map=>new THREE.MeshBasicMaterial({map,toneMapped:false}));
  const frames=[],screens=[[],[],[],[]],obstacles=[];
