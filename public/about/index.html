@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>About — Open City Drive</title>
+<meta name="description" content="Open-world driving across the real world, built from open data. Build your own city into it.">
+<style>
+ :root{--ink:#24332e;--muted:#5d6a66;--accent:#d95e3b;--paper:#f6f3ec;--line:#2933361a}
+ *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font:17px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+ main{max-width:720px;margin:0 auto;padding:56px 22px 80px}
+ .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--ink);font-weight:700;letter-spacing:2px;font-size:13px}
+ .brand b{display:inline-grid;place-items:center;width:38px;height:38px;border-radius:10px;background:var(--accent);color:#fff;font-size:22px;letter-spacing:0}
+ h1{font-size:42px;line-height:1.12;margin:48px 0 18px;letter-spacing:-.5px}
+ h2{font-size:22px;margin:42px 0 8px}
+ p{margin:0 0 16px}.lead{font-size:20px;color:var(--muted)}
+ a{color:var(--accent);text-underline-offset:3px}
+ .cta{display:flex;flex-wrap:wrap;gap:12px;margin:28px 0}
+ .cta a{display:inline-block;padding:13px 20px;border-radius:10px;text-decoration:none;font-weight:600}
+ .cta .primary{background:var(--accent);color:#fff}.cta .secondary{border:1px solid var(--line);color:var(--ink);background:#fff}
+ ol{padding-left:22px}li{margin:6px 0}
+ img.map{width:100%;border-radius:14px;margin:12px 0;border:1px solid var(--line)}
+ footer{margin-top:56px;padding-top:18px;border-top:1px solid var(--line);font-size:13px;color:var(--muted)}
+ code{background:#fff;border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:14px}
+</style>
+</head>
+<body>
+<main>
+ <a class="brand" href="/"><b>o</b>OPEN CITY DRIVE</a>
+ <h1>Open-world driving across the real world.</h1>
+ <p class="lead">Every street, building, tree and tram line comes from open data about real cities. You can drive it in your browser, and you can build your own city into it.</p>
+
+ <div class="cta"><a class="primary" href="/?city=helsinki">Drive Helsinki</a><a class="secondary" href="https://github.com/opencitydrive/open-city-drive/blob/main/docs/BUILD_YOUR_CITY.md">Build your city</a></div>
+
+ <h2>How it started</h2>
+ <p>Open City Drive began as a one-night experiment: <a href="https://lnkd.in/p/eYCkmVRr">Helsinki rebuilt as a driveable open world</a>, from the city's own 3D model, streets, trees and tram lines. People immediately asked the same two questions: <em>can I drive my city?</em> and <em>can I help make the engine better?</em></p>
+
+ <h2>The vision</h2>
+ <p>One shared engine, many real cities, connected wherever the map allows. How much of the world can we connect and still make it look and feel right?</p>
+ <p>The bar is high on purpose. A city goes live when it looks as good as Helsinki: real buildings, the real trees on each street, the local buses and trams, the signs, the cobblestones, and things you can actually hit. Map data is only the skeleton; every street is matched against real photos.</p>
+ <img class="map" src="cities-map.svg" alt="Map of cities in Open City Drive" onerror="this.remove()">
+
+ <h2>Build your city</h2>
+ <ol>
+  <li>Point your coding agent at the <a href="https://github.com/opencitydrive/open-city-drive">repository</a>, or clone it yourself.</li>
+  <li>Run <code>npm run city:new</code> and <code>npm run city:build</code>. You get a drivable skeleton of your city in about ten minutes.</li>
+  <li>Make it real, street by street, against real photos, following the <a href="https://github.com/opencitydrive/open-city-drive/blob/main/docs/BUILD_YOUR_CITY.md">playbook</a>. Optimise it locally until it's as good as you can make it.</li>
+  <li>Open a pull request. When it meets the bar, it goes live here.</li>
+ </ol>
+ <p>Not a programmer? The <a href="https://github.com/opencitydrive/open-city-drive/blob/main/docs/START_HERE.md">plain-language guide</a> takes you through it step by step.</p>
+ <p>Prefer engine work? Weather that changes, sound, seagulls, stepping out of the car, riding a city bike: the <a href="https://github.com/opencitydrive/open-city-drive/blob/main/docs/IDEAS.md">wishlist</a> is open.</p>
+
+ <h2>Open, credited, free</h2>
+ <p>The code is MIT-licensed. Map data stays under its own open licences (city open data, CC BY 4.0; OpenStreetMap, ODbL) and is credited in the game. No accounts, no ads, nothing to install.</p>
+
+ <footer>Originally built by <a href="https://www.linkedin.com/in/lassesaari/">Lasse</a>. Have an idea? <a href="https://www.linkedin.com/in/lassesaari/">Tell me</a>.</footer>
+</main>
+</body>
+</html>

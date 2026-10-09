@@ -1,0 +1,601 @@
+{
+ "area": "seurasaari",
+ "model": "jev-1.13.0",
+ "reviewedAt": "2026-10-09T11:32:40.539Z",
+ "policy": {
+  "signOff": {
+   "demoReady": 0.8,
+   "recognisable": 2,
+   "confidence": 0.55
+  },
+  "missing": 0.5,
+  "humanBand": [
+   0.4,
+   0.8
+  ]
+ },
+ "inputTokens": 24421,
+ "summary": {
+  "needs-work": 11
+ },
+ "checkpoints": [
+  {
+   "checkpoint": "Mannerheimintie / Stockmann",
+   "status": "needs-work",
+   "demoReady": 0.21,
+   "recognisable": 2.34,
+   "recognisableConfidence": 0.34,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.56,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 2.34,
+     "confidence": 0.34,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.11,
+      "2": 0.41,
+      "3": 0.47
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.21
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.56,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.63,
+      "municipal_data": 0,
+      "procedural_detail": 0.35,
+      "bespoke_landmark": 0.02,
+      "gameplay": 0
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.34
+    }
+   }
+  },
+  {
+   "checkpoint": "Lasipalatsi / Kiasma",
+   "status": "needs-work",
+   "demoReady": 0.19,
+   "recognisable": 2.08,
+   "recognisableConfidence": 0.07,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.78,
+   "missing": [
+    {
+     "name": "Lasipalatsi and Kiasma",
+     "mustHave": true,
+     "probability": 0.54
+    }
+   ],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 2.08,
+     "confidence": 0.07,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.1,
+      "1": 0.19,
+      "2": 0.25,
+      "3": 0.46
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.19
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.78,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.82,
+      "municipal_data": 0,
+      "procedural_detail": 0.15,
+      "bespoke_landmark": 0.03,
+      "gameplay": 0
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.54
+    }
+   }
+  },
+  {
+   "checkpoint": "Parliament House",
+   "status": "needs-work",
+   "demoReady": 0.2,
+   "recognisable": 2.39,
+   "recognisableConfidence": 0.38,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.74,
+   "missing": [
+    {
+     "name": "Parliament House",
+     "mustHave": true,
+     "probability": 0.73
+    }
+   ],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 2.39,
+     "confidence": 0.38,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.02,
+      "1": 0.13,
+      "2": 0.3,
+      "3": 0.55
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.2
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.74,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.78,
+      "municipal_data": 0,
+      "procedural_detail": 0.06,
+      "bespoke_landmark": 0.16,
+      "gameplay": 0
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.73
+    },
+    "missing_1": {
+     "type": "noul",
+     "noul": 0.32
+    }
+   }
+  },
+  {
+   "checkpoint": "National Museum / Finlandia Hall",
+   "status": "needs-work",
+   "demoReady": 0.18,
+   "recognisable": 2.15,
+   "recognisableConfidence": 0.15,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.69,
+   "missing": [
+    {
+     "name": "Finlandia Hall",
+     "mustHave": true,
+     "probability": 0.6
+    }
+   ],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 2.15,
+     "confidence": 0.15,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.22,
+      "2": 0.38,
+      "3": 0.39
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.18
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.69,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.74,
+      "municipal_data": 0,
+      "procedural_detail": 0.17,
+      "bespoke_landmark": 0.09,
+      "gameplay": 0
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.18
+    },
+    "missing_1": {
+     "type": "noul",
+     "noul": 0.6
+    }
+   }
+  },
+  {
+   "checkpoint": "Finnish National Opera",
+   "status": "needs-work",
+   "demoReady": 0.2,
+   "recognisable": 1.89,
+   "recognisableConfidence": 0.37,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.69,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 1.89,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.31,
+      "2": 0.4,
+      "3": 0.26
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.2
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.69,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.74,
+      "municipal_data": 0,
+      "procedural_detail": 0.05,
+      "bespoke_landmark": 0.21,
+      "gameplay": 0
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.16
+    }
+   }
+  },
+  {
+   "checkpoint": "Töölö / Olympic Stadium",
+   "status": "needs-work",
+   "demoReady": 0.2,
+   "recognisable": 1.75,
+   "recognisableConfidence": 0.36,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.66,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 1.75,
+     "confidence": 0.36,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.04,
+      "1": 0.36,
+      "2": 0.4,
+      "3": 0.2
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.2
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.66,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.72,
+      "municipal_data": 0,
+      "procedural_detail": 0.21,
+      "bespoke_landmark": 0.07,
+      "gameplay": 0
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.06
+    },
+    "missing_1": {
+     "type": "noul",
+     "noul": 0.15
+    }
+   }
+  },
+  {
+   "checkpoint": "Tullinpuomi",
+   "status": "needs-work",
+   "demoReady": 0.21,
+   "recognisable": 2.08,
+   "recognisableConfidence": 0.52,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.57,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 2.08,
+     "confidence": 0.52,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.01,
+      "1": 0.18,
+      "2": 0.53,
+      "3": 0.28
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.21
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.57,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.64,
+      "municipal_data": 0,
+      "procedural_detail": 0.35,
+      "bespoke_landmark": 0.01,
+      "gameplay": 0
+     }
+    }
+   }
+  },
+  {
+   "checkpoint": "Paciuksenkatu / Meilahti",
+   "status": "needs-work",
+   "demoReady": 0.18,
+   "recognisable": 1.48,
+   "recognisableConfidence": 0.39,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.59,
+   "missing": [
+    {
+     "name": "Meilahti seaside villas and parks",
+     "mustHave": false,
+     "probability": 0.6
+    }
+   ],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 1.48,
+     "confidence": 0.39,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.07,
+      "1": 0.47000000000000003,
+      "2": 0.38,
+      "3": 0.08
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.18
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.59,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.66,
+      "municipal_data": 0,
+      "procedural_detail": 0.33,
+      "bespoke_landmark": 0,
+      "gameplay": 0.01
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.6
+    }
+   }
+  },
+  {
+   "checkpoint": "Tamminiemi (Seurasaarentie 15)",
+   "status": "needs-work",
+   "demoReady": 0.17,
+   "recognisable": 1.71,
+   "recognisableConfidence": 0.32,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.64,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 1.71,
+     "confidence": 0.32,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.06,
+      "1": 0.36,
+      "2": 0.38,
+      "3": 0.2
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.17
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.64,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.7,
+      "municipal_data": 0,
+      "procedural_detail": 0.22,
+      "bespoke_landmark": 0.06,
+      "gameplay": 0.02
+     }
+    }
+   }
+  },
+  {
+   "checkpoint": "Seurasaari bridge",
+   "status": "needs-work",
+   "demoReady": 0.15,
+   "recognisable": 2.11,
+   "recognisableConfidence": 0.12,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.52,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 2.11,
+     "confidence": 0.12,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.03,
+      "1": 0.21,
+      "2": 0.37,
+      "3": 0.39
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.15
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.52,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.6,
+      "municipal_data": 0,
+      "procedural_detail": 0.35,
+      "bespoke_landmark": 0.02,
+      "gameplay": 0.03
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.09
+    }
+   }
+  },
+  {
+   "checkpoint": "Seurasaari Open-Air Museum",
+   "status": "needs-work",
+   "demoReady": 0.16,
+   "recognisable": 1.82,
+   "recognisableConfidence": 0.37,
+   "nextStep": "reference_observations",
+   "nextStepConfidence": 0.66,
+   "missing": [],
+   "answers": {
+    "recognisable": {
+     "type": "score",
+     "score": 1.82,
+     "confidence": 0.37,
+     "legend": {
+      "0": "Not recognisable: it could be any city",
+      "1": "Vaguely familiar: the street layout fits but nothing distinctive is there",
+      "2": "Recognisable: the main buildings and street character match",
+      "3": "Unmistakable: distinctive landmarks and street details are clearly present"
+     },
+     "probabilities": {
+      "0": 0.08,
+      "1": 0.24,
+      "2": 0.45,
+      "3": 0.23
+     }
+    },
+    "demo_ready": {
+     "type": "noul",
+     "noul": 0.16
+    },
+    "next_step": {
+     "type": "choice",
+     "choice": "reference_observations",
+     "confidence": 0.66,
+     "probabilities": {
+      "none": 0,
+      "reference_observations": 0.72,
+      "municipal_data": 0,
+      "procedural_detail": 0.23,
+      "bespoke_landmark": 0.02,
+      "gameplay": 0.03
+     }
+    },
+    "missing_0": {
+     "type": "noul",
+     "noul": 0.09
+    }
+   }
+  }
+ ]
+}

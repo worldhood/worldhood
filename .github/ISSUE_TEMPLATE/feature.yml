@@ -1,0 +1,11 @@
+name: Gameplay or feature idea
+description: Propose a mechanic, system or improvement
+labels: ["idea"]
+body:
+  - type: textarea
+    id: idea
+    attributes: {label: What the player would experience}
+    validations: {required: true}
+  - type: textarea
+    id: approach
+    attributes: {label: How it could work, description: "Modules involved (see docs/GAMEPLAY.md), data needed, performance cost"}

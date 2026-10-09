@@ -1,0 +1,263 @@
+{
+ "schemaVersion": 1,
+ "place": "keskustori",
+ "city": "tampere",
+ "note": "Reference photos looked at to describe Keskustori (cities/tampere/keskustori-reference.json). Used for reference only: no image content is stored in the game. Photos are downloaded by npm run photos:fetch -- tampere keskustori into data/raw/photos/ (git-ignored). Google imagery was not used.",
+ "searched": {
+  "commons": "categories listed in the reference photoSearch, photos taken 2021 or later: 114 found",
+  "mapillary": "24 current images (2021-2022) inside 170 m",
+  "panoramax": "no images near the square",
+  "own": "none in data/raw/photos/tampere/keskustori/ (checked again before finishing)"
+ },
+ "photos": [
+  {
+   "source": "commons",
+   "id": "183781171",
+   "file": "commons/183781171.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Tampere_City_Hall_on_a_cloudy_morning_in_June_2025.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2025-06-07",
+   "title": "Tampere City Hall on a cloudy morning in June 2025.jpg",
+   "usedFor": "City Hall front: storeys, central pavilion, five arched windows, turret, colours; square paving pattern and grid bands; fountain and flagpoles (side-by-side view)",
+   "textures": "city-hall-front, city-hall-pavilion, ground-fan-setts",
+   "textureLicence": "CC BY-SA 4.0"
+  },
+  {
+   "source": "commons",
+   "id": "177425215",
+   "file": "commons/177425215.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Keskustori_on_a_cloudy_afternoon_in_June_2025.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2025-06-06",
+   "title": "Keskustori on a cloudy afternoon in June 2025.jpg",
+   "usedFor": "Square paving (fan setts, double granite bands), lamp masts, Old Church park trees, Kauppakatu façades (side-by-side view)"
+  },
+  {
+   "source": "commons",
+   "id": "182386369",
+   "file": "commons/182386369.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:H%C3%A4meenkatu_near_Keskustori_on_a_cloudy_evening_in_June_2025.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2025-06-06",
+   "title": "Hämeenkatu near Keskustori on a cloudy evening in June 2025.jpg",
+   "usedFor": "Tram stop platforms, kerb and warning strip, railings, overhead-line masts, bell tower, theatre, Sumelius house, bus canopies (side-by-side view)"
+  },
+  {
+   "source": "commons",
+   "id": "178894577",
+   "file": "commons/178894577.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:H%C3%A4meenkatu_near_Keskustori_on_a_cloudy_afternoon_in_June_2025.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2025-06-06",
+   "title": "Hämeenkatu near Keskustori on a cloudy afternoon in June 2025.jpg",
+   "usedFor": "North platform shelter, lattice mast base, red granite pavement, theatre front (side-by-side view)",
+   "textures": "ground-red-granite",
+   "textureLicence": "CC BY-SA 4.0"
+  },
+  {
+   "source": "commons",
+   "id": "176194539",
+   "file": "commons/176194539.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:H%C3%A4meenkatu_Tampere_Tammerfors_240725.jpg",
+   "author": "Drefer",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2025-07-24",
+   "title": "Hämeenkatu Tampere Tammerfors 240725.jpg",
+   "usedFor": "Hämeenkatu pavement slabs, tram shelter, lamp mast heads, City Hall from the south-east (side-by-side view)"
+  },
+  {
+   "source": "commons",
+   "id": "117650534",
+   "file": "commons/117650534.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Tampere_Theatre_2.jpg",
+   "author": "kallerna",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-04-01",
+   "title": "Tampere Theatre 2.jpg",
+   "usedFor": "Theatre front: pediment, six columns, windows, entrance wing, colours (side-by-side view)",
+   "textures": "theatre-wing, theatre-hall",
+   "textureLicence": "CC BY-SA 4.0"
+  },
+  {
+   "source": "commons",
+   "id": "121881139",
+   "file": "commons/121881139.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Vanha_kirkko_Tampere_2021_(2).jpg",
+   "author": "MOs810",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2021-12-12",
+   "title": "Vanha kirkko Tampere 2021 (2).jpg",
+   "usedFor": "Old Church: weatherboarding, pilasters, arched windows, plinth, dome, cross; spruce and lime by the church"
+  },
+  {
+   "source": "commons",
+   "id": "121881138",
+   "file": "commons/121881138.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Vanha_kirkko_Tampere_2021_(3).jpg",
+   "author": "MOs810",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2021-12-12",
+   "title": "Vanha kirkko Tampere 2021 (3).jpg",
+   "usedFor": "Old Church gable end with door, steps and pediment",
+   "textures": "old-church-gable (all four arm ends)",
+   "textureLicence": "CC BY-SA 4.0"
+  },
+  {
+   "source": "commons",
+   "id": "122321045",
+   "file": "commons/122321045.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Tampere_impression_(4).jpg",
+   "author": "MOs810",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2021-12-12",
+   "title": "Tampere impression (4).jpg",
+   "usedFor": "Bell tower stages, clock faces and black spire; theatre columns"
+  },
+  {
+   "source": "commons",
+   "id": "132156757",
+   "file": "commons/132156757.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Keskustori_in_June.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-06-09",
+   "title": "Keskustori in June.jpg",
+   "usedFor": "Rounded fieldstone cobbles in the north part of the square; City Hall north wing"
+  },
+  {
+   "source": "commons",
+   "id": "148602285",
+   "file": "commons/148602285.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Keskustori_bus_station_on_a_June_evening.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-06-10",
+   "title": "Keskustori bus station on a June evening.jpg",
+   "usedFor": "Hämeenkatu from the south platform: masts, pavement bands, bus canopies",
+   "textures": "sumelius-north",
+   "textureLicence": "CC BY-SA 4.0"
+  },
+  {
+   "source": "commons",
+   "id": "107637171",
+   "file": "commons/107637171.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Keskustori_bus_stop.jpg",
+   "author": "Tiia Monto",
+   "licence": "CC BY-SA 3.0",
+   "captured": "2021-07-05",
+   "title": "Keskustori bus stop.jpg",
+   "usedFor": "Bus terminal canopies: glass wings, steel columns and spine (2021)"
+  },
+  {
+   "source": "commons",
+   "id": "114096260",
+   "file": "commons/114096260.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Tampereen_keskustori_1.jpg",
+   "author": "kallerna",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-01-06",
+   "title": "Tampereen keskustori 1.jpg",
+   "usedFor": "Bus terminal canopies in 2022"
+  },
+  {
+   "source": "commons",
+   "id": "134001736",
+   "file": "commons/134001736.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:H%C3%A4meenkatu_with_Pella%27s_Cafe.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-06-10",
+   "title": "Hämeenkatu with Pella's Cafe.jpg",
+   "usedFor": "Young street lime: stem, guard, grate and crown shape"
+  },
+  {
+   "source": "commons",
+   "id": "119022500",
+   "file": "commons/119022500.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Home_of_Hockey_Keskustori_4.jpg",
+   "author": "Piquito",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-05-25",
+   "title": "Home of Hockey Keskustori 4.jpg",
+   "usedFor": "Old Church park trees in leaf: maples, limes, spruce"
+  },
+  {
+   "source": "commons",
+   "id": "126483247",
+   "file": "commons/126483247.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:H%C3%A4meenkatu_in_June.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-06-12",
+   "title": "Hämeenkatu in June.jpg",
+   "usedFor": "Square lamp mast with four dome lamps; Hämeenkatu pavement by the theatre"
+  },
+  {
+   "source": "commons",
+   "id": "125102539",
+   "file": "commons/125102539.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Keskustori_fountain.jpg",
+   "author": "JIP",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-06-10",
+   "title": "Keskustori fountain.jpg",
+   "usedFor": "Fountain: cast-iron tiers and basin"
+  },
+  {
+   "source": "commons",
+   "id": "176190736",
+   "file": "commons/176190736.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Tampereen_Teatteri_Tammerkoski_Tampere_240725.jpg",
+   "author": "Drefer",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2025-07-24",
+   "title": "Tampereen Teatteri Tammerkoski Tampere 240725.jpg",
+   "usedFor": "Riverside trees beside the theatre (elms, ashes)"
+  },
+  {
+   "source": "mapillary",
+   "id": "3232775950329369",
+   "file": "mapillary/3232775950329369.jpg",
+   "url": "https://www.mapillary.com/app/?pKey=3232775950329369",
+   "author": "jopparn",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-07-10",
+   "usedFor": "View from the City Hall to the theatre, fountain and bell tower (side-by-side view)"
+  },
+  {
+   "source": "mapillary",
+   "id": "406808068158607",
+   "file": "mapillary/406808068158607.jpg",
+   "url": "https://www.mapillary.com/app/?pKey=406808068158607",
+   "author": "jopparn",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-07-10",
+   "usedFor": "City Hall east front close up: rustication, flagpoles, setts path"
+  },
+  {
+   "source": "mapillary",
+   "id": "789291825567384",
+   "file": "mapillary/789291825567384.jpg",
+   "url": "https://www.mapillary.com/app/?pKey=789291825567384",
+   "author": "jopparn",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-07-10",
+   "usedFor": "City Hall front and square edge, flagpoles"
+  },
+  {
+   "source": "mapillary",
+   "id": "405748624944153",
+   "file": "mapillary/405748624944153.jpg",
+   "url": "https://www.mapillary.com/app/?pKey=405748624944153",
+   "author": "jopparn",
+   "licence": "CC BY-SA 4.0",
+   "captured": "2022-07-10",
+   "usedFor": "Kauppakatu: grey setts roadway and red pavement"
+  }
+ ],
+ "textureNote": "Photos with a 'textures' entry are also used as rectified wall or ground textures in public/cities/tampere/places/keskustori/*.jpg (npm run place:textures). Those textures are derivatives of the photos and carry the photo's licence (CC BY-SA 4.0) and author credit."
+}

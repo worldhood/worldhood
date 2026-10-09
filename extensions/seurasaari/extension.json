@@ -1,0 +1,298 @@
+{
+ "schemaVersion": 1,
+ "id": "seurasaari",
+ "title": "Mannerheimintie → Töölö → Seurasaari",
+ "maintainers": [],
+ "status": "playable-draft",
+ "description": "Drivable corridor from Esplanadi up Mannerheimintie through Töölö to Tullinpuomi, then Paciuksenkatu and Seurasaarentie to the Seurasaari bridge and island.",
+ "definition": {
+  "legs": [
+   {
+    "id": "mannerheimintie-tullinpuomi",
+    "label": "Pohjoisesplanadi → Mannerheimintie → Töölö → Tullinpuomi → Paciuksenkatu → Seurasaarentie",
+    "via": [
+     [
+      24.95,
+      60.1679
+     ],
+     [
+      24.9418,
+      60.1678
+     ],
+     [
+      24.915,
+      60.1893
+     ],
+     [
+      24.884,
+      60.184
+     ]
+    ]
+   },
+   {
+    "id": "inner-toolo",
+    "label": "Mannerheimintie → Topeliuksenkatu (inner Töölö) → Paciuksenkatu",
+    "via": [
+     [
+      24.9418,
+      60.1678
+     ],
+     [
+      24.9233,
+      60.1793
+     ],
+     [
+      24.9085,
+      60.1852
+     ]
+    ]
+   }
+  ],
+  "island": {
+   "query": "Seurasaari, Helsinki"
+  },
+  "buffers": {
+   "surfaceMetres": 200,
+   "buildingMetres": 260,
+   "islandShoreMetres": 60
+  },
+  "anchors": [
+   [
+    "Mannerheimintie / Stockmann",
+    [
+     24.9418,
+     60.1683
+    ]
+   ],
+   [
+    "Lasipalatsi / Kiasma",
+    [
+     24.9373,
+     60.1705
+    ]
+   ],
+   [
+    "Parliament House",
+    [
+     24.9334,
+     60.1725
+    ]
+   ],
+   [
+    "National Museum / Finlandia Hall",
+    [
+     24.9322,
+     60.1757
+    ]
+   ],
+   [
+    "Finnish National Opera",
+    [
+     24.9272,
+     60.1817
+    ]
+   ],
+   [
+    "Töölö / Olympic Stadium",
+    [
+     24.9228,
+     60.1858
+    ]
+   ],
+   [
+    "Tullinpuomi",
+    [
+     24.9145,
+     60.1905
+    ]
+   ],
+   [
+    "Paciuksenkatu / Meilahti",
+    [
+     24.9047,
+     60.1873
+    ]
+   ],
+   [
+    "Tamminiemi (Seurasaarentie 15)",
+    [
+     24.8831,
+     60.1896
+    ]
+   ],
+   [
+    "Seurasaari bridge",
+    [
+     24.8847,
+     60.188
+    ]
+   ],
+   [
+    "Seurasaari Open-Air Museum",
+    [
+     24.8835,
+     60.1825
+    ]
+   ]
+  ],
+  "starts": [
+   {
+    "name": "Töölö (National Opera)",
+    "district": "Töölö",
+    "anchor": "Finnish National Opera",
+    "line": "mannerheimintie-tullinpuomi"
+   },
+   {
+    "name": "Seurasaari bridge",
+    "district": "Meilahti",
+    "anchor": "Seurasaari bridge",
+    "line": "mannerheimintie-tullinpuomi",
+    "face": "Seurasaari bridge"
+   }
+  ]
+ },
+ "limitations": [
+  "Seurasaari island and its wooden bridge are car-free in reality. Driving there is a game liberty; real visitors park at the mainland end of the bridge.",
+  "Checkpoints are narrative anchors, not a verified navigation track. Confirm turn permissions before calling this a legal driving route.",
+  "Terrain remains flat, as in the harbour slice; Töölö slopes and the bridge deck rise are not modelled."
+ ],
+ "knownFor": [
+  {
+   "name": "Stockmann department store",
+   "near": "Mannerheimintie / Stockmann",
+   "description": "Large copper-roofed department store at the corner of Mannerheimintie and Aleksanterinkatu",
+   "mustHave": true,
+   "at": [
+    [
+     24.9420834,
+     60.1683005
+    ]
+   ]
+  },
+  {
+   "name": "Lasipalatsi and Kiasma",
+   "near": "Lasipalatsi / Kiasma",
+   "description": "Low white functionalist Lasipalatsi building and the curved metal Kiasma museum",
+   "mustHave": true,
+   "at": [
+    [
+     24.9368878,
+     60.1702947
+    ],
+    [
+     24.9367421,
+     60.1720401
+    ]
+   ]
+  },
+  {
+   "name": "Parliament House",
+   "near": "Parliament House",
+   "description": "Grey granite building with a row of tall columns and broad front steps",
+   "mustHave": true,
+   "at": [
+    [
+     24.9329387,
+     60.1725834
+    ]
+   ]
+  },
+  {
+   "name": "Music Centre",
+   "near": "Parliament House",
+   "description": "Helsinki Music Centre with large glass and copper-patina facades opposite Parliament",
+   "mustHave": false,
+   "at": [
+    [
+     24.9349229,
+     60.1737897
+    ]
+   ]
+  },
+  {
+   "name": "National Museum tower",
+   "near": "National Museum / Finlandia Hall",
+   "description": "Stone national-romantic museum with a tall pointed tower",
+   "mustHave": true,
+   "at": [
+    [
+     24.9317749,
+     60.1749674
+    ]
+   ]
+  },
+  {
+   "name": "Finlandia Hall",
+   "near": "National Museum / Finlandia Hall",
+   "description": "White marble concert hall by Alvar Aalto on Töölönlahti bay",
+   "mustHave": true,
+   "at": [
+    [
+     24.93356,
+     60.1758219
+    ]
+   ]
+  },
+  {
+   "name": "Finnish National Opera",
+   "near": "Finnish National Opera",
+   "description": "Large white opera house beside Töölönlahti",
+   "mustHave": true,
+   "at": [
+    [
+     24.9297961,
+     60.1815331
+    ]
+   ]
+  },
+  {
+   "name": "Olympic Stadium tower",
+   "near": "Töölö / Olympic Stadium",
+   "description": "White functionalist stadium with a 72 m tower",
+   "mustHave": true,
+   "at": [
+    [
+     24.9272463,
+     60.187003
+    ]
+   ]
+  },
+  {
+   "name": "Mannerheimintie trams",
+   "near": "Töölö / Olympic Stadium",
+   "description": "Green-and-cream trams running along Mannerheimintie",
+   "mustHave": false
+  },
+  {
+   "name": "Meilahti seaside villas and parks",
+   "near": "Paciuksenkatu / Meilahti",
+   "description": "Wooded parks and villas along the shore road",
+   "mustHave": false
+  },
+  {
+   "name": "Wooden Seurasaari bridge",
+   "near": "Seurasaari bridge",
+   "description": "Long wooden pedestrian bridge over the water to the island",
+   "mustHave": true,
+   "at": [
+    [
+     24.8846459,
+     60.1879234
+    ]
+   ]
+  },
+  {
+   "name": "Open-air museum buildings",
+   "near": "Seurasaari Open-Air Museum",
+   "description": "Old wooden farmhouses, manors and a church among forest",
+   "mustHave": true,
+   "at": [
+    [
+     24.8860615,
+     60.18279
+    ]
+   ]
+  }
+ ],
+ "knownForSource": "Landmark positions: Nominatim / OpenStreetMap (ODbL), October 2026"
+}

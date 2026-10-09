@@ -1,0 +1,16 @@
+node_modules/
+dist/
+data/raw/
+.DS_Store
+.env
+.env.*
+!.env.example
+extensions/*/review-request.json
+
+# Local scratch and tool output (never part of the project)
+.*-tmp.mjs
+scripts/.*
+test-results/
+playwright-report/
+*.log
+docs/RELEASE_REVIEW.md

@@ -1,0 +1,11 @@
+# Cloudflare Pages headers. Built JS/CSS have content hashes in their names: cache forever.
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# City data changes only when a city is rebuilt: cache for a day.
+/data/*
+  Cache-Control: public, max-age=86400
+/cities/*
+  Cache-Control: public, max-age=86400
+/models/*
+  Cache-Control: public, max-age=86400

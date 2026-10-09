@@ -1,0 +1,107 @@
+import { insidePlayable, pointInPolygon, segmentDistance } from './geo.js';
+import {consumeBattery} from './battery.js';
+import {groundPose,lakeAt} from './terrain.js';
+export const GRAVITY=9.81;
+export const PLAYER_MAX_SPEED=140/3.6;
+// Intentionally stylised HUD speed. Physics, collisions
+// and distance tracking continue to use true world metres / second.
+export const displayedSpeedKmh=speed=>Math.round(Math.abs(speed)*3.6*.7);
+// Preserve elapsed time at ordinary low frame rates, while bounding recovery
+// after a suspended tab. Call simulation with small collision-safe substeps.
+export function simulationSteps(elapsed){
+ const duration=Number.isFinite(elapsed)?Math.max(0,Math.min(elapsed,.25)):0;
+ const count=Math.max(1,Math.ceil(duration/(1/30)));
+ return Array(count).fill(duration/count);
+}
+// After a spike strip (src/roadblock.js): `car.flat` 1 = shredded tyres. The
+// car sheds speed hard down to a rim-scraping crawl, has little drive and wobbles.
+export const FLAT_TYRES={speed:3.2,drag:11,power:.3,wobble:.35};
+export function makeCar(x,z,heading=0){return settleOnGround({x,z,heading,speed:0,steer:0,distance:0,battery:1});}
+// Height, pitch and roll from the ground under the wheels (all 0 in a flat city).
+export function settleOnGround(car){const p=groundPose(car.x,car.z,car.heading,1.4,.8);car.y=p.y;car.pitch=p.pitch;car.roll=p.roll;return car;}
+export function carSamples(car,x=car.x,z=car.z) {
+ const s=Math.sin(car.heading),c=Math.cos(car.heading);
+ return [[0,0],[-.9,-2.15],[.9,-2.15],[-.9,2.15],[.9,2.15],[0,-2.3],[0,2.3],[-1,0],[1,0]].map(([lx,lz])=>[x+lx*c+lz*s,z-lx*s+lz*c]);
+}
+// Existing contact with a thin railing must allow retreat or sliding along it.
+// Each footprint sample may only retain/reduce its penetration, never enter a
+// new obstacle. This is recovery from overlap, not disabling wall collisions.
+export function canExitBuildings(from,to,buildings){
+ const a=carSamples(from),b=carSamples(to);
+ const depth=(x,z,p)=>Math.min(...p.rings.flatMap(r=>r.map((v,i)=>segmentDistance(x,z,v,r[(i+1)%r.length]))));
+ let contact=false;
+ for(let i=0;i<b.length;i++){
+  const [x,z]=b[i],p=buildings.at(x,z);if(!p)continue;
+  if(!p.rings||!pointInPolygon(...a[i],p.rings)||depth(x,z,p)>depth(...a[i],p)+1e-8)return false;
+  if(!pointInPolygon(from.x,from.z,p.rings)){
+   let nearest=null,best=Infinity;
+   for(const ring of p.rings)for(let j=0;j<ring.length;j++){
+    const v=ring[j],w=ring[(j+1)%ring.length],dx=w[0]-v[0],dz=w[1]-v[1],t=Math.max(0,Math.min(1,((from.x-v[0])*dx+(from.z-v[1])*dz)/(dx*dx+dz*dz||1))),q=[v[0]+t*dx,v[1]+t*dz],d=Math.hypot(from.x-q[0],from.z-q[1]);
+    if(d<best){best=d;nearest=q;}
+   }
+   if((to.x-from.x)*(from.x-nearest[0])+(to.z-from.z)*(from.z-nearest[1])< -1e-9)return false;
+  }
+  contact=true;
+ }
+ return contact&&Math.hypot(to.x-from.x,to.z-from.z)>1e-9;
+}
+export function driveStep(car,keys,dt,world) {
+ const powered=(car.battery??1)>0,distanceBefore=car.distance;
+ const throttle=(keys.has('KeyW')||keys.has('ArrowUp'))&&(powered||car.speed<-.5);
+ const reverse=(keys.has('KeyS')||keys.has('ArrowDown'))&&(powered||car.speed>.5);
+ const left=keys.has('KeyA')||keys.has('ArrowLeft'),right=keys.has('KeyD')||keys.has('ArrowRight'),brake=keys.has('Space');
+ const onRoad=Boolean(world.roads.at(car.x,car.z));
+ const targetSteer=left||right?(left?1:0)-(right?1:0):keys.tilt||0; /* keys.tilt: analog steering from a tilted phone, -1…1, left positive */car.steer+=(targetSteer-car.steer)*Math.min(1,dt*10);
+ const launchAcceleration=8.4+1.8*Math.max(0,1-Math.max(0,car.speed)/(50/3.6));
+ const roadDrag=.25+car.speed*car.speed*.002+(onRoad?0:2);
+ const headroom=Math.max(0,Math.min(1,(PLAYER_MAX_SPEED-car.speed)/(PLAYER_MAX_SPEED-80/3.6)));
+ const acceleration=roadDrag+Math.max(0,launchAcceleration-roadDrag)*headroom;
+ const flat=car.flat||0,power=flat?FLAT_TYRES.power:1;
+ if(!brake&&throttle)car.speed+=(car.speed<-.5?24:acceleration*power)*dt;
+ if(!brake&&reverse)car.speed-=(car.speed>.5?26:4.2*power)*dt;
+ const resistance=(brake?34:roadDrag+(!throttle&&!reverse?1.55:0))+(flat&&Math.abs(car.speed)>FLAT_TYRES.speed?FLAT_TYRES.drag*flat:0);
+ car.speed=Math.sign(car.speed)*Math.max(0,Math.abs(car.speed)-resistance*dt);
+ // Slopes: gravity along the car's pitch slows it uphill and pulls it on downhill (or back, when stopped and let go).
+ if(car.pitch)car.speed-=GRAVITY*Math.sin(car.pitch)*dt;
+ // Arcade top-speed governor. Posted limits govern NPCs separately.
+ car.speed=Math.max(-9,Math.min(PLAYER_MAX_SPEED,car.speed));
+ // Preserve the first small powered step, especially reverse on pavement at
+ // 60/120 Hz. The standstill dead zone is for coasting, not active throttle.
+ if(Math.abs(car.speed)<.04&&!throttle&&!reverse)car.speed=0;
+ const oldHeading=car.heading;
+ car.heading+=car.steer*car.speed/2.8*(.43/(1+Math.abs(car.speed)*.055))*dt*(brake?1.5:1);
+ if(flat)car.heading+=flat*FLAT_TYRES.wobble*Math.sin(car.distance*1.3)*Math.min(1,Math.abs(car.speed)/4)*dt;
+ const travel=car.speed*dt, steps=Math.max(1,Math.ceil(Math.abs(travel)/.4));
+ let collision=null;
+ for(let i=0;i<steps;i++){
+   const nx=car.x-Math.sin(car.heading)*travel/steps,nz=car.z-Math.cos(car.heading)*travel/steps;
+   if(!insidePlayable(nx,nz,3)){collision='boundary';break;}
+   const samples=carSamples(car,nx,nz);
+   if(samples.some(([x,z])=>world.buildings.at(x,z))&&!canExitBuildings({...car,heading:i?car.heading:oldHeading},{...car,x:nx,z:nz},world.buildings)){collision='building';break;}
+   if(samples.some(([x,z])=>!world.roads.at(x,z)&&!world.pavement.at(x,z)&&(world.water.some(w=>pointInPolygon(x,z,w.rings))||lakeAt(x,z)!==null))){collision='water';break;}
+   car.distance+=Math.hypot(nx-car.x,nz-car.z);car.x=nx;car.z=nz;
+ }
+ car.battery=consumeBattery(car.battery??1,car.distance-distanceBefore,car.speed);
+ if(collision){if(car.distance===distanceBefore)car.heading=oldHeading;car.speed=0;}
+ settleOnGround(car);
+ return {collision,onRoad};
+}
+export function nearestRoadPoint(x,z,roads,buildings) {
+ let best=null,d=Infinity;
+ const candidates=roads.filter(r=>!/Koroke/.test(r.kind));
+ for(const r of candidates){
+   const b=r.bbox;if(x<b[0]-300||x>b[2]+300||z<b[1]-300||z>b[3]+300)continue;
+   // Search actual road interiors, accounting for irregular junctions and islands.
+   const minX=Math.max(b[0],x-150), maxX=Math.min(b[2],x+150), minZ=Math.max(b[1],z-150), maxZ=Math.min(b[3],z+150);
+   for(let px=minX+2;px<maxX;px+=3)for(let pz=minZ+2;pz<maxZ;pz+=3){
+     const dist=Math.hypot(px-x,pz-z);if(dist>=d||!insidePlayable(px,pz,10))continue;
+     if(!pointInPolygon(px,pz,r.rings)||buildings.at(px,pz))continue;
+     let clearance=Infinity;for(const ring of r.rings)for(let i=1;i<ring.length;i++)clearance=Math.min(clearance,segmentDistance(px,pz,ring[i-1],ring[i]));
+     if(clearance<2.6)continue;
+     if(carSamples(makeCar(px,pz)).some(([a,b])=>buildings.at(a,b)))continue;
+     best={x:px,z:pz,name:r.name};d=dist;
+   }
+ }
+ if(!best)throw new Error('Could not find a clear starting point on the road.');
+ return best;
+}

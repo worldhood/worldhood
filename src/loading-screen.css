@@ -1,0 +1,22 @@
+/* Keep the live starting-area overview unobscured. No full-screen veil. */
+body.booting :is(.topbar nav,.location-tag,.dashboard,.right-tools,.landmark-label,#wanted,#location-readout,#touch-controls,.vignette){visibility:hidden;pointer-events:none}
+#intro.boot-screen{position:absolute;inset:auto auto 54px 38px;width:340px;max-width:calc(100% - 36px);height:auto;padding:22px;background:#f7f5eeef;color:#293b36;border:1px solid #ffffffa0;border-radius:7px;box-shadow:0 6px 28px #152d2820;transform:none;transition:opacity .25s,visibility .25s;z-index:40}
+#intro.boot-screen.gone{opacity:0;visibility:hidden;pointer-events:none}
+#intro #boot-title{font-family:Manrope,sans-serif;font-size:20px;font-weight:600;letter-spacing:-.5px;line-height:1.25;margin:0 0 16px;color:inherit}
+.boot-progress-heading{display:flex;justify-content:space-between;gap:14px;font-size:12px;line-height:1.5;color:#54635a}
+#load-percent{font-variant-numeric:tabular-nums;white-space:nowrap}
+#intro .load-progress{display:block;height:3px;background:#293b3620;margin:13px 0 0;overflow:hidden}
+#intro #load-fill{width:0;background:#d75e36;transition:width .3s;height:100%}
+#intro .primary-btn{width:100%;padding:16px 18px;min-height:52px;margin:0;font-size:14px;border-radius:4px}
+.boot-enter{display:block;text-align:center;font-size:10px;color:#637066;margin-top:11px}
+.boot-enter kbd{font-size:9px;padding:3px 5px}
+.boot-footer{border-top:1px solid #293b361a;margin-top:18px;padding-top:13px;font-size:11px;color:#637066}
+.boot-footer a{color:#293b36;text-underline-offset:3px}
+#intro [hidden]{display:none!important}
+#intro.failed #boot-launch{margin-top:16px}
+@media(max-width:700px){#intro.boot-screen{left:18px;bottom:40px;width:300px;padding:18px}#intro #boot-title{font-size:18px;margin-bottom:13px}.boot-footer{font-size:10px;margin-top:14px;padding-top:11px}}
+@media(max-height:500px){#intro.boot-screen{bottom:28px;padding:14px;width:290px}.boot-enter{display:none}.boot-footer{margin-top:10px;padding-top:9px}}
+@media(prefers-reduced-motion:reduce){#intro.boot-screen,#intro #load-fill{transition:none}}
+
+.boot-controls{margin:12px 0 0;font-size:11px;line-height:1.9;color:#53625c}
+.boot-controls kbd{font:600 10px/1 system-ui,sans-serif;padding:2px 5px;border:1px solid #29393433;border-radius:4px;background:#fff;color:#293b36}

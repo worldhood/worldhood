@@ -1,0 +1,49 @@
+{
+  "asset": "senate-pavilions.glb",
+  "authoring": "Blender 5.2 LTS; scripts/build-senate-assets.py; rebuild the editable .blend with that script",
+  "status": "Photo-guided architectural reconstruction, not a survey-exact digital twin",
+  "geometry": {
+    "source": "City of Helsinki LOD2, RATU 212 and 213",
+    "url": "https://www.hel.fi/en/decision-making/information-on-helsinki/maps-and-geospatial-data/helsinki-3d",
+    "license": "CC BY 4.0",
+    "adaptation": "Footprint dimensions, alignment and approximate roof envelope retained; facades reconstructed. Ornaments and vertical storey divisions are approximate. Ground remains flattened."
+  },
+  "photographicReferences": [
+    {
+      "title": "Helsinki Cathedral bell tower 2021-04-20",
+      "author": "Josefiina Alanen",
+      "url": "https://commons.wikimedia.org/wiki/File:Helsinki_Cathedral_bell_tower_2021-04-20.jpg",
+      "license": "CC BY 4.0",
+      "use": "Visual reference for arched louvres, pilasters, granite base and cornices; image not embedded"
+    },
+    {
+      "title": "Helsinki Cathedral Chapel 2021-03-03",
+      "author": "Josefiina Alanen",
+      "url": "https://commons.wikimedia.org/wiki/File:Helsinki_Cathedral_Chapel_2021-03-03.jpg",
+      "license": "CC BY-SA 4.0",
+      "use": "Visual reference for glazed arches, lower windows, granite base and pediment; image not embedded"
+    }
+  ],
+  "governmentPalace": {"ratu": 5, "scope": "Senate-facing frontage only; reconstructed window bays, ground-floor arches, portico and pediment", "reference": "https://commons.wikimedia.org/wiki/File:Helsinki_Government_Palace_from_Senate_Square_2021-03-03.jpg", "photographer": "Josefiina Alanen", "referenceLicense": "CC BY-SA 4.0", "use": "Visual reference only, photograph not embedded"},
+  "cathedralSite": {
+    "implementation": "src/cathedral-site.js",
+    "layout": "South monumental stairs with intermediate landing and pavilion courts; west lower court, street stair, long upper stair and Kirkkokatu ramp; north/east retaining walls and railings; north crypt portal",
+    "sources": [
+      {"title": "Helsingin tuomiokirkon restaurointi- ja korjausprojekti: hankeselvitys, 14.08.1995", "author": "Helsingin seurakuntayhtyma, Kiinteistotoimisto; archived by Museovirasto", "url": "https://www.kyppi.fi/palveluikkuna/raportti/read/asp/hae_liite.aspx?id=114762&kansio_id=91&ttyyppi=pdf", "pages": [12,23], "use": "Site relationships and west-court material reference; report images not embedded"},
+      {"title": "West side of Helsinki Cathedral, April 2022", "author": "Ximonic (Simo Rasanen)", "url": "https://commons.wikimedia.org/wiki/File:West_side_of_Helsinki_Cathedral_in_Kruununhaka,_Helsinki,_Finland,_2022_April.jpg", "license": "CC BY-SA 4.0", "use": "Stairs, stone tones and globe lamps; photograph not embedded"},
+      {"title": "2025 5 cm orthophoto and municipal Portaat polygons", "author": "City of Helsinki", "license": "CC BY 4.0", "use": "Plan layout/alignment; north-up crop covers local x -85..85, z -95..35"},
+      {"title": "Cathedral Crypt", "url": "https://www.helsingintuomiokirkko.fi/index/cafekrypta.html", "use": "Kirkkokatu access confirmation"}
+    ],
+    "limitations": "Plan-aligned reconstruction, NOT perfect on every side. Street terrain remains flat; relative heights, tread counts and profiles, lamp offsets, railing pattern and crypt portal profile are approximate. Ramp and stairs are visual/solid obstacles, not elevation-aware navigation. Current construction and temporary cafe fixtures are omitted."
+  },
+  "paving": "Municipal Senaatintori Aukiot polygons, preserving material segmentation and holes; stone appearance is representative, not a site scan",
+  "material": {
+    "title": "Granite Tile 03",
+    "source": "Poly Haven",
+    "url": "https://polyhaven.com/a/granite_tile_03",
+    "license": "CC0",
+    "files": ["/materials/granite-color.jpg", "/materials/granite-normal.jpg", "/materials/granite-roughness.jpg"],
+    "use": "Self-hosted 1K material maps, colour-tinted and normal strength reduced for game rendering"
+  },
+  "limitations": ["Stair rise and count are approximations", "Monument sculpture and railing are simplified", "Not every surrounding facade has been reconstructed", "The 2024 Helsinki reality mesh is not yet used"]
+}

@@ -1,0 +1,23 @@
+{
+  "landmark": "Kamppi Chapel (Kampin kappeli / Chapel of Silence), Simonkatu 7, Narinkkatori",
+  "module": "src/kamppi-chapel.js",
+  "measured": {
+    "footprint": {"source": "public/data/city.pack buildings[] (Helsinki municipal register)", "ratu": 57950, "id": "Rakennukset_alue.749377", "address": "Simonkatu 7", "points": 73, "bbox": [-914.25, 64.73, -892.48, 79.13], "areaM2": 249.6, "centroid": [-902.534, 72.025]},
+    "municipalShell": {"source": "public/data/buildings3d-index.json + buildings3d/57.pack", "ratu": 57950, "envelope": "vertical extrusion of the footprint ring, y 0.12 to 13.06 m (height 12.94 m incl. terrain offset)", "replacedBy": "authored model; excluded in src/main.js loadRoof"}
+  },
+  "published": [
+    {"fact": "Height 11.5 m", "urls": ["https://en.wikipedia.org/wiki/Kamppi_Chapel", "https://www.finnisharchitecture.fi/projects/kamppi-chapel"]},
+    {"fact": "Architects Kimmo Lintula, Niko Sirola, Mikko Summanen (K2S Architects); completed 2012; gross area 352 m2", "urls": ["https://en.wikipedia.org/wiki/Kamppi_Chapel", "https://www.designboom.com/architecture/k2s-architects-kamppi-chapel-of-silence/"]},
+    {"fact": "Facade of sawn-to-order horizontal finger-jointed spruce planks treated with pigmented transparent nanotech wax; windowless; CNC-cut glulam frame", "urls": ["https://www.e-architect.com/helsinki/kamppi-chapel", "https://www.designboom.com/architecture/k2s-architects-kamppi-chapel-of-silence/"]},
+    {"fact": "Daylight enters through a void in the ceiling and washes down the perimeter wall", "urls": ["https://www.designboom.com/architecture/k2s-architects-kamppi-chapel-of-silence/"]},
+    {"fact": "Only the chapel space is in the wooden volume; secondary spaces open to the square; entrances in two glass facades facing Narinkka square and Lasipalatsi", "urls": ["https://www.e-architect.com/helsinki/kamppi-chapel", "https://www.finnisharchitecture.fi/kamppi-chapel/"]}
+  ],
+  "interpreted": [
+    "Flare profile: footprint scaled about its centroid by 0.75 at ground rising quadratically to 0.985 at the wall top, rim lip reaching the measured ring",
+    "Plank course height 0.118 m, finger-joint segment lengths 2.1-4.3 m, honey tone range (procedural shader, no photo textures)",
+    "Flat grey roof membrane with a perimeter skylight ring 0.5 m wide inside the rim",
+    "Glazed entrance: 2.9 m high curved glass band under the east overhang, sector +/-55 deg centred 25 deg north of east (toward Lasipalatsi); size and exact position unverified",
+    "Ground level taken as the flat game terrain (y=0); the real Narinkka/Simonkatu levels differ"
+  ],
+  "imagesEmbedded": false
+}

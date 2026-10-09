@@ -1,0 +1,17 @@
+{
+ "created": "2026-09-17",
+ "geometry": "Original procedural Helsinki-family blue electric bus, orange 15 m three-axle trunk-bus proxy, and red three-axle sightseeing double-decker. Not exact manufacturer replicas. Reference photos are not packaged as textures.",
+ "trunkReference": "https://www.hsl.fi/en/hsl/trunk-route-network — route 600 Railway Square–Airport; the orange photo bus's number is not legible, so it is not asserted to be that particular vehicle.",
+ "stationEvidence": "Kaivokatu street-level photography, September 2025: blue routes 78 and 611 and the orange fleet visible. Standing positions follow HSL GTFS snapshot stops H2041/platform1, H2048/platform8, H2047/platform7 and the corresponding departure shape; positions approximate, not photo-surveyed.",
+ "fleetReference": "https://www.hsl.fi/en/hsl/electric-buses",
+ "photoReference": "https://staticfiles.hsl.fi/globalassets/hsl/uutiskuvat/sahkobussisivu_kuva_3.jpg?preset=1280w",
+ "sightseeingReference": "https://www.stromma.com/en-fi/helsinki/sightseeing/sightseeing-by-bus/",
+ "routeData": "HSL GTFS dated snapshot 2026-09-16, CC BY 4.0; https://www.hsl.fi/en/hsl/open-data",
+ "limitations": [
+  "Body dimensions approximate fleet class rather than a certified bus specification.",
+  "The bus simulation is not live HSL tracking or a timetable.",
+  "GTFS shapes are not surveyed bus-lane geometry. Geometry-clearance checks restrict where vehicles can move.",
+  "No bus-lane paint or access restriction is invented from the bus path.",
+  "A maximum of two tourist buses is enforced, and only explicitly verified tourist paths can be enabled."
+ ]
+}

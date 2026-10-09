@@ -1,0 +1,110 @@
+{
+  "updated": "2026-09-17",
+  "scope": "Olympia Terminal / Laivasillankatu opening and Etelaranta platforms; not the entire harbour route",
+  "axes": "Local metres; X east, Y up, Z south; origin 24.9522 E, 60.1701 N",
+  "geometrySource": "Bundled City of Helsinki municipal city.pack, CC BY 4.0; footprint IDs preserved in src/harbour-layout.js",
+  "references": [
+    {
+      "capture": "2024-08",
+      "view": "Olympia north and terminal east",
+      "type": "street-level photography (appearance reference only)"
+    },
+    {
+      "capture": "2024-08",
+      "view": "Laivasillankatu, about 50 m farther north; reference is not a live camera",
+      "type": "street-level photography (appearance reference only)"
+    },
+    {
+      "capture": "2024-08",
+      "view": "Laivasillankatu apron, rock and trailer storage",
+      "type": "street-level photography (appearance reference only)"
+    },
+    {
+      "source": "Tallink, Silja Symphony vessel dimensions",
+      "url": "https://www.tallink.com/on-board/fleet/silja-symphony",
+      "lengthMetres": 203,
+      "beamMetres": 31.5
+    },
+    {
+      "capture": "2024-08",
+      "view": "Eteläranta northbound suspended turn signs; one left and two right arrows",
+      "type": "street-level photography (appearance reference only)"
+    }
+  ],
+  "placements": {
+    "platforms": {
+      "ids": [
+        41194,
+        41195,
+        45847,
+        45848
+      ],
+      "accuracy": "Municipal footprints; height, railing profile, stops' signs and benches approximated"
+    },
+    "redCycleways": {
+      "ids": [
+        41192,
+        42153,
+        45853,
+        45855
+      ],
+      "accuracy": "Mapped dedicated cycleway polygons; colour interpreted from photos, not all cycleways assumed red"
+    },
+    "terminal": {
+      "ratu": 1796,
+      "accuracy": "Mapped stepped footprint; photo-guided facade treatment; height, window counts and interior not surveyed"
+    },
+    "rocks": {
+      "ids": [
+        461318,
+        131049,
+        461329
+      ],
+      "accuracy": "Mapped exposed bedrock and retaining-wall outlines; vertical relief approximated"
+    },
+    "ferry": {
+      "accuracy": "Original procedural Silja-class silhouette; approximate static berth, not a detailed licensed vessel model or live ship position"
+    },
+    "apronProps": {
+      "accuracy": "Appearance from photos; approximate trailer and floodlight positions, not a survey of each object"
+    },
+    "suspendedTurnSigns": {
+      "accuracy": "Three blue round signs: left, right, right. Original 3D plates, vector arrows, backs, clamps and two support cables. Height, diameter and anchors estimated against municipal road/pavement polygons; poles outside carriageway. August 2024 appearance, not verified current regulations.",
+      "implementation": "src/harbour-signs.js"
+    },
+    "esplanadiFronts": {
+      "ratus": [
+        221,
+        335
+      ],
+      "reference": "August 2024 street-level photography",
+      "accuracy": "Measured façade planes and widths. RATU 221 has separate pale ornate west and yellow east fronts, not a single style. Split position, window bays, mouldings and side elevations interpreted. Source roofs/courtyard walls retained."
+    },
+    "stationLanternCarriers": {
+      "ratu": 324,
+      "source": "https://www.hamhelsinki.fi/veistos/lyhdynkantajat/",
+      "museumWestPairCoordinate": {
+        "lat": 60.170696,
+        "lng": 24.941246
+      },
+      "accuracy": "Four original geometry sculptures at the Kaivokatu main entrance, registered to footprint entrance piers. Faces, height, pedestal and hand anatomy are photo-guided approximations, not scans."
+    },
+    "bindAds": {
+      "fictional": true,
+      "source": "Bind logo (bindlegal.com), used with permission",
+      "locations": [
+        "Harbour billboard",
+        "Forum, RATU 588, Mannerheimintie 20 façade",
+        "11 route-stop ad panels"
+      ],
+      "accuracy": "Invented advertising layer; not actual purchased advertising or a verified inventory of existing screens. Stop positions derived from HSL stops with pavement/road clearance tests."
+    }
+  },
+  "limitations": [
+    "Street-level photography was consulted for appearance only; no photo pixels or extracted textures are distributed.",
+    "The route remains a prototype: flattened street terrain, simple materials and generic vehicle/pedestrian models remain.",
+    "HSL trams follow dated route shapes, not surveyed rail centre lines. Stops are not fully operational boarding simulations.",
+    "Rear terminal elevations and ferry small details are interpreted; no claim of survey-exact reconstruction.",
+    "The park's small staircase, bicycle markings, traffic signal/sign inventory and harbour apron elevation need further reference work."
+  ]
+}

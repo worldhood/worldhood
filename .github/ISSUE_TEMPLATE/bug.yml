@@ -1,0 +1,15 @@
+name: Bug
+description: Something is broken or looks wrong in the game
+labels: ["bug"]
+body:
+  - type: input
+    id: where
+    attributes: {label: Link that reproduces it, description: "The game URL with ?city= and ?start=, plus what to do", placeholder: "http://localhost:5173/?city=helsinki&start=seurasaari-bridge"}
+    validations: {required: true}
+  - type: textarea
+    id: what
+    attributes: {label: What happens and what you expected}
+    validations: {required: true}
+  - type: input
+    id: browser
+    attributes: {label: Browser and device}

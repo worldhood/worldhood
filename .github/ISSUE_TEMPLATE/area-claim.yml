@@ -1,0 +1,24 @@
+name: Area claim
+description: Claim an area of the city to build as a map extension
+title: "Area claim: "
+labels: ["area-claim"]
+body:
+  - type: input
+    id: name
+    attributes: {label: Area name, placeholder: "Kallio — Hakaniemi to Sörnäinen"}
+    validations: {required: true}
+  - type: textarea
+    id: streets
+    attributes: {label: Streets and landmarks covered}
+    validations: {required: true}
+  - type: input
+    id: connects
+    attributes: {label: Existing area it connects to, placeholder: "core / seurasaari"}
+    validations: {required: true}
+  - type: input
+    id: maintainers
+    attributes: {label: Maintainers (GitHub handles)}
+    validations: {required: true}
+  - type: textarea
+    id: sources
+    attributes: {label: Data sources beyond City of Helsinki open data (if any)}

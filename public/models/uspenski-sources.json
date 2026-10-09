@@ -1,0 +1,33 @@
+{
+  "asset": "src/uspenski-cathedral.js (procedural three.js geometry, no image textures)",
+  "status": "Architectural reconstruction registered to the municipal record; details photo-guided, not a survey-exact digital twin",
+  "geometry": {
+    "source": "City of Helsinki building register + LOD2 3D model, RATU 1691 (Pormestarinrinne 1 / Kanavakatu 1)",
+    "url": "https://www.hel.fi/en/decision-making/information-on-helsinki/maps-and-geospatial-data/helsinki-3d",
+    "license": "CC BY 4.0",
+    "measured": {
+      "centreWorld": [426.48, 176.40],
+      "orientationRad": 0.059,
+      "mainBlockMetres": [27.44, 27.52],
+      "crossTopMetres": 48.27,
+      "domeAxisWorld": [427.1, 176.5],
+      "heightsMetres": {"cornerBays": 17, "armCornices": 22.5, "gablePeaks": 29.5, "drumRing": 34, "lanternTop": 48.27}
+    },
+    "adaptation": "Footprint outline, orientation, apse/bell-tower positions and the height envelope retained; walls, windows, cupolas and roofs authored procedurally."
+  },
+  "facts": [
+    {"fact": "Architect Aleksey Gornostayev; built 1862-1868; consecrated 25 Oct 1868; bricks from Bomarsund", "url": "https://en.wikipedia.org/wiki/Uspenski_Cathedral", "license": "CC BY-SA 4.0 (text facts only)"},
+    {"fact": "Central cupola 33 m (interior); gilding renewed 2004-2007; on the highest hill of Katajanokka", "url": "https://hos.fi/en/uspenski-cathedral-main-cathedral-of-the-orthodox-parish-of-helsinki-and-the-diocese-of-helsinki/"},
+    {"fact": "13 gilded cupolas; five-storey bell tower whose top was rebuilt in brick c. 20 years after completion", "url": "https://www.myhelsinki.fi/places/uspenski-cathedral/", "note": "travel summaries; apportionment of the 13 cupolas is interpreted"}
+  ],
+  "photographicReferences": [
+    {"title": "Kanavakatu (Aug 2024)", "provider": "Street-level photography", "use": "West/south-west front, cupola heights and bell tower relation; not embedded"},
+    {"title": "2 Kanavakatu (Aug 2024)", "provider": "Street-level photography", "use": "South side, bell tower stages, rock face, rubble granite and railing; not embedded"}
+  ],
+  "interpreted": [
+    "Rock/terrace height 5.4 m and hill outline (kept clear of mapped roads, pavement and park stairs)",
+    "Cupola distribution: 1 main + 4 satellite drums + 8 flanking towers = 13; bell tower onion separate",
+    "Dome, tent and onion profiles; window counts; friezes, string courses; material colours"
+  ],
+  "limitations": "Flat game terrain: rock is a solid obstacle; SW stair is visual only; trees on the rock are photo-placed, not registered; west entrance stairs, fence/gates and small ornaments simplified."
+}

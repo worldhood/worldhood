@@ -1,0 +1,1011 @@
+{
+ "schemaVersion": 1,
+ "place": "keskustori",
+ "note": "Every registered tree within 120 m of the square centre (local metres) with the City of Tampere tree register entry, the species shown in current photos and the model family used. No photo contradicted the register; where no photo resolves the species, the register species is used and the tree is flagged unidentified.",
+ "radius": 120,
+ "trees": [
+  {
+   "p": [
+    -21.4,
+    -128.7
+   ],
+   "register": {
+    "species": "LARIX SIBIRICA (SIPERIANLEHTIKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "larch",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "Behind the church, hidden by other crowns in every photo; register species used."
+  },
+  {
+   "p": [
+    -125.6,
+    28.9
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -31.6,
+    -111
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -154.8,
+    15.6
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -6.4,
+    -120.3
+   ],
+   "register": {
+    "species": "PICEA PUNGENS (OKAKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "spruce",
+   "photo": "dark narrow conifer cone",
+   "status": "confirmed as spruce; species (blue/Engelmann) not resolvable",
+   "photos": [
+    "119022500",
+    "121881139"
+   ],
+   "note": "Dark spruces behind the church in winter and summer photos."
+  },
+  {
+   "p": [
+    -4.6,
+    -89.5
+   ],
+   "register": {
+    "species": "QUERCUS ROBUR ((METSÄ)TAMMI)",
+    "height": 13,
+    "girth": 127
+   },
+   "model": "oak",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "No current photo shows this tree clearly; register species used."
+  },
+  {
+   "p": [
+    -57.4,
+    42.8
+   ],
+   "register": {
+    "species": "PRUNUS (TUOMET, KIRSIKAT, LUUMUT)",
+    "height": 5,
+    "girth": 45
+   },
+   "model": "blossom",
+   "photo": "small round broadleaf",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "107637171"
+   ],
+   "note": "Small trees at the bus terminal edge."
+  },
+  {
+   "p": [
+    -114.7,
+    9.6
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -83.1,
+    85.4
+   ],
+   "register": {
+    "species": "QUERCUS ROBUR ((METSÄ)TAMMI)",
+    "height": 5,
+    "girth": 69
+   },
+   "model": "oak",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "No current photo shows this tree clearly; register species used."
+  },
+  {
+   "p": [
+    -41.5,
+    -72.6
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 18,
+    "girth": 242
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -38.2,
+    -108.3
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -47.4,
+    -125.3
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -27.3,
+    -110.8
+   ],
+   "register": {
+    "species": "PICEA PUNGENS (OKAKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "spruce",
+   "photo": "dark narrow conifer cone",
+   "status": "confirmed as spruce; species (blue/Engelmann) not resolvable",
+   "photos": [
+    "119022500",
+    "121881139"
+   ],
+   "note": "Dark spruces behind the church in winter and summer photos."
+  },
+  {
+   "p": [
+    -45.1,
+    -125.4
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -13.5,
+    -111.1
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -52.9,
+    -137.3
+   ],
+   "register": {
+    "species": "FRAXINUS EXCELSIOR (LEHTOSAARNI)",
+    "height": 17,
+    "girth": 0
+   },
+   "model": "ash",
+   "photo": "tall wide high crowns by the theatre",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "176190736"
+   ],
+   "note": "Riverside trees seen beyond the theatre; ash and elm not distinguishable at that distance."
+  },
+  {
+   "p": [
+    -30.5,
+    -64.2
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 209
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -112.1,
+    26.9
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -13.8,
+    -117.5
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -38.7,
+    -118.8
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    14.5,
+    -65.2
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 8,
+    "girth": 66
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -17.6,
+    -132.4
+   ],
+   "register": {
+    "species": "LARIX SIBIRICA (SIPERIANLEHTIKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "larch",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "Behind the church, hidden by other crowns in every photo; register species used."
+  },
+  {
+   "p": [
+    -12.8,
+    -106
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 13,
+    "girth": 137
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -54.8,
+    58
+   ],
+   "register": {
+    "species": "PRUNUS (TUOMET, KIRSIKAT, LUUMUT)",
+    "height": 5,
+    "girth": 36
+   },
+   "model": "blossom",
+   "photo": "small round broadleaf",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "107637171"
+   ],
+   "note": "Small trees at the bus terminal edge."
+  },
+  {
+   "p": [
+    -78.2,
+    -133.2
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 154
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -31.6,
+    -120.1
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -23.1,
+    -65.3
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 287
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -13.3,
+    -130
+   ],
+   "register": {
+    "species": "LARIX SIBIRICA (SIPERIANLEHTIKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "larch",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "Behind the church, hidden by other crowns in every photo; register species used."
+  },
+  {
+   "p": [
+    -72.8,
+    -132.2
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 143
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -152.2,
+    32.9
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -17,
+    -105.5
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 13,
+    "girth": 124
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -5.9,
+    -98.2
+   ],
+   "register": {
+    "species": "QUERCUS ROBUR ((METSÄ)TAMMI)",
+    "height": 13,
+    "girth": 105
+   },
+   "model": "oak",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "No current photo shows this tree clearly; register species used."
+  },
+  {
+   "p": [
+    -141.4,
+    13.5
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -90.4,
+    -131.3
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 129
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    14.3,
+    -87.5
+   ],
+   "register": {
+    "species": "LARIX GMELINII SUBSP. JAPONICA (KURILIENLEHTIKUUSI)",
+    "height": 8,
+    "girth": 250
+   },
+   "model": "larch",
+   "photo": "not seen",
+   "status": "unidentified from photos",
+   "photos": [],
+   "note": "Behind the church, hidden by other crowns in every photo; register species used."
+  },
+  {
+   "p": [
+    -11.7,
+    -99.7
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 8,
+    "girth": 45
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -30.3,
+    -113.7
+   ],
+   "register": {
+    "species": "PICEA PUNGENS (OKAKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "spruce",
+   "photo": "dark narrow conifer cone",
+   "status": "confirmed as spruce; species (blue/Engelmann) not resolvable",
+   "photos": [
+    "119022500",
+    "121881139"
+   ],
+   "note": "Dark spruces behind the church in winter and summer photos."
+  },
+  {
+   "p": [
+    -66.8,
+    -129.2
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 132
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -58.3,
+    34.2
+   ],
+   "register": {
+    "species": "PRUNUS (TUOMET, KIRSIKAT, LUUMUT)",
+    "height": 5,
+    "girth": 40
+   },
+   "model": "blossom",
+   "photo": "small round broadleaf",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "107637171"
+   ],
+   "note": "Small trees at the bus terminal edge."
+  },
+  {
+   "p": [
+    -37.9,
+    -63.2
+   ],
+   "register": {
+    "species": "TILIA SP. (LEHMUKSET)",
+    "height": 8,
+    "girth": 59
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -45.4,
+    -113.2
+   ],
+   "register": {
+    "species": "PICEA ENGELMANNII (ENGELMANNINKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "spruce",
+   "photo": "dark narrow conifer cone",
+   "status": "confirmed as spruce; species (blue/Engelmann) not resolvable",
+   "photos": [
+    "119022500",
+    "121881139"
+   ],
+   "note": "Dark spruces behind the church in winter and summer photos."
+  },
+  {
+   "p": [
+    -114.6,
+    -122
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 8,
+    "girth": 53
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -138.8,
+    30.9
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -128.1,
+    11.6
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 5,
+    "girth": 30,
+    "planted": 2022
+   },
+   "model": "lime",
+   "photo": "lime (Tilia)",
+   "status": "confirmed",
+   "photos": [
+    "134001736",
+    "182386369",
+    "178894577"
+   ],
+   "note": "Young street limes: heart-shaped leaves, slim stems in black three-post guards over cast-iron grates, upright oval crowns 5-6 m (2022 planting)."
+  },
+  {
+   "p": [
+    -68,
+    -135.6
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 128
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -56.7,
+    48.9
+   ],
+   "register": {
+    "species": "PRUNUS (TUOMET, KIRSIKAT, LUUMUT)",
+    "height": 5,
+    "girth": 40
+   },
+   "model": "blossom",
+   "photo": "small round broadleaf",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "107637171"
+   ],
+   "note": "Small trees at the bus terminal edge."
+  },
+  {
+   "p": [
+    7.4,
+    -69.9
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 18,
+    "girth": 210
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -49.5,
+    -137.7
+   ],
+   "register": {
+    "species": "FRAXINUS EXCELSIOR (LEHTOSAARNI)",
+    "height": 17,
+    "girth": 0
+   },
+   "model": "ash",
+   "photo": "tall wide high crowns by the theatre",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "176190736"
+   ],
+   "note": "Riverside trees seen beyond the theatre; ash and elm not distinguishable at that distance."
+  },
+  {
+   "p": [
+    -21.2,
+    -110.4
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 15,
+    "girth": 0
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -91.7,
+    -128.3
+   ],
+   "register": {
+    "species": "TILIA X VULGARIS (PUISTOLEHMUS)",
+    "height": 13,
+    "girth": 160
+   },
+   "model": "lime",
+   "photo": "tall dense ovoid broadleaf crowns",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park; habit fits park lime."
+  },
+  {
+   "p": [
+    -25.8,
+    -104.2
+   ],
+   "register": {
+    "species": "ACER PLATANOIDES (METSÄVAAHTERA)",
+    "height": 13,
+    "girth": 52
+   },
+   "model": "maple",
+   "photo": "broad round dense broadleaf crowns, maple or lime",
+   "status": "consistent, not individually identified",
+   "photos": [
+    "119022500",
+    "177425215",
+    "121881139"
+   ],
+   "note": "Church park crowns seen from the square at 40-90 m; leaf shape not resolvable, crown habit fits Norway maple."
+  },
+  {
+   "p": [
+    -11,
+    -122.4
+   ],
+   "register": {
+    "species": "PICEA PUNGENS (OKAKUUSI)",
+    "height": 18,
+    "girth": 0
+   },
+   "model": "spruce",
+   "photo": "dark narrow conifer cone",
+   "status": "confirmed as spruce; species (blue/Engelmann) not resolvable",
+   "photos": [
+    "119022500",
+    "121881139"
+   ],
+   "note": "Dark spruces behind the church in winter and summer photos."
+  }
+ ]
+}

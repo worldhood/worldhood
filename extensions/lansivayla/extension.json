@@ -1,0 +1,166 @@
+{
+ "schemaVersion": 1,
+ "id": "lansivayla",
+ "title": "Ruoholahti → Länsiväylä → Lauttasaari → Koivusaari",
+ "maintainers": [],
+ "status": "playable-draft",
+ "description": "Drivable corridor west from Ruoholahti along Porkkalankatu and Länsiväylä over Lauttasaari and Koivusaari to the Espoo border, with Lauttasaarentie into Lauttasaari centre.",
+ "definition": {
+  "legs": [
+   {
+    "id": "lansivayla",
+    "label": "Porkkalankatu → Lauttasaari bridge → Länsiväylä → Koivusaari → Espoo border",
+    "via": [
+     [
+      24.92159,
+      60.16434
+     ],
+     [
+      24.89818,
+      60.16217
+     ],
+     [
+      24.87773,
+      60.1607
+     ],
+     [
+      24.85676,
+      60.16321
+     ],
+     [
+      24.8461,
+      60.16544
+     ],
+     [
+      24.84125,
+      60.16681
+     ]
+    ]
+   },
+   {
+    "id": "lauttasaarentie",
+    "label": "Lauttasaari bridge → Lauttasaarentie → Lauttasaari centre",
+    "via": [
+     [
+      24.88558,
+      60.16117
+     ],
+     [
+      24.87911,
+      60.15758
+     ],
+     [
+      24.87425,
+      60.15829
+     ]
+    ]
+   }
+  ],
+  "buffers": {
+   "surfaceMetres": 200,
+   "buildingMetres": 260,
+   "islandShoreMetres": 60
+  },
+  "waterClip": [
+   -7600,
+   -3600,
+   2400,
+   3200
+  ],
+  "anchors": [
+   [
+    "Ruoholahti",
+    [
+     24.913,
+     60.1634
+    ]
+   ],
+   [
+    "Lauttasaari bridge",
+    [
+     24.89818,
+     60.16217
+    ]
+   ],
+   [
+    "Lauttasaari centre",
+    [
+     24.8797,
+     60.1597
+    ]
+   ],
+   [
+    "Länsiväylä at Lauttasaari",
+    [
+     24.8676,
+     60.1615
+    ]
+   ],
+   [
+    "Koivusaari",
+    [
+     24.85676,
+     60.16321
+    ]
+   ]
+  ],
+  "starts": [
+   {
+    "name": "Lauttasaari",
+    "district": "Lauttasaari",
+    "anchor": "Lauttasaari centre",
+    "line": "lauttasaarentie"
+   },
+   {
+    "name": "Koivusaari",
+    "district": "Koivusaari",
+    "anchor": "Koivusaari",
+    "line": "lansivayla"
+   }
+  ]
+ },
+ "limitations": [
+  "Terrain is flat, as in the rest of Helsinki; Länsiväylä's bridges and ramps are drawn at street level.",
+  "Länsiväylä's grade-separated interchanges are flattened, so ramps and the motorway meet where in reality one passes over the other.",
+  "Helsinki's textured 3D model ends at the Espoo border; the corridor continues on Espoo's own city model (extension espoo)."
+ ],
+ "knownFor": [
+  {
+   "name": "Lauttasaari bridge",
+   "near": "Lauttasaari bridge",
+   "description": "Länsiväylä's bridge from Ruoholahti over the water to Lauttasaari",
+   "mustHave": true,
+   "at": [
+    [
+     24.89818,
+     60.16217
+    ]
+   ]
+  },
+  {
+   "name": "Lauttasaari shopping centre",
+   "near": "Lauttasaari centre",
+   "description": "Local centre on Lauttasaarentie with shops and the metro",
+   "mustHave": false,
+   "at": [
+    [
+     24.8797,
+     60.1597
+    ]
+   ]
+  },
+  {
+   "name": "Koivusaari metro and seafront",
+   "near": "Koivusaari",
+   "description": "Small island crossed by Länsiväylä, with new residential towers and the metro station",
+   "mustHave": false,
+   "at": [
+    [
+     24.85676,
+     60.16321
+    ]
+   ]
+  }
+ ],
+ "knownForSource": "Approximate positions from OpenStreetMap (ODbL), October 2026"
+}

@@ -1,0 +1,785 @@
+{
+ "schemaVersion": 1,
+ "city": "tampere",
+ "place": "keskustori",
+ "name": "Keskustori",
+ "observedOn": "2026-10-09",
+ "photoSearch": {
+  "centre": [
+   23.7607,
+   61.498
+  ],
+  "radiusMetres": 170,
+  "since": "2021-01-01",
+  "mapillaryMax": 220,
+  "commons": [
+   "Keskustori@2",
+   "Tampere Old church@1",
+   "Tampere Old church bell tower@0",
+   "Tampere City Hall@1",
+   "Tampere Theatre@1",
+   "Keskustorin suihkukaivo@0",
+   "Hämeenkatu (Tampere)@1",
+   "Tram stops in Tampere@0"
+  ]
+ },
+ "currency": "Built from the newest open photos: Wikimedia Commons up to July 2025 and Mapillary up to July 2022 (no Panoramax coverage). In June 2025 the north edge of the square was fenced off for works; anything rebuilt after mid-2025 is not in these photos. Seasonal things (Christmas market, summer huts, event stages and fences) are left out.",
+ "description": {
+  "layout": "An open, slightly sloping square on the north side of Hämeenkatu, the main street, which crosses Tampere from the railway station over Hämeensilta bridge. The City Hall closes the west side and faces east across the square; the yellow wooden Old Church stands in its park at the north edge with its separate bell tower at the church's south-east corner, nearest the square; the cream Tampere Theatre with its columned front closes the east side on the bank of the rapids. South of Hämeenkatu is the Keskustori bus terminal under a row of glass canopies, in front of a large yellow Jugend corner building with domed corner turrets.",
+  "paving": "Almost the whole square is grey granite: small square setts laid in overlapping fan-shaped arcs, divided into a large grid (roughly 8-9 m squares) by double rows of lighter, longer granite blocks. Near the church the older part is rounded grey-brown fieldstone cobbles. The Hämeenkatu pavements and both tram platforms are warm pinkish-red granite slabs, about 60 x 30 cm, laid in running bond with thin dark grey bands; the tram and bus lane between them is dark grey rectangular stone blocks with the rails set flush. Platform edges are a light grey granite kerb about 25 cm high with a strip of grey dimpled warning stones behind it. The pavements of the streets around the City Hall are reddish granite or brick-red pavers with grey sett roadways.",
+  "tramStop": "Keskustori tram stop (lines 1 and 3) is on Hämeenkatu at the south-west corner of the square, between Kauppakatu and the square's south edge: two side platforms either side of the double track, the westbound one on the square side. Each platform has one long shelter: black steel frame, clear glass back and end walls, a thin flat roof, a bench and a timetable panel. Black open-lattice steel masts with square sections and diagonal bracing carry the overhead wires along both sides of Hämeenkatu; most carry a flat street-light head on a short arm near the top and stand on a black cabinet base. Low black railings with a steel handrail line the back of the platforms.",
+  "trees": "The square itself is open with no trees. The Old Church park behind it is full of large mature trees: broad, dense, rounded crowns of Norway maples and park limes 13-18 m tall, a few oaks with more irregular crowns, tall narrow dark blue-grey spruces and lighter, airy larches. Along the river side of the theatre stand tall wych elms and ashes with high, wide crowns. Along Hämeenkatu west of the square young park limes planted in 2022 stand in a row on the tram-stop pavements: slim straight stems in black three-post tree guards over square cast-iron grates, with small upright oval crowns of bright green leaves, 5-6 m tall. Small ornamental cherries grow at the bus terminal.",
+  "lighting": "The square has tall galvanised grey masts, about 10 m, each with a cross-arm of four large white dome lamps at the top and a cluster of floodlights halfway up, on a conical concrete-grey base. Hämeenkatu is lit from the overhead-line masts.",
+  "furniture": "A cast-iron fountain in a round grey granite basin stands in front of the City Hall; five white flagpoles line the City Hall front. Wooden benches and planters are scattered at the square's south edge; black litter bins.",
+  "oldChurch": "Vanha kirkko (1824): a cruciform wooden church clad in horizontal yellow weatherboarding, with wide white corner pilasters, white cornices and a white triangular pediment over each of the four gable ends. Tall round-headed windows with white surrounds and small-paned sashes; dark grey panelled double doors in white surrounds reached by short black-railed stair flights. A grey stone plinth. Dark grey sheet-metal gable roofs meet over the crossing, which carries a low pale grey ribbed dome with a small yellow lantern and a black cross.",
+  "bellTower": "The separate bell tower (1828) at the corner nearest the square: square, about 36 m to the vane, in three yellow boarded stages with white corner pilasters and white cornices: a tall base with an arched door, a middle stage with an arched louvred opening, a short clock stage with a white clock face on each side, then a tall black pointed spire with a gilded ball and a weathervane.",
+  "cityHall": "Raatihuone (1890): a two-storey neo-Renaissance palace in off-white render with a rusticated ground floor, pale ochre and gilded ornament and a red-brown frieze under the eaves. A slightly projecting central pavilion with five tall round-arched windows on the upper floor between pilasters, a balustraded balcony, and below it an entrance porch with three arched doorways. Side wings of three bays each with paired arched windows above and paired rectangular windows below. Dark red-brown window frames. Low dark grey roofs; a small square clock turret with a dark dome and a flagpole over the centre.",
+  "theatre": "Tampere Theatre (1912): a large symmetrical cream, sand-coloured rendered block. The tall central part has a shallow triangular pediment and six white columns two storeys high standing in front of tall small-paned windows, flanked by plain bays with carved mask reliefs. A lower one-storey entrance wing runs across the whole front with grey stone piers, five wooden double doors and the theatre's name in gilded letters on a band above; lower side wings with small round columns. Green copper roofs on the stage house behind.",
+  "otherBuildings": "South of Hämeenkatu opposite the stop: a large yellow-ochre Jugend corner building with dark domed turrets and a brown roof (Keskustori 1 / Sumelius house) behind the bus canopies; west of the City Hall along Kauppakatu: four- and five-storey 1890s rendered blocks in ochre and brick red. The Kela office block in grey with dark windows stands south-west across Hämeenkatu."
+ },
+ "official": {
+  "wfs": "https://geodata.tampere.fi/geoserver/wfs",
+  "attribution": "City of Tampere open data (3D building parts, street parts, tree register, public transport stops), CC BY 4.0",
+  "layers": {
+   "buildings3d": "julkinen:mml_rakennusten_osat_3d_polygon_kaytossa",
+   "paths": "locus:Katualueen_osa_klv_RpaStreetPart_Polygon_gsview",
+   "streets": "locus:Katualueen_osa_katu_RpaStreetPart_Polygon_gsview",
+   "trees": "locus:locus_t_RpaVegetation_gsview",
+   "stops": "joukkoliikenne:joli_bussi_ja_ratikkapysakit_gsview"
+  },
+  "fields": {
+   "street": "kadun_nimi",
+   "type": "katuosalaji",
+   "material": "pintamateriaali",
+   "species": "Kasvilaji",
+   "group": "Kasviryhma",
+   "heightClass": "Pituusluokka",
+   "girth": "Rungon_ymparys",
+   "planted": "Istutusvuosi",
+   "stopName": "nimi",
+   "stopType": "type",
+   "roof": "kattokorkeus",
+   "base": "kivijalkakorkeus"
+  }
+ },
+ "radiusMetres": 190,
+ "gridAngle": -8.8,
+ "centreLocal": [
+  -55,
+  -20
+ ],
+ "paving": {
+  "note": "First matching rule wins. Kinds are drawn by src/place-scene.js. Matched to the photos listed in keskustori-sources.json.",
+  "rules": [
+   {
+    "layer": "paths",
+    "street": "KESKUSTORI$",
+    "type": "TORI",
+    "bbox": [
+     -200,
+     -200,
+     200,
+     -48
+    ],
+    "paving": "cobbles"
+   },
+   {
+    "layer": "paths",
+    "street": "KESKUSTORI$",
+    "type": "TORI",
+    "paving": "fan-setts"
+   },
+   {
+    "layer": "paths",
+    "street": "KESKUSTORI",
+    "material": "LUONNONKIVI",
+    "paving": "setts"
+   },
+   {
+    "layer": "paths",
+    "street": "HÄMEENKATU",
+    "paving": "red-granite"
+   },
+   {
+    "layer": "paths",
+    "street": "PUUTARHAKATU|KAUPPAKATU",
+    "paving": "red-granite"
+   },
+   {
+    "layer": "paths",
+    "material": "KIVITUHKA|SORA",
+    "paving": "stone-dust"
+   },
+   {
+    "layer": "paths",
+    "material": "BETONI",
+    "paving": "grey-pavers"
+   },
+   {
+    "layer": "streets",
+    "street": "HÄMEENKATU",
+    "type": "RAITIOTIE",
+    "paving": "tram-blocks"
+   },
+   {
+    "layer": "streets",
+    "street": "KAUPPAKATU|TALVIVÄYLÄ",
+    "material": "LUONNONKIVI",
+    "paving": "setts"
+   },
+   {
+    "layer": "streets",
+    "street": "KESKUSTORI$",
+    "material": "LUONNONKIVI",
+    "paving": "grey-blocks"
+   }
+  ]
+ },
+ "tramStop": {
+  "name": "Keskustori",
+  "stopType": 1,
+  "platform": {
+   "length": 47,
+   "width": 3.6,
+   "edge": 1.5,
+   "height": 0.25
+  },
+  "shelter": {
+   "height": 2.7,
+   "maxArea": 60
+  }
+ },
+ "overheadMasts": {
+  "spacing": 32,
+  "height": 10.5,
+  "fromX": -260,
+  "toX": 120
+ },
+ "lamps": {
+  "height": 10,
+  "positions": [
+   [
+    -85.1,
+    -41.6
+   ],
+   [
+    -66.7,
+    -42.0
+   ],
+   [
+    -30,
+    -20
+   ],
+   [
+    -44,
+    2
+   ],
+   [
+    -88,
+    -2
+   ],
+   [
+    8,
+    -40
+   ]
+  ],
+  "note": "The first two are Mapillary lamp detections on the square (2022-07); the others are placed from the 2025 photos (two masts flank the north view, one each by the south edge and the City Hall corner, one before the theatre)."
+ },
+ "fountain": {
+  "x": -80.5,
+  "z": -29.5,
+  "radius": 5.2,
+  "height": 4.6,
+  "note": "Round basin in the official paving layer; cast-iron tiered fountain from the photos."
+ },
+ "flagpoles": {
+  "from": [
+   -98.5,
+   -36
+  ],
+  "to": [
+   -96.2,
+   -11
+  ],
+  "count": 5,
+  "height": 11
+ },
+ "busCanopies": {
+  "from": [
+   -1.5,
+   19
+  ],
+  "to": [
+   5,
+   63
+  ],
+  "count": 5,
+  "width": 12,
+  "height": 5.6,
+  "note": "Glass vaults on grey-green steel over the bus bays G-M, seen 2021-2025."
+ },
+ "colours": {
+  "kerb": "#c9c7c1",
+  "warning": "#8d8e8c",
+  "shelterFrame": "#1c1e20",
+  "shelterGlass": "#a9bcc2",
+  "shelterRoof": "#2a2c2e",
+  "mast": "#1b1d1f",
+  "lampMast": "#9ea4a8",
+  "lampGlobe": "#f2f1ec",
+  "fountainRim": "#a8a49c",
+  "fountainIron": "#24302c",
+  "canopyFrame": "#6d7a76",
+  "canopyGlass": "#5f6e70",
+  "flagpole": "#eeeeea"
+ },
+ "landmarks": [
+  {
+   "type": "old-church",
+   "building": "osm-way-93350178",
+   "eaves": 8.2,
+   "ridge": 10.9,
+   "domeTop": 16.6,
+   "wall": "#e6bd52",
+   "trim": "#f3f1ea",
+   "roof": "#3b3d40",
+   "dome": "#c9ccca",
+   "plinth": "#a9a297",
+   "door": "#5b5a55",
+   "photoGables": true
+  },
+  {
+   "type": "bell-tower",
+   "building": "osm-way-93350115",
+   "height": 35.9,
+   "wall": "#e6bd52",
+   "trim": "#f3f1ea",
+   "spire": "#1f2224",
+   "clock": "#f4f2ea"
+  },
+  {
+   "type": "city-hall",
+   "building": "osm-way-93500771",
+   "facing": [
+    1,
+    0
+   ],
+   "eaves": 14.6,
+   "centre": 17.7,
+   "turret": 24.3,
+   "wall": "#ddd5c2",
+   "rustic": "#cbc2ad",
+   "trim": "#f0ece2",
+   "ornament": "#c89c46",
+   "frieze": "#9a4b3c",
+   "frame": "#5b2f28",
+   "roof": "#4a4e52",
+   "pavilionWidth": 22.8
+  },
+  {
+   "type": "theatre",
+   "building": "osm-way-136126205",
+   "facing": [
+    -1,
+    0
+   ],
+   "wing": 6.45,
+   "hall": 21.45,
+   "stage": 30.2,
+   "wall": "#e8d4a2",
+   "trim": "#f3ecd8",
+   "column": "#f4f0e4",
+   "stone": "#9b9890",
+   "door": "#7a4f2c",
+   "copper": "#5f8f7a",
+   "roof": "#56605e",
+   "hallEave": 17.3,
+   "hallWidth": 29.6
+  }
+ ],
+ "views": [
+  {
+   "photo": "commons/183781171.jpg",
+   "x": -42,
+   "z": -22,
+   "heading": 274,
+   "pitch": 3,
+   "note": "City Hall front across the square (2025-06)."
+  },
+  {
+   "photo": "commons/177425215.jpg",
+   "x": -72,
+   "z": -16,
+   "heading": 356,
+   "pitch": 2,
+   "note": "North across the square to the church park; fountain at left, Old Church at right (2025-06)."
+  },
+  {
+   "photo": "commons/182386369.jpg",
+   "x": -100,
+   "z": 20.6,
+   "heading": 80,
+   "pitch": 4,
+   "note": "From the south tram platform east along Hämeenkatu: bell tower, theatre, bus canopies (2025-06)."
+  },
+  {
+   "photo": "commons/178894577.jpg",
+   "x": -112,
+   "z": 11,
+   "heading": 76,
+   "pitch": 4,
+   "note": "North platform east towards the theatre (2025-06)."
+  },
+  {
+   "photo": "commons/176194539.jpg",
+   "x": -50,
+   "z": 25,
+   "heading": 314,
+   "pitch": 6,
+   "note": "From the south pavement north-west to the City Hall over the tram stop (2025-07)."
+  },
+  {
+   "photo": "mapillary/3232775950329369.jpg",
+   "x": -100,
+   "z": -38,
+   "heading": 86,
+   "pitch": 4,
+   "note": "From the City Hall front east to the theatre (2022-07)."
+  },
+  {
+   "photo": "commons/117650534.jpg",
+   "x": -38,
+   "z": -42,
+   "heading": 82,
+   "pitch": 6,
+   "note": "Theatre front (2022-04)."
+  }
+ ],
+ "photoPanels": [
+  {
+   "name": "city-hall-front",
+   "landmark": "city-hall",
+   "facing": [
+    1,
+    0
+   ],
+   "photo": "commons/183781171.jpg",
+   "corners": [
+    [
+     300,
+     475
+    ],
+    [
+     1535,
+     473
+    ],
+    [
+     1535,
+     828
+    ],
+    [
+     300,
+     830
+    ]
+   ],
+   "u": [
+    -25.4,
+    25.4
+   ],
+   "y": [
+    0,
+    14.6
+   ],
+   "ppm": 36,
+   "patches": [
+    {
+     "from": [
+      -4.6,
+      0,
+      3.7,
+      5.2
+     ],
+     "to": [
+      -1.4,
+      0
+     ]
+    }
+   ],
+   "note": "East front of both floors, rectified from a straight-on 2025 photo; the fountain in front of the middle door is covered with the left door bay."
+  },
+  {
+   "name": "city-hall-pavilion",
+   "landmark": "city-hall",
+   "facing": [
+    1,
+    0
+   ],
+   "inset": 0,
+   "photo": "commons/183781171.jpg",
+   "corners": [
+    [
+     648,
+     399
+    ],
+    [
+     1202,
+     399
+    ],
+    [
+     1202,
+     475
+    ],
+    [
+     648,
+     475
+    ]
+   ],
+   "u": [
+    -11.1,
+    11.7
+   ],
+   "y": [
+    14.6,
+    17.7
+   ],
+   "ppm": 36,
+   "note": "Attic of the central pavilion above the wing cornices."
+  },
+  {
+   "name": "theatre-wing",
+   "landmark": "theatre",
+   "facing": [
+    -1,
+    0
+   ],
+   "photo": "commons/117650534.jpg",
+   "corners": [
+    [
+     73,
+     893
+    ],
+    [
+     1767,
+     893
+    ],
+    [
+     1767,
+     1103
+    ],
+    [
+     73,
+     1103
+    ]
+   ],
+   "u": [
+    -26,
+    26
+   ],
+   "y": [
+    0,
+    6.45
+   ],
+   "ppm": 36,
+   "note": "One-storey entrance wing across the whole front: piers, five doors, name band, side colonnades."
+  },
+  {
+   "name": "theatre-hall",
+   "landmark": "theatre",
+   "facing": [
+    -1,
+    0
+   ],
+   "inset": 6.5,
+   "shape": "gable",
+   "eave": 17.3,
+   "photo": "commons/117650534.jpg",
+   "corners": [
+    [
+     395,
+     400
+    ],
+    [
+     1410,
+     400
+    ],
+    [
+     1410,
+     893
+    ],
+    [
+     395,
+     893
+    ]
+   ],
+   "u": [
+    -15.57,
+    15.57
+   ],
+   "y": [
+    6.45,
+    21.57
+   ],
+   "ppm": 36,
+   "note": "Columned hall front with its pediment."
+  },
+  {
+   "landmark": "old-church",
+   "photo": "commons/121881138.jpg",
+   "shape": "gable",
+   "eave": 8.2,
+   "corners": [
+    [
+     300,
+     150
+    ],
+    [
+     1075,
+     60
+    ],
+    [
+     1080,
+     1025
+    ],
+    [
+     300,
+     955
+    ]
+   ],
+   "u": [
+    -5.0,
+    5.0
+   ],
+   "y": [
+    0,
+    10.9
+   ],
+   "ppm": 40,
+   "inset": -0.12,
+   "name": "old-church-gable-south",
+   "facing": [
+    0,
+    1
+   ],
+   "note": "Gable end (pediment, pilasters, weatherboarding, door) rectified from a 2021 photo of one arm end; the four arm ends of the cruciform church are alike, so the same photo dresses each."
+  },
+  {
+   "landmark": "old-church",
+   "photo": "commons/121881138.jpg",
+   "shape": "gable",
+   "eave": 8.2,
+   "corners": [
+    [
+     300,
+     150
+    ],
+    [
+     1075,
+     60
+    ],
+    [
+     1080,
+     1025
+    ],
+    [
+     300,
+     955
+    ]
+   ],
+   "u": [
+    -5.0,
+    5.0
+   ],
+   "y": [
+    0,
+    10.9
+   ],
+   "ppm": 40,
+   "inset": -0.12,
+   "name": "old-church-gable-north",
+   "facing": [
+    0,
+    -1
+   ],
+   "note": "Same gable photo as old-church-gable-south.",
+   "copyOf": "old-church-gable-south"
+  },
+  {
+   "landmark": "old-church",
+   "photo": "commons/121881138.jpg",
+   "shape": "gable",
+   "eave": 8.2,
+   "corners": [
+    [
+     300,
+     150
+    ],
+    [
+     1075,
+     60
+    ],
+    [
+     1080,
+     1025
+    ],
+    [
+     300,
+     955
+    ]
+   ],
+   "u": [
+    -5.0,
+    5.0
+   ],
+   "y": [
+    0,
+    10.9
+   ],
+   "ppm": 40,
+   "inset": -0.12,
+   "name": "old-church-gable-east",
+   "facing": [
+    1,
+    0
+   ],
+   "note": "Same gable photo as old-church-gable-south.",
+   "copyOf": "old-church-gable-south"
+  },
+  {
+   "landmark": "old-church",
+   "photo": "commons/121881138.jpg",
+   "shape": "gable",
+   "eave": 8.2,
+   "corners": [
+    [
+     300,
+     150
+    ],
+    [
+     1075,
+     60
+    ],
+    [
+     1080,
+     1025
+    ],
+    [
+     300,
+     955
+    ]
+   ],
+   "u": [
+    -5.0,
+    5.0
+   ],
+   "y": [
+    0,
+    10.9
+   ],
+   "ppm": 40,
+   "inset": -0.12,
+   "name": "old-church-gable-west",
+   "facing": [
+    -1,
+    0
+   ],
+   "note": "Same gable photo as old-church-gable-south.",
+   "copyOf": "old-church-gable-south"
+  },
+  {
+   "name": "sumelius-north",
+   "building": "osm-way-93480496",
+   "facing": [
+    0,
+    -1
+   ],
+   "inset": -0.3,
+   "photo": "commons/148602285.jpg",
+   "corners": [
+    [
+     1015,
+     598
+    ],
+    [
+     1515,
+     596
+    ],
+    [
+     1515,
+     842
+    ],
+    [
+     1015,
+     844
+    ]
+   ],
+   "u": [
+    -15.6,
+    15.6
+   ],
+   "y": [
+    0,
+    15
+   ],
+   "ppm": 32,
+   "note": "Hämeenkatu front of Keskustori 1 (1901) between the two corner turrets, from a 2022 photo across Hämeenkatu; the bus canopies and parked taxis in front of the ground floor stay in the texture."
+  }
+ ],
+ "groundTextures": [
+  {
+   "name": "ground-fan-setts",
+   "kind": "fan-setts",
+   "photo": "commons/183781171.jpg",
+   "corners": [
+    [
+     179,
+     1068
+    ],
+    [
+     518,
+     1068
+    ],
+    [
+     358,
+     1167
+    ],
+    [
+     -106,
+     1167
+    ]
+   ],
+   "size": [
+    2,
+    2
+   ],
+   "note": "Fan-laid grey granite setts of the main square, a 2 m patch about 6.5 m in front of the camera clear of the granite bands, rectified with a pinhole model (camera 1.6 m up, horizon at y 796, focal 1274 px)."
+  },
+  {
+   "name": "ground-red-granite",
+   "kind": "red-granite",
+   "photo": "commons/178894577.jpg",
+   "corners": [
+    [
+     276,
+     1231
+    ],
+    [
+     604,
+     1235
+    ],
+    [
+     463,
+     1393
+    ],
+    [
+     22,
+     1386
+    ]
+   ],
+   "size": [
+    1.2,
+    1.2
+   ],
+   "note": "Red granite slabs of the Hämeenkatu pavement by the north platform."
+  }
+ ]
+}

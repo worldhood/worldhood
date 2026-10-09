@@ -1,0 +1,34 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {createAdaptiveResolution} from '../src/adaptive-quality.js';
+
+const run=(q,ms,seconds)=>{for(let t=0;t<seconds;t+=ms/1000)q.update(ms,ms/1000);};
+
+test('adaptive resolution lowers under sustained load and recovers when fast',()=>{
+  const q=createAdaptiveResolution({max:1.5,min:.75});
+  run(q,16.7,3);assert.equal(q.scale,1.5);
+  run(q,33.3,8);assert.equal(q.scale,.75);
+  run(q,8,120);assert.equal(q.scale,1.5);
+});
+
+test('adaptive resolution ignores isolated hitches and suspended tabs',()=>{
+  const q=createAdaptiveResolution();
+  run(q,16.7,2);q.update(120,.12);q.update(900,.9);run(q,16.7,1);
+  assert.equal(q.scale,1.5);
+});
+
+test('adaptive resolution does not oscillate between a slow level and the one below it',()=>{
+  const q=createAdaptiveResolution({max:1.5,min:.75});let changes=0;
+  // Full resolution costs 20 ms; one step down costs 12 ms — the classic ping-pong case.
+  for(let t=0;t<60;t+=1/60){const ms=q.scale>=1.5?20:12;if(q.update(ms,ms/1000))changes++;}
+  assert.equal(q.scale,1.375);assert.ok(changes<=3,`changed ${changes} times in a minute`);
+});
+test('capture lock holds a fixed scale through slow frames and unlock resumes adapting',()=>{
+ const r=createAdaptiveResolution({max:1.5,min:.75});
+ assert.equal(r.lock(2),true);assert.equal(r.scale,2);assert.equal(r.locked,true);
+ for(let i=0;i<600;i++)assert.equal(r.update(40,1/30),false,'no steps while locked');
+ assert.equal(r.scale,2);
+ assert.equal(r.unlock(),true);assert.equal(r.scale,1.5);assert.equal(r.locked,false);
+ let changed=false;for(let i=0;i<600;i++)changed=r.update(40,1/30)||changed;
+ assert.ok(changed&&r.scale<1.5,'adapts again after unlock');
+});

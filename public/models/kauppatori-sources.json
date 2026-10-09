@@ -1,0 +1,30 @@
+{
+  "updated": "2026-09-16",
+  "method": "Measured municipal building and pavement geometry, photo-guided authored façade details. Reference photographs are not embedded as new textures.",
+  "coverage": {
+    "paving": "All 27 Kauppatori Aukiot sections; preserve mapped holes and distinguish asphalt, setts and cobbles.",
+    "market": "34 orange/cream canopies registered to a representative 2025 aerial market layout, filtered against roads, buildings and water. Canopy sizes, counters and produce are approximations.",
+    "shore": "64 short mapped shoreline segments receive low stone quay caps. Bollards are illustrative rather than individually surveyed.",
+    "buildings": "Authored market-facing fronts: RATU 216 City Hall, 18 Swedish Embassy, 24 Supreme Court, 23 Presidential Palace main court front; RATU 410 Old Market Hall north/south ends. Palace low wings have arched glazing/balustrades registered to measured wall planes, and its untextured shell has photo-guided plaster/dark roof materials. Municipal roof and courtyard geometry remain in use.",
+    "monuments": "HAM/Service Map coordinates for Havis Amanda and Keisarinnankivi. Sculptures are simplified geometric silhouettes, not exact reproductions."
+  },
+  "sources": [
+    {"title":"Helsinki open map data and 2025 orthophoto", "url":"https://kartta.hel.fi/ws/geoserver/avoindata/wms", "credit":"City of Helsinki, CC BY 4.0", "use":"Building registration, paving materials, shoreline and canopy placement"},
+    {"title":"City Hall history", "url":"https://historia.hel.fi/en/ilmiot/vallankayttoa-ja-hallintoa/city-hall", "use":"Identity and blue-grey façade palette"},
+    {"title":"City Hall daylight façade photograph", "url":"https://www.hel.fi/en/decision-making/contact-the-city-of-helsinki/register-office", "credit":"City of Helsinki", "use":"Visual reference only; column order, bays, cornices and pediment"},
+    {"title":"Swedish Embassy daylight façade", "url":"https://commons.wikimedia.org/wiki/File:Pohjoisesplanadi_7.jpg", "credit":"Mahlum, public domain", "use":"13-bay façade, warm plaster, roof balustrade and entrance canopy"},
+    {"title":"Supreme Court daylight façade", "url":"https://commons.wikimedia.org/wiki/File:Pohjoisesplanadi_3.jpg", "credit":"Mahlum, public domain", "use":"13-bay composition, pale stone trim, balcony and central balustrade"},
+    {"title":"Presidential Palace courtyard photograph", "url":"https://commons.wikimedia.org/wiki/File:Finnish_Presidential_Palace.jpg", "use":"Visual reference only; recessed main elevation, six-column order and balcony"},
+    {"title":"Old Market Hall", "url":"https://vanhakauppahalli.fi/en/", "use":"Building identity and architectural reference"},
+    {"title":"Old Market Hall daylight entrance photograph", "url":"https://www.myhappyplaces.de/europas-schoenste-markthallen/", "credit":"My Happy Places; reference only, not redistributed in the game", "use":"Three arched portals, red brick/pale stone contrast and stepped gable"},
+    {"title":"Kauppatori planning/history report 2016", "url":"https://www.hel.fi/hel2/ksv/julkaisut/aos_2016-1.pdf", "use":"Historical context only. Proposed redesigns are NOT treated as existing conditions."},
+    {"title":"Havis Amanda", "url":"https://api.hel.fi/servicemap/v2/unit/23021", "coordinates":[24.9515,60.167576], "use":"Official monument position"},
+    {"title":"Keisarinnankivi", "url":"https://www.hamhelsinki.fi/veistos/keisarinnankivi/", "coordinates":[24.954453,60.16763], "use":"Official monument position and red granite/gilded eagle composition"}
+  ],
+  "remaining": [
+    "Not a perfect digital twin: ornaments, sculpture anatomy, material weathering and elevation changes require further validation.",
+    "Rear and side elevations mostly retain municipal photographic or untextured source meshes; genuine source texture gaps remain elsewhere in the city.",
+    "Old Market Hall long sides retain municipal geometry/photographic materials; only its end façades have this authored replacement.",
+    "Allas Sea Pool, ferry vessels, every waterfront shopfront and current vendor inventory are not comprehensively reconstructed by this pass."
+  ]
+}

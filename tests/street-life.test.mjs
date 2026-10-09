@@ -1,0 +1,28 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import * as THREE from 'three';
+import {SpatialIndex} from '../src/geo.js';
+import {crossingPolygons} from '../src/crossing-markings.js';
+import {createStreetLife} from '../src/street-life.js';
+
+test('street-life startup triangulates real crossing polygons with installed earcut API',()=>{
+ const road={bbox:[990,990,1010,1010],rings:[[[990,990],[1010,990],[1010,1010],[990,1010],[990,990]]]};
+ const world={roads:new SpatialIndex([road]),pavement:new SpatialIndex([]),buildings:new SpatialIndex([])};
+ const edges=[{from:0,to:1,points:[[1000,991],[1000,1009]],crossing:true}];
+ assert.ok(crossingPolygons(edges,world).polygons.length>0,'fixture exercises crossing triangulation');
+ const scene=new THREE.Scene(),mobility={cars:[],people:[],walks:{edges},roads:{edges:[]},world};
+ const life=createStreetLife(scene,mobility);
+ life.update(0,{x:1000,z:1000});
+ const markings=[];scene.traverse(m=>{if(m.isMesh&&m.material.polygonOffset)markings.push(m);});
+ assert.equal(markings.length,1);
+ assert.ok(markings[0].geometry.attributes.position.count>0);
+ assert.ok(markings[0].geometry.attributes.position.array.every(Number.isFinite));
+ const p=markings[0].geometry.attributes.position,n=markings[0].geometry.attributes.normal;
+ for(let i=0;i<p.count;i+=3){
+  const a=new THREE.Vector3().fromBufferAttribute(p,i),b=new THREE.Vector3().fromBufferAttribute(p,i+1),c=new THREE.Vector3().fromBufferAttribute(p,i+2);
+  assert.ok(b.sub(a).cross(c.sub(a)).y>0,'stripe top must be front-facing, not a flipped DoubleSide back face');
+  assert.ok(n.getY(i)>.99,'computed lighting normal points upward');
+  assert.ok(p.getY(i)>.10,'crossing stays above the market/cycleway surface');
+ }
+ scene.traverse(m=>{m.geometry?.dispose();m.material?.dispose();});
+});

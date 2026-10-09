@@ -1,0 +1,168 @@
+import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {WATER_LEVEL,extractQuayEdges,buildQuayGeometry,createGroundGeometry} from './quay.js';
+import {ALLAS} from './waterfront-landmarks.js';
+import {drapeGeometry,createLakeGeometry} from './terrain-mesh.js';
+
+export {WATER_LEVEL};
+
+// Older surface packs contain a second water plane at 1 cm. Its 4 mm gap
+// from the animated sea collapses in the overhead camera's depth buffer.
+// Remove those triangles, rather than lifting the sea over the quays.
+export function removeLegacyWater(geometry){
+ const p=geometry.attributes.position,source=geometry.index?.array,keep=[];
+ for(let i=0,n=source?.length??p.count;i<n;i+=3){
+  const ids=[source?.[i]??i,source?.[i+1]??i+1,source?.[i+2]??i+2];
+  if(!ids.every(j=>Math.abs(p.getY(j)-.01)<.00001))keep.push(...ids);
+ }
+ geometry.setIndex(keep);geometry.computeBoundingSphere();return geometry;
+}
+
+// Tileable ripple slopes (RG = d/dx, d/dz) from integer-frequency waves with
+// random directions and phases: isotropic, so no regular stripes appear.
+export function createRippleTexture(size=128,seed=7){
+ let s=seed>>>0;const rnd=()=>((s=(s*1664525+1013904223)>>>0)/4294967296);
+ const waves=[];
+ for(let i=0;i<28;i++){let kx,ky;do{kx=Math.round((rnd()*2-1)*11);ky=Math.round((rnd()*2-1)*11);}while(Math.hypot(kx,ky)<2);waves.push([kx,ky,rnd()*Math.PI*2,1/Math.pow(Math.hypot(kx,ky),1.35)]);}
+ const sx=new Float32Array(size*size),sz=new Float32Array(size*size);let max=0;
+ for(let y=0;y<size;y++)for(let x=0;x<size;x++){let dx=0,dz=0;for(const [kx,ky,ph,a] of waves){const c=Math.cos((kx*x+ky*y)*2*Math.PI/size+ph)*a;dx+=c*kx;dz+=c*ky;}const i=y*size+x;sx[i]=dx;sz[i]=dz;max=Math.max(max,Math.abs(dx),Math.abs(dz));}
+ const data=new Uint8Array(size*size*4);
+ for(let i=0;i<size*size;i++){data[i*4]=Math.round(127.5+127*sx[i]/max);data[i*4+1]=Math.round(127.5+127*sz[i]/max);data[i*4+2]=128;data[i*4+3]=255;}
+ const t=new THREE.DataTexture(data,size,size,THREE.RGBAFormat);
+ t.wrapS=t.wrapT=THREE.RepeatWrapping;t.magFilter=THREE.LinearFilter;t.minFilter=THREE.LinearMipmapLinearFilter;t.generateMipmaps=true;t.anisotropy=4;t.colorSpace=THREE.NoColorSpace;t.needsUpdate=true;
+ return t;
+}
+
+const SEA_VERTEX=`
+#include <common>
+#include <fog_pars_vertex>
+varying vec3 vSeaWorld;
+void main(){
+ vec4 worldPosition=modelMatrix*vec4(position,1.);
+ vSeaWorld=worldPosition.xyz;
+ vec4 mvPosition=viewMatrix*worldPosition;
+ gl_Position=projectionMatrix*mvPosition;
+ #include <fog_vertex>
+}`;
+// Fresnel blend of dark Baltic water and a sky/shoreline gradient, three
+// scrolling ripple samples, and a sun glint. No reflection render pass.
+const SEA_FRAGMENT=`
+uniform sampler2D uRipples;
+uniform float uSeaTime;
+uniform vec3 uDeep,uSkyHorizon,uSkyMid,uSkyZenith,uShore,uSunDir,uSunColor;
+#include <common>
+#include <fog_pars_fragment>
+varying vec3 vSeaWorld;
+void main(){
+ vec2 p=vSeaWorld.xz;
+ vec3 toCam=cameraPosition-vSeaWorld;float dist=length(toCam);vec3 V=toCam/dist;
+ vec2 s=texture2D(uRipples,p*.029+uSeaTime*vec2(.0061,.0023)).xy*2.-1.;
+ s+=(texture2D(uRipples,mat2(.8,-.6,.6,.8)*p*.083+uSeaTime*vec2(-.0102,.0131)).xy*2.-1.)*.75;
+ s+=(texture2D(uRipples,mat2(-.28,.96,-.96,-.28)*p*.27+uSeaTime*vec2(.029,.021)).xy*2.-1.)*.35*(1.-smoothstep(20.,70.,dist));
+ // Calm harbour: gentle slopes, flatter still in the distance (less shimmer).
+ float strength=mix(.05,.02,smoothstep(15.,300.,dist));
+ vec3 N=normalize(vec3(-s.x*strength,1.,-s.y*strength));
+ float NdV=clamp(dot(N,V),0.,1.);
+ float fresnel=.02+.98*pow(1.-NdV,5.);
+ vec3 R=reflect(-V,N);R.y=max(R.y,0.);
+ // Sky reflection uses the dome's own three-stop gradient (horizon, mid, zenith).
+ vec3 sky=mix(mix(uSkyHorizon,uSkyMid,smoothstep(0.,.22,R.y)),uSkyZenith,smoothstep(.12,.9,R.y));
+ // Forward-scattered haze brightens the reflected horizon under the sun.
+ vec2 Rh=normalize(R.xz+1e-4),Sh=normalize(uSunDir.xz+1e-4);
+ float toward=max(dot(Rh,Sh),0.);
+ sky=mix(sky,uSunColor,pow(toward,6.)*(1.-smoothstep(0.,.3,R.y))*.22);
+ // Low reflected rays hit the opposite quays, boats and buildings.
+ sky=mix(sky,uShore,(1.-smoothstep(.03,.26,R.y))*.85);
+ vec3 color=mix(uDeep,sky*.72,fresnel);
+ // Sun glint: a tight disc, a mid lobe broken up by the ripples, and a soft sheen.
+ float sun=max(dot(R,uSunDir),0.);
+ color+=uSunColor*(pow(sun,260.)*1.4+pow(sun,80.)*.12+pow(sun,28.)*.035)*(.35+.65*fresnel);
+ gl_FragColor=vec4(color,1.);
+ #include <tonemapping_fragment>
+ #include <colorspace_fragment>
+ #include <fog_fragment>
+}`;
+
+export const SEA_DEFAULTS={deep:'#28332f',shore:'#434a42',horizon:'#b9cbd4',sunColor:'#fff1d6',sunOffset:[-160,260,160]};
+
+// Overhead sky: deeper and bluer than the hazy horizon colour.
+function skyZenith(horizon,out=new THREE.Color()){return out.setRGB(horizon.r*.55,horizon.g*.7,Math.min(1,horizon.b*.95));}
+function skyMid(horizon,zenith,out=new THREE.Color()){return out.copy(horizon).lerp(zenith,.5);}
+
+export function createSeaMaterial(time={value:0}){
+ const c=hex=>new THREE.Color(hex);
+ const uniforms=THREE.UniformsUtils.merge([THREE.UniformsLib.fog]);
+ const horizon=c(SEA_DEFAULTS.horizon),zenith=skyZenith(horizon);
+ Object.assign(uniforms,{
+  uRipples:{value:createRippleTexture()},uSeaTime:time,
+  uDeep:{value:c(SEA_DEFAULTS.deep)},uShore:{value:c(SEA_DEFAULTS.shore)},
+  uSkyHorizon:{value:horizon},uSkyMid:{value:skyMid(horizon,zenith)},uSkyZenith:{value:zenith},
+  uSunDir:{value:new THREE.Vector3(...SEA_DEFAULTS.sunOffset).normalize()},uSunColor:{value:c(SEA_DEFAULTS.sunColor)},
+ });
+ return new THREE.ShaderMaterial({name:'Helsinki harbour water',uniforms,vertexShader:SEA_VERTEX,fragmentShader:SEA_FRAGMENT,fog:true});
+}
+
+// Pull the live sky colours off the procedural dome (src/sky.js exposes them
+// as its shader uniforms), so time-of-day or weather changes to the sky are
+// mirrored by the water on the same frame. Returns false when no dome is found.
+export function applySkyUniforms(u,skyMesh){
+ const s=skyMesh?.material?.uniforms;if(!s?.uHorizon)return false;
+ u.uSkyHorizon.value.copy(s.uHorizon.value);
+ if(s.uZenith)u.uSkyZenith.value.copy(s.uZenith.value);else skyZenith(u.uSkyHorizon.value,u.uSkyZenith.value);
+ if(s.uMid)u.uSkyMid.value.copy(s.uMid.value);else skyMid(u.uSkyHorizon.value,u.uSkyZenith.value,u.uSkyMid.value);
+ if(s.uSunGlow)u.uSunColor.value.copy(s.uSunGlow.value);
+ if(s.uSunDir?.value?.isVector3&&s.uSunDir.value.lengthSq()>0)u.uSunDir.value.copy(s.uSunDir.value).normalize();
+ return true;
+}
+
+// Kauppatori already places iron bollards on its own quay caps.
+const kauppatoriBollards=(x,z)=>x>12&&x<300&&z>265&&z<545;
+
+// Lowered Baltic water on the municipal sea polygons, granite quay walls on
+// every shore edge that borders land, and the ground plane cut under the sea.
+// Three draw calls: water, quay walls (merged), transparent wall shade.
+export function createSea(water,land={},{helsinkiHarbour=true}={}){
+ const group=new THREE.Group();group.name='Helsinki harbour water and quays';
+ const time={value:0},geometries=[];
+ for(const {rings} of water){
+  if(!rings?.[0]?.length)continue;
+  const shape=new THREE.Shape(rings[0].map(([x,z])=>new THREE.Vector2(x,-z)));
+  for(const ring of rings.slice(1))shape.holes.push(new THREE.Path(ring.map(([x,z])=>new THREE.Vector2(x,-z))));
+  const g=new THREE.ShapeGeometry(shape).toNonIndexed();g.rotateX(-Math.PI/2);g.translate(0,WATER_LEVEL,0);g.deleteAttribute('uv');geometries.push(g);
+ }
+ const material=createSeaMaterial(time),u=material.uniforms;
+ let sunLight=null,skyDome=null,searched=false,manualSky=false;
+ // Follow the sky dome's live colours when there is one, else the scene fog;
+ // the sun direction comes from the dome or the shadow-casting light.
+ const followSky=(renderer,scene)=>{
+  if(!searched){searched=true;scene.traverse(o=>{if(!sunLight&&o.isDirectionalLight)sunLight=o;if(!skyDome&&o.name==='sky'&&o.material?.uniforms?.uHorizon)skyDome=o;});}
+  if(!manualSky&&!(skyDome&&applySkyUniforms(u,skyDome))){
+   const sky=scene.fog?.color??(scene.background?.isColor?scene.background:null);
+   if(sky){u.uSkyHorizon.value.copy(sky);skyZenith(sky,u.uSkyZenith.value);skyMid(u.uSkyHorizon.value,u.uSkyZenith.value,u.uSkyMid.value);}
+  }
+  if(sunLight&&!(skyDome&&skyDome.material.uniforms.uSunDir)){u.uSunDir.value.subVectors(sunLight.position,sunLight.target.position);if(u.uSunDir.value.lengthSq()>0)u.uSunDir.value.normalize();}
+ };
+ if(geometries.length){
+  // Hilly cities: each water body lies at its own surveyed level (src/terrain.js), stepping down at dams.
+  const sea=new THREE.Mesh(drapeGeometry(mergeGeometries(geometries),{water:true,lift:-WATER_LEVEL-.1}),material);sea.name='Sea surface';geometries.forEach(g=>g.dispose());
+  sea.onBeforeRender=followSky;
+  group.add(sea);
+ }
+ // Lakes found only in the elevation model (src/terrain.js), at their own levels.
+ const lakeGeometry=createLakeGeometry();
+ if(lakeGeometry){const lakes=new THREE.Mesh(lakeGeometry,material);lakes.name='Lake surfaces';lakes.onBeforeRender=followSky;group.add(lakes);}
+ const edges=extractQuayEdges(water,land);
+ const {geometry,skirt}=buildQuayGeometry(edges,helsinkiHarbour?{skipBollards:kauppatoriBollards,pontoons:[{x:ALLAS.x,z:ALLAS.z,w:81.9,d:42.9,yaw:ALLAS.yaw,top:-.2}]}:{});
+ if(geometry.attributes.position.count){
+  const quay=new THREE.Mesh(drapeGeometry(geometry),new THREE.MeshStandardMaterial({vertexColors:true,roughness:.9,side:THREE.DoubleSide}));
+  quay.name='Granite quay walls';quay.receiveShadow=true;group.add(quay);
+  const shade=new THREE.Mesh(drapeGeometry(skirt,{water:true,lift:-WATER_LEVEL-.1}),new THREE.MeshBasicMaterial({color:'#ffffff',vertexColors:true,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));
+  shade.name='Quay shade on water';shade.renderOrder=1;group.add(shade);
+ }
+ const groundGeometry=createGroundGeometry(water);
+ const kinds={};for(const e of edges)kinds[e.kind]=(kinds[e.kind]||0)+1;
+ group.userData={polygons:geometries.length,surfaceHeight:WATER_LEVEL,animated:true,quayEdges:edges.length,quayKinds:kinds,drawCalls:group.children.length};
+ return {group,groundGeometry,edges,material,
+  update(seconds){if(Number.isFinite(seconds))time.value=seconds;},
+  setSky(horizon,zenith){manualSky=true;u.uSkyHorizon.value.set(horizon);if(zenith)u.uSkyZenith.value.set(zenith);else skyZenith(u.uSkyHorizon.value,u.uSkyZenith.value);skyMid(u.uSkyHorizon.value,u.uSkyZenith.value,u.uSkyMid.value);}};
+}

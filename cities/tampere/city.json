@@ -1,0 +1,91 @@
+{
+ "schemaVersion": 1,
+ "id": "tampere",
+ "name": "Tampere",
+ "country": "Suomi / Finland",
+ "origin": [
+  23.76163,
+  61.4978
+ ],
+ "radiusMetres": 1500,
+ "maintainers": [],
+ "status": "draft",
+ "note": "Origin and radius define the playable circle. Starts are chosen automatically from well-known named places; add your own in \"starts\".",
+ "starts": [],
+ "source": {
+  "geocoder": "Nominatim / OpenStreetMap",
+  "displayName": "Tampere, Tampereen seutukunta, Pirkanmaa, Manner-Suomi, Suomi / Finland"
+ },
+ "liveries": {
+  "tram": {
+   "green": "#b3372a",
+   "yellow": "#b3372a",
+   "black": "#1c1d20"
+  },
+  "bus": {
+   "paint": "#1f4e9c",
+   "white": "#f4f5f6"
+  },
+  "note": "Tampere trams: red Škoda/Transtech Artic X34 with a black front. Nysse city buses: white with a blue lower body. Colours estimated from reference photos."
+ },
+ "official": {
+  "provider": "City of Tampere",
+  "licence": "CC BY 4.0",
+  "attribution": "Contains open data from the City of Tampere (street register, tree register), CC BY 4.0",
+  "wfs": "https://geodata.tampere.fi/geoserver/wfs",
+  "trees": {
+   "layer": "locus:locus_t_RpaVegetation_gsview",
+   "group": "Kasviryhma",
+   "species": "Kasvilaji",
+   "height": "Pituusluokka",
+   "girth": "Rungon_ymparys"
+  },
+  "streets": {
+   "layer": "locus:Katualueen_osa_katu_RpaStreetPart_Polygon_gsview",
+   "type": "katuosalaji",
+   "surface": "pintamateriaali",
+   "name": "kadun_nimi"
+  },
+  "paths": {
+   "layer": "locus:Katualueen_osa_klv_RpaStreetPart_Polygon_gsview",
+   "type": "katuosalaji",
+   "surface": "pintamateriaali",
+   "name": "kadun_nimi"
+  },
+  "green": {
+   "layer": "locus:Katuviheralue_RpaParkPart_Polygon_gsview",
+   "type": "viheralueosalaji",
+   "name": "viheralueen_nimi_ja_tunnus"
+  },
+  "crossings": {
+   "layer": "liikenneverkot:kunta_suojatie",
+   "id": "seq_id",
+   "marking": "asetus_num",
+   "unmarked": "^YLITYSPAIKKA$",
+   "cycleOnly": "^L4\\.1$",
+   "signs": "suojatien_merkit",
+   "signalled": "suojatiet_valoohjattu",
+   "removed": "suojatie_poistunut",
+   "note": "Crossing lines kerb to kerb (EPSG:3878). L3 zebra, L4.x with cycle crossing; YLITYSPAIKKA is an unmarked crossing place."
+  },
+  "signals": {
+   "layer": "liikenneverkot:liikennevaloliittymat_point_gk24_gsview",
+   "id": "id",
+   "name": "paikka",
+   "state": "tila_kaytossa",
+   "active": "päällä"
+  },
+  "stops": {
+   "layer": "joukkoliikenne:joli_bussi_ja_ratikkapysakit_gsview",
+   "id": "id",
+   "name": "nimi",
+   "type": "type",
+   "tram": [
+    1
+   ],
+   "shelter": "katoksen_omistaja",
+   "digiroad": "digiroad_id",
+   "note": "EPSG:3067. type 1 tram, 2 bus; a shelter owner means the stop has a shelter."
+  }
+ }
+}

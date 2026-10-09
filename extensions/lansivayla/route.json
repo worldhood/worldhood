@@ -1,0 +1,1046 @@
+{
+ "schemaVersion": 1,
+ "name": "Ruoholahti → Länsiväylä → Lauttasaari → Koivusaari",
+ "sourceAxes": "metres: X east, Y up, Z south; origin = src/geo.js ORIGIN (ETRS-GK25)",
+ "buffers": {
+  "surfaceMetres": 200,
+  "buildingMetres": 260,
+  "islandShoreMetres": 60
+ },
+ "centrelines": [
+  {
+   "id": "lansivayla",
+   "label": "Porkkalankatu → Lauttasaari bridge → Länsiväylä → Koivusaari → Espoo border",
+   "lengthMetres": 9482,
+   "points": [
+    [
+     -1716.4,
+     641.44
+    ],
+    [
+     -1717.16,
+     625.85
+    ],
+    [
+     -1712.95,
+     588.86
+    ],
+    [
+     -1979.54,
+     605.69
+    ],
+    [
+     -2033.73,
+     610.08
+    ],
+    [
+     -2051.67,
+     615.07
+    ],
+    [
+     -2164.51,
+     621.83
+    ],
+    [
+     -2182.5,
+     626.71
+    ],
+    [
+     -2463.69,
+     643.82
+    ],
+    [
+     -2536.46,
+     667
+    ],
+    [
+     -2582.25,
+     690.34
+    ],
+    [
+     -2596.47,
+     699.12
+    ],
+    [
+     -2639.55,
+     733.82
+    ],
+    [
+     -2690.26,
+     778.53
+    ],
+    [
+     -2720.32,
+     795.42
+    ],
+    [
+     -2835.98,
+     830.79
+    ],
+    [
+     -3203.44,
+     927.71
+    ],
+    [
+     -3286.66,
+     952.87
+    ],
+    [
+     -3342.27,
+     966.82
+    ],
+    [
+     -3340.84,
+     978.41
+    ],
+    [
+     -3246.17,
+     945.47
+    ],
+    [
+     -2738.34,
+     812.33
+    ],
+    [
+     -2703.56,
+     801.24
+    ],
+    [
+     -2705.93,
+     788.98
+    ],
+    [
+     -2720.32,
+     795.42
+    ],
+    [
+     -2835.98,
+     830.79
+    ],
+    [
+     -3400.59,
+     981.99
+    ],
+    [
+     -3470.64,
+     996.58
+    ],
+    [
+     -3505.3,
+     1001.31
+    ],
+    [
+     -3537.13,
+     1009.84
+    ],
+    [
+     -3609.95,
+     1023.75
+    ],
+    [
+     -3921.57,
+     1078.91
+    ],
+    [
+     -3940.56,
+     1079.88
+    ],
+    [
+     -3977.09,
+     1076.14
+    ],
+    [
+     -4111.43,
+     1049.38
+    ],
+    [
+     -4190.24,
+     1029.18
+    ],
+    [
+     -4212.75,
+     1012.64
+    ],
+    [
+     -4253.38,
+     1002.76
+    ],
+    [
+     -4263.87,
+     997.62
+    ],
+    [
+     -4258.49,
+     974.23
+    ],
+    [
+     -4256.75,
+     931.01
+    ],
+    [
+     -4234.82,
+     814.73
+    ],
+    [
+     -4204.77,
+     604.77
+    ],
+    [
+     -4193.9,
+     581.84
+    ],
+    [
+     -4179.33,
+     566.38
+    ],
+    [
+     -4154.73,
+     563.64
+    ],
+    [
+     -4144.63,
+     566.11
+    ],
+    [
+     -4128.49,
+     578.5
+    ],
+    [
+     -4124.14,
+     594.78
+    ],
+    [
+     -4125.21,
+     605.03
+    ],
+    [
+     -4129,
+     613.71
+    ],
+    [
+     -4137.01,
+     623.05
+    ],
+    [
+     -4148.41,
+     631.17
+    ],
+    [
+     -4202.82,
+     659.25
+    ],
+    [
+     -4534.5,
+     794.1
+    ],
+    [
+     -4596.02,
+     817.82
+    ],
+    [
+     -4632.02,
+     828.45
+    ],
+    [
+     -4704.34,
+     843.34
+    ],
+    [
+     -4780.88,
+     850.88
+    ],
+    [
+     -4861.77,
+     848.15
+    ],
+    [
+     -4908.4,
+     842.37
+    ],
+    [
+     -4959.63,
+     831.46
+    ],
+    [
+     -5006.97,
+     819.21
+    ],
+    [
+     -5071.28,
+     798.13
+    ],
+    [
+     -5891.17,
+     509.75
+    ],
+    [
+     -5990.33,
+     463.06
+    ],
+    [
+     -6081.62,
+     424.3
+    ],
+    [
+     -6093.32,
+     392.18
+    ],
+    [
+     -6177.82,
+     347.3
+    ],
+    [
+     -6188.37,
+     348.28
+    ],
+    [
+     -6192.27,
+     352.17
+    ],
+    [
+     -6225.3,
+     419.16
+    ],
+    [
+     -6224.38,
+     430.97
+    ],
+    [
+     -6221.12,
+     437.22
+    ],
+    [
+     -6181.05,
+     489.46
+    ],
+    [
+     -6134.83,
+     453.58
+    ],
+    [
+     -6127.99,
+     451.37
+    ],
+    [
+     -6066.31,
+     475.58
+    ],
+    [
+     -5998.18,
+     498.81
+    ],
+    [
+     -5915.39,
+     518.72
+    ],
+    [
+     -5459.8,
+     678.53
+    ],
+    [
+     -5435.08,
+     694.51
+    ],
+    [
+     -5397.41,
+     708.63
+    ],
+    [
+     -5250.74,
+     775.8
+    ],
+    [
+     -5165.75,
+     810.52
+    ],
+    [
+     -5159.7,
+     810.98
+    ],
+    [
+     -5176,
+     721.59
+    ],
+    [
+     -5136.11,
+     711.2
+    ],
+    [
+     -5109.73,
+     707.92
+    ],
+    [
+     -5092.36,
+     710.18
+    ],
+    [
+     -5078.22,
+     720.8
+    ],
+    [
+     -5073.63,
+     728.27
+    ],
+    [
+     -5071.31,
+     735.41
+    ],
+    [
+     -5071.96,
+     750.45
+    ],
+    [
+     -5082.65,
+     766.13
+    ],
+    [
+     -5095.05,
+     772.57
+    ],
+    [
+     -5114.15,
+     773.87
+    ],
+    [
+     -5157.5,
+     767.87
+    ],
+    [
+     -5891.17,
+     509.75
+    ],
+    [
+     -5990.33,
+     463.06
+    ],
+    [
+     -6081.62,
+     424.3
+    ],
+    [
+     -6093.32,
+     392.18
+    ],
+    [
+     -6159.85,
+     356.48
+    ]
+   ]
+  },
+  {
+   "id": "lauttasaarentie",
+   "label": "Lauttasaari bridge → Lauttasaarentie → Lauttasaari centre",
+   "lengthMetres": 1611,
+   "points": [
+    [
+     -3695.19,
+     990.07
+    ],
+    [
+     -3694.21,
+     1001.88
+    ],
+    [
+     -3696.33,
+     1006.44
+    ],
+    [
+     -3731.38,
+     1017.52
+    ],
+    [
+     -3725.77,
+     1044.39
+    ],
+    [
+     -3921.57,
+     1078.91
+    ],
+    [
+     -3940.56,
+     1079.88
+    ],
+    [
+     -3977.09,
+     1076.14
+    ],
+    [
+     -4092.72,
+     1053.53
+    ],
+    [
+     -4136.85,
+     1042.2
+    ],
+    [
+     -4141.59,
+     1054.22
+    ],
+    [
+     -4201.15,
+     1339.89
+    ],
+    [
+     -4241.34,
+     1331.57
+    ],
+    [
+     -4244.76,
+     1350.17
+    ],
+    [
+     -3932.72,
+     1414.48
+    ],
+    [
+     -3929.24,
+     1395.65
+    ],
+    [
+     -4285.42,
+     1323.24
+    ],
+    [
+     -4309.28,
+     1313.4
+    ],
+    [
+     -4329.71,
+     1309.9
+    ]
+   ]
+  }
+ ],
+ "island": null,
+ "checkpoints": [
+  {
+   "name": "Ruoholahti",
+   "position": [
+    -2184.25,
+    0,
+    626.82
+   ],
+   "onRoute": true,
+   "line": "lansivayla",
+   "snapMetres": 117.7
+  },
+  {
+   "name": "Lauttasaari bridge",
+   "position": [
+    -2999.98,
+    0,
+    880.93
+   ],
+   "onRoute": true,
+   "line": "lansivayla",
+   "snapMetres": 0.8
+  },
+  {
+   "name": "Lauttasaari centre",
+   "position": [
+    -4010.4,
+    0,
+    1069.63
+   ],
+   "onRoute": true,
+   "line": "lauttasaarentie",
+   "snapMetres": 85.6
+  },
+  {
+   "name": "Länsiväylä at Lauttasaari",
+   "position": [
+    -4708.98,
+    0,
+    843.8
+   ],
+   "onRoute": true,
+   "line": "lansivayla",
+   "snapMetres": 108.5
+  },
+  {
+   "name": "Koivusaari",
+   "position": [
+    -5297.32,
+    0,
+    754.47
+   ],
+   "onRoute": true,
+   "line": "lansivayla",
+   "snapMetres": 6.1
+  }
+ ],
+ "steps": [
+  {
+   "leg": "lansivayla",
+   "street": "Mechelininkatu",
+   "maneuver": "depart right",
+   "metres": 53,
+   "at": [
+    -1716.4,
+    641.44
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Porkkalankatu",
+   "maneuver": "turn left",
+   "metres": 453,
+   "at": [
+    -1712.95,
+    588.86
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Porkkalankatu",
+   "maneuver": "fork slight left",
+   "metres": 755,
+   "at": [
+    -2164.51,
+    621.83
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaaren silta",
+   "maneuver": "new name straight",
+   "metres": 333,
+   "at": [
+    -2867.09,
+    838.88
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "new name straight",
+   "metres": 159,
+   "at": [
+    -3189.11,
+    923.95
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "continue uturn",
+   "metres": 172,
+   "at": [
+    -3342.27,
+    966.82
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaaren silta",
+   "maneuver": "new name straight",
+   "metres": 194,
+   "at": [
+    -3187.51,
+    930.52
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaaren silta",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -2999.86,
+    881.35
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaaren silta",
+   "maneuver": "depart",
+   "metres": 139,
+   "at": [
+    -2999.86,
+    881.35
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Porkkalankatu",
+   "maneuver": "new name straight",
+   "metres": 168,
+   "at": [
+    -2865.32,
+    845.68
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Porkkalankatu",
+   "maneuver": "continue uturn",
+   "metres": 181,
+   "at": [
+    -2703.56,
+    801.24
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaaren silta",
+   "maneuver": "new name straight",
+   "metres": 333,
+   "at": [
+    -2867.09,
+    838.88
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "new name straight",
+   "metres": 291,
+   "at": [
+    -3189.11,
+    923.95
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "fork slight right",
+   "metres": 677,
+   "at": [
+    -3470.64,
+    996.58
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -4136.12,
+    1042.42
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "depart",
+   "metres": 55,
+   "at": [
+    -4136.85,
+    1042.2
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lauttasaarentie",
+   "maneuver": "continue slight right",
+   "metres": 82,
+   "at": [
+    -4190.24,
+    1029.18
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Lemissaarentie",
+   "maneuver": "turn right",
+   "metres": 141,
+   "at": [
+    -4263.87,
+    997.62
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "on ramp straight",
+   "metres": 483,
+   "at": [
+    -4244.11,
+    857.94
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Länsiväylä",
+   "maneuver": "merge slight left",
+   "metres": 1778,
+   "at": [
+    -4202.82,
+    659.25
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "off ramp slight right",
+   "metres": 209,
+   "at": [
+    -5891.17,
+    509.75
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Hanasaarenranta",
+   "maneuver": "turn right",
+   "metres": 306,
+   "at": [
+    -6081.62,
+    424.3
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Hanasaarenranta",
+   "maneuver": "end of road left",
+   "metres": 41,
+   "at": [
+    -6181.05,
+    489.46
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "on ramp right",
+   "metres": 248,
+   "at": [
+    -6148.51,
+    464.36
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Länsiväylä",
+   "maneuver": "merge slight left",
+   "metres": 483,
+   "at": [
+    -5915.39,
+    518.72
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "off ramp slight right",
+   "metres": 180,
+   "at": [
+    -5459.8,
+    678.53
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "arrive right",
+   "metres": 0,
+   "at": [
+    -5297.34,
+    754.53
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "depart right",
+   "metres": 149,
+   "at": [
+    -5297.34,
+    754.53
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Katajaharjuntie",
+   "maneuver": "turn sharp left",
+   "metres": 91,
+   "at": [
+    -5159.7,
+    810.98
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "on ramp right",
+   "metres": 231,
+   "at": [
+    -5176,
+    721.59
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Länsiväylä",
+   "maneuver": "merge slight left",
+   "metres": 777,
+   "at": [
+    -5157.5,
+    767.87
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Länsiväylä",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -5891,
+    509.75
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "",
+   "maneuver": "depart",
+   "metres": 209,
+   "at": [
+    -5891.17,
+    509.75
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Hanasaarenranta",
+   "maneuver": "turn right",
+   "metres": 110,
+   "at": [
+    -6081.62,
+    424.3
+   ]
+  },
+  {
+   "leg": "lansivayla",
+   "street": "Hanasaarenranta",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -6159.85,
+    356.48
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "",
+   "maneuver": "depart",
+   "metres": 54,
+   "at": [
+    -3695.19,
+    990.07
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Koillisväylä",
+   "maneuver": "turn left",
+   "metres": 28,
+   "at": [
+    -3731.38,
+    1017.52
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Lauttasaarentie",
+   "maneuver": "turn right",
+   "metres": 418,
+   "at": [
+    -3725.77,
+    1044.39
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Gyldénintie",
+   "maneuver": "turn left",
+   "metres": 305,
+   "at": [
+    -4136.85,
+    1042.2
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Tallbergin puistotie",
+   "maneuver": "end of road right",
+   "metres": 41,
+   "at": [
+    -4201.15,
+    1339.89
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Tallbergin puistotie",
+   "maneuver": "continue uturn",
+   "metres": 208,
+   "at": [
+    -4241.34,
+    1331.57
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Tallbergin puistotie",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -4059.74,
+    1388.51
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Tallbergin puistotie",
+   "maneuver": "depart",
+   "metres": 130,
+   "at": [
+    -4059.74,
+    1388.51
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Tallbergin puistotie",
+   "maneuver": "continue uturn",
+   "metres": 428,
+   "at": [
+    -3932.72,
+    1414.48
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Isokaari",
+   "maneuver": "new name straight",
+   "metres": 1,
+   "at": [
+    -4328.54,
+    1310.02
+   ]
+  },
+  {
+   "leg": "lauttasaarentie",
+   "street": "Isokaari",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -4329.71,
+    1309.9
+   ]
+  }
+ ],
+ "provenance": {
+  "routing": {
+   "service": "OSRM demo server on OpenStreetMap data",
+   "licence": "ODbL — © OpenStreetMap contributors",
+   "use": "Centreline only defines which municipal data to crop"
+  }
+ },
+ "limitations": [
+  "Terrain is flat, as in the rest of Helsinki; Länsiväylä's bridges and ramps are drawn at street level.",
+  "Länsiväylä's grade-separated interchanges are flattened, so ramps and the motorway meet where in reality one passes over the other.",
+  "Helsinki's textured 3D model ends at the Espoo border; the corridor continues on Espoo's own city model (extension espoo)."
+ ]
+}

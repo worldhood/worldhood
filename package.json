@@ -1,0 +1,50 @@
+{
+  "name": "open-city-drive",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 0.0.0.0",
+    "build": "vite build",
+    "preview": "vite preview --host 0.0.0.0",
+    "demo": "vite build && vite preview --host 0.0.0.0 --port 4173 --strictPort",
+    "data:fetch": "node scripts/acquire-data.mjs",
+    "data:build": "node scripts/build-data.mjs && node scripts/prepare-world.mjs && node scripts/compress-assets.mjs && node scripts/fetch-aerial.mjs",
+    "data:aerial": "node scripts/fetch-aerial.mjs",
+    "data:textured": "node scripts/fetch-textured-buildings.mjs && node scripts/build-textured-buildings.mjs",
+    "data:mobility": "node scripts/fetch-mobility.mjs && node scripts/build-mobility.mjs",
+    "city:new": "node scripts/city-new.mjs",
+    "city:build": "node scripts/city-build.mjs && node scripts/cities-readme.mjs",
+    "city:terrain": "node scripts/city-terrain.mjs",
+    "city:furniture": "node scripts/mapillary-features.mjs",
+    "furniture:check": "node scripts/furniture-check.mjs",
+    "cities:readme": "node scripts/cities-readme.mjs",
+    "extension:route": "node scripts/define-extension-route.mjs",
+    "extension:fetch": "node scripts/fetch-extension.mjs",
+    "extension:build": "node scripts/build-extension.mjs",
+    "facades:photos": "node scripts/facade-photos.mjs",
+    "facades:ship": "node scripts/facades.mjs",
+    "facades:compare": "node scripts/facade-compare.mjs",
+    "photos:fetch": "node scripts/reference-photos.mjs",
+    "place:build": "node scripts/place-build.mjs",
+    "place:textures": "node scripts/place-textures.mjs",
+    "place:compare": "node scripts/place-compare.mjs",
+    "area:links": "node scripts/reference-links.mjs",
+    "area:review": "node scripts/review-area.mjs",
+    "traffic:check": "node scripts/traffic-check.mjs",
+    "bus:lanes": "node scripts/bus-lanes.mjs",
+    "test": "node --test tests/*.test.mjs"
+  },
+  "dependencies": {
+    "@dgreenheck/ez-tree": "^1.1.0",
+    "earcut": "^3.0.2",
+    "fast-xml-parser": "^5.4.0",
+    "polygon-clipping": "^0.15.7",
+    "proj4": "^2.20.0",
+    "three": "^0.183.0"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.58.2",
+    "vite": "^7.3.1"
+  }
+}
