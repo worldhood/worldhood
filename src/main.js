@@ -11,6 +11,7 @@ import {loadExtensionIndex,loadExtension,applyExtensions,mapViewFor,activateExte
 import {setTramLivery} from './tram-model.js';
 import {setBusLivery} from './bus-renderer.js';
 import {selectCity,useCity,pickStart,startUrl,dataUrl,registerCities} from './cities.js';
+import {createStartPicker,pickerStep} from './start-picker.js';
 import {createAdaptiveResolution} from './adaptive-quality.js';
 import {makeCar,driveStep,simulationSteps,PLAYER_MAX_SPEED,displayedSpeedKmh} from './physics.js';
 import {animateVehicle} from './vehicles.js';
@@ -121,6 +122,7 @@ let birds=null,birdColonies=[],crowd=null; // gulls, pigeons, crows and sparrows
 let cyclists,cyclistRenderer,buses,police,policeRenderer,roadblock; // five-star roadblocks and the officers' arrest scene, in every city
 let distance=0,viewSpan=150,desiredSpan=150,lastTime=0,lastUI=0,lastTile=0,lastToast=0,toastTimer;
 let sound=false,audioContext,oscillator,gain,mobileControls=null;
+let startPicker=null,previewVersion=0,previewing=false,startAfterPreview=false; // the ‹ › starting-point picker on the welcome card
 onGameStop(()=>{mobileControls?.release();keys.clear();paused=true;peopleInteraction?.close();audioContext?.suspend().catch(()=>{});});
 const scene=new THREE.Scene();
 const cityModel=new THREE.Group(),aerialGroup=new THREE.Group();scene.add(cityModel,aerialGroup);aerialGroup.visible=false;document.body.classList.add('photographic');
@@ -491,11 +493,29 @@ function refreshMarketUI(){marketUI.update(marketShop?.snapshot(),{hidden:!canTa
 function noticeGulls(){const h=marketShop?.hand;if(!h||h.gull||!marketShop.lure()||!birds)return;if(birds.life.birds.some(b=>b.lured&&b.state==='ground'&&Math.hypot(b.x-car.x,b.z-car.z)<3.6)){h.gull=true;marketUI.say(`A gull has its eye on your ${h.item.name.toLowerCase()}.`);}}
 function marketAction(){if(!canTalk()||!marketShop)return;const r=marketShop.action(car,{enabled:true});if(r.opened)peopleInteraction?.close();if(r.message)marketUI.say(r.message);refreshMarketUI();}
 function buyAtStall(id){if(!canTalk()||!marketShop?.open)return;const r=marketShop.buy(id);if(r.message)marketUI.say(r.message);refreshMarketUI();}
+// Welcome-card picker: load the picked start the way the map dialog does, then move the preview there.
+// Only the latest pick applies; earlier downloads stay useful as cache.
+async function previewStart(destination){
+ if(!ready||started||switchingStart)return;
+ const version=++previewVersion;previewing=true;startPicker.busy(true);
+ try{
+  await extensionStreamer.ensureStart(destination);
+  const near=roofIndex.tiles.filter(t=>tileDistance(t,destination)<430).sort((a,b)=>tileDistance(a,destination)-tileDistance(b,destination));
+  await Promise.all([surfaceStreamer.ensure(destination,{radius:900}),pool(near,4,t=>loadRoof(t,destination))]);
+  if(version!==previewVersion||started)return;
+  setStart(destination);history.replaceState(null,'',startUrl(location,city,destination));
+ }catch(error){
+  console.error(error);if(version!==previewVersion)return;
+  startPicker.set(startPoint);toast(`Could not load ${destination.name}. Try it again.`,{important:true});
+ }finally{
+  if(version===previewVersion){previewing=false;startPicker.busy(false);if(startAfterPreview){startAfterPreview=false;start();}}
+ }
+}
 function setStart(l){mobileControls?.release();peopleInteraction?.reset(world);marketShop?.reset();cameraTransition=null;impacts.reset();crowd?.reset();finale.reset();startPoint=l;car=makeCar(l.x,l.z,l.heading??(l.name==='Senate Square'?0:-Math.PI/2+.17));car.distance=distance;if(travel)travel.reset(car,world);else travel=new PlayerTravel(car,world,{cars:()=>[...staticCars,...trafficCars],obstacles:travelObstacles});peopleInteraction??=new PeopleInteraction(world);playerCars.sync(travel);focus.set(car.x,0,car.z);cameraHeading=car.heading;tramSim?.reset(car);buses?.reset(car,tramSim?.obstacles);if(mobility){mobility.externalBodies=transitBodies();mobility.reset(car);}roadblock?.reset();police?.reset();marketLife?.reset();universityLife?.reset();terminalLife?.reset();$('district-label').textContent=l.district.toUpperCase();carGroup.position.set(car.x,.1+groundAt(car.x,car.z),car.z);carGroup.rotation.y=car.heading;if(ready)updateTiles().catch(handleTileError);drawMinimap();}
 function handleTileError(e){console.error(e);toast('Some scenery could not load. Nearby streets will retry.');}
 const touchScreen=matchMedia('(pointer:coarse)').matches; // phones and tablets: no keyboard, so the HUD and touch buttons stay on
 if(touchScreen){document.body.classList.remove('clean-capture');document.body.classList.add('touch');}
-function start(){if(!ready)return;started=true;paused=false;document.body.classList.add('driving');loadingScreen.enter();carGroup.visible=true;marker.visible=false;toast(touchScreen?'Slide to steer · Hold Go to move · Menu for the map and settings':'WASD or arrow keys to drive · Space to handbrake');$('world').focus();}
+function start(){if(!ready)return;if(previewing){startAfterPreview=true;return;}started=true;paused=false;document.body.classList.add('driving');loadingScreen.enter();carGroup.visible=true;marker.visible=false;toast(touchScreen?'Slide to steer · Hold Go to move · Menu for the map and settings':'WASD or arrow keys to drive · Space to handbrake');$('world').focus();}
 function showDialog(id){if(!ready||police?.busted)return;mobileControls?.release();keys.clear();$(id).showModal();mapOpen=true;if(id==='map-dialog')drawCityMap();}
 function closeDialogs(){document.querySelectorAll('dialog[open]').forEach(d=>d.close());mapOpen=!!document.querySelector('dialog[open]');mobileControls?.release();keys.clear();}
 function setPaused(value){if(!started||mapOpen||police?.busted)return;paused=value;mobileControls?.release();keys.clear();$('pause-overlay').hidden=!paused;}
@@ -519,6 +539,9 @@ function cycleCamera(){if(chaseCamera){chaseCamera=false;highCamera=false;}else 
 $('view-btn').addEventListener('click',cycleCamera);
 document.querySelectorAll('.close-btn,.dialog-drive').forEach(b=>b.addEventListener('click',closeDialogs));document.querySelectorAll('dialog').forEach(d=>{d.addEventListener('close',()=>{mapOpen=!!document.querySelector('dialog[open]');mobileControls?.release();keys.clear();});d.addEventListener('click',e=>{if(e.target===d){const r=d.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)d.close();}});});
 window.addEventListener('keydown',e=>{
+ const pick=startPicker&&pickerStep(e.code,{ready:ready&&!gameIsStopped(),started,blocked:mapOpen||!!police?.busted});
+ if(pick){e.preventDefault();if(!e.repeat)startPicker.step(pick);return;} // before the start ←/→ choose the place; afterwards they steer
+ if(e.code==='Enter'&&!started&&ready&&e.target.closest?.('.start-arrow')){e.preventDefault();start();return;} // “or press Enter” holds after clicking an arrow too
  if(e.code!=='Escape'&&e.target.closest?.('button,a,summary,input,select,textarea,[contenteditable="true"]'))return;
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&!mapOpen)e.preventDefault();
  if(e.repeat)return;
@@ -825,7 +848,9 @@ async function boot(){
    // Lanes know the tram tracks and buses the junction signals; respawn traffic clear of trams and buses.
    mobility.attachTrams(tramSim);mobility.attachBuses(buses.simulation);buses.reset(car,tramSim.obstacles);mobility.externalBodies=transitBodies();mobility.reset(car);
    progress(100,'Ready');
-   ready=true;carGroup.visible=true;marker.visible=true;loadingScreen.ready(helsinki?undefined:`${city.name} · ${startPoint.name}`);
+   ready=true;carGroup.visible=true;marker.visible=true;loadingScreen.ready(startPoint.name);
+   if(!helsinki)$('boot-place-label').textContent=`Your starting point in ${city.name}`;
+   startPicker=createStartPicker({starts:data.landmarks,current:startPoint,onChange:previewStart});
    const menu=$('landmark-buttons');data.landmarks.forEach((l,i)=>{const b=document.createElement('button');b.textContent=`${i+1}  ${l.name}`;b.addEventListener('click',()=>visitStart(l,b));menu.append(b);});
    updateDataCounts();
    if(!helsinki){

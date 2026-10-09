@@ -1,66 +1,114 @@
 /* One welcome panel, with the live city left in view. */
 body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#wanted,#location-readout,#touch-controls,#touch-aux,.vignette){visibility:hidden;pointer-events:none}
-#intro.boot-screen{position:absolute;inset:auto auto 38px 38px;width:380px;max-width:calc(100% - 32px);max-height:calc(100dvh - 76px);height:auto;overflow:auto;overscroll-behavior:contain;padding:25px 28px 19px;background:#f8f5eef7;color:var(--ink);border:1px solid #fffc;border-radius:10px;box-shadow:0 8px 32px #25241f20;transform:none;transition:opacity .25s,visibility .25s;z-index:40;scrollbar-width:thin}
+
+/* Type system for the card. Two faces, one scale, one spacing rhythm:
+   display  Spectral  — wordmark, tagline, place name (28 / 28 / 20)
+   ui       DM Sans   — eyebrow, button, hints, disclosure, footer (12 / 14 / 16)
+   Only the eyebrow uses capitals and tracking. Spacing steps: 8 / 12 / 16 / 24 / 32. */
+#intro.boot-screen{
+ --display:Spectral,Georgia,serif;--ui:'DM Sans',sans-serif;
+ --t-12:12px;--t-14:14px;--t-16:16px;--t-20:20px;--t-28:28px;
+ --s-4:4px;--s-8:8px;--s-12:12px;--s-16:16px;--s-24:24px;--s-32:32px;
+ --pad:32px;--muted:#67645c;--soft:#30312e14;
+ position:absolute;inset:auto auto 38px 38px;width:384px;max-width:calc(100% - 32px);max-height:calc(100dvh - 76px);height:auto;overflow:auto;overscroll-behavior:contain;
+ padding:var(--pad) var(--pad) var(--s-24);background:#f8f5eef7;color:var(--ink);border:1px solid #fffc;border-radius:12px;box-shadow:0 8px 32px #25241f20;transform:none;transition:opacity .25s,visibility .25s;z-index:40;scrollbar-width:thin;
+ font-family:var(--ui);font-size:var(--t-14);line-height:20px;
+}
 #intro.boot-screen.gone{opacity:0;visibility:hidden;pointer-events:none}
-#intro .boot-brand{display:flex;width:fit-content;gap:10px;padding:0;margin-bottom:24px;background:none;border-radius:0;box-shadow:none;backdrop-filter:none;font-size:29px;letter-spacing:-.035em;line-height:1}
-#intro .boot-brand .brand-icon{width:44px;height:44px}
-#intro .boot-brand .brand-name{display:block}
-#intro .boot-tagline{margin:0 0 28px;font-family:Spectral,Georgia,serif;font-size:29px;line-height:1.18;font-weight:500;letter-spacing:-.035em;color:var(--ink)}
-.boot-place-label{margin:0 0 5px;font-size:10px;line-height:1.4;font-weight:500;letter-spacing:.08em;text-transform:uppercase;color:#737069}
+#intro.boot-screen p{margin:0}
+
+/* Display: Spectral */
+#intro.boot-screen .boot-brand{display:flex;align-items:center;width:fit-content;gap:var(--s-12);padding:0;margin:0 0 var(--s-24);background:none;border-radius:0;box-shadow:none;backdrop-filter:none;font:600 var(--t-28)/1 var(--display);letter-spacing:-.025em;color:inherit}
+#intro.boot-screen .boot-brand .brand-icon{width:40px;height:40px}
+#intro.boot-screen .boot-brand .brand-name{display:block}
+#intro.boot-screen .boot-tagline{margin:0 0 var(--s-32);font:500 var(--t-28)/32px var(--display);letter-spacing:-.025em;color:inherit}
+#intro.boot-screen #boot-title{margin:0 0 var(--s-16);font:600 var(--t-20)/28px var(--display);letter-spacing:-.015em;color:inherit}
+
+/* UI: DM Sans */
+#intro.boot-screen .boot-place-label{display:flex;align-items:baseline;justify-content:space-between;gap:var(--s-12);margin:0 0 var(--s-8);font:600 var(--t-12)/16px var(--ui);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
 #intro:not(.ready) .boot-place-label{display:none}
-#intro #boot-title{font-family:Spectral,Georgia,serif;font-size:20px;font-weight:600;letter-spacing:-.025em;line-height:1.3;margin:0 0 18px;color:inherit}
-.boot-progress-heading{display:flex;justify-content:space-between;gap:14px;font-size:12px;line-height:1.6;color:#69665f}
+#intro .start-count{font:500 var(--t-12)/16px var(--ui);letter-spacing:0;font-variant-numeric:tabular-nums;text-transform:none}
+
+/* ‹ Place name ›: a control the same width and radius as the button below it. */
+#intro .start-picker{display:flex;align-items:center}
+#intro.has-picker .start-picker{min-height:56px;margin:0 0 var(--s-12);padding:var(--s-4);border:1px solid #30312e1f;border-radius:8px;background:#fffdf8b3}
+#intro.has-picker.boot-screen #boot-title{flex:1;min-width:0;margin:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .15s}
+#intro.switching #boot-title{opacity:.55}
+#intro .start-arrow{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:6px;background:none;color:var(--ink);touch-action:manipulation}
+#intro .start-arrow svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+#intro .start-arrow:hover{background:var(--soft)}
+#intro .start-arrow:active{background:#30312e24}
+#intro .start-arrow:focus-visible{outline:2px solid var(--orange);outline-offset:0}
+#boot-title.slide-next{animation:start-in-next .22s ease-out}
+#boot-title.slide-prev{animation:start-in-prev .22s ease-out}
+@keyframes start-in-next{from{opacity:0;transform:translateX(12px)}}
+@keyframes start-in-prev{from{opacity:0;transform:translateX(-12px)}}
+.visually-hidden{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.boot-progress-heading{display:flex;justify-content:space-between;gap:var(--s-16);font:400 var(--t-14)/20px var(--ui);color:var(--muted)}
 #load-percent{font-variant-numeric:tabular-nums;white-space:nowrap}
-#intro .load-progress{display:block;height:3px;background:#30312e20;margin:13px 0 2px;overflow:hidden}
+#intro .load-progress{display:block;height:3px;background:#30312e20;margin:var(--s-12) 0 var(--s-4);overflow:hidden}
 #intro #load-fill{width:0;background:var(--orange);transition:width .3s;height:100%}
-#intro .primary-btn{width:100%;padding:15px 18px;min-height:56px;margin:0;font-size:19px;font-weight:700;border-radius:5px}
-#intro .primary-btn>span:last-child{font-size:24px;line-height:1}
-.boot-enter{display:block;text-align:center;font-size:11px;line-height:1.5;color:#747068;margin-top:10px}
-.boot-enter kbd{font-size:9px;padding:3px 5px;border-color:#74706830}
-.boot-help{margin-top:14px}
-.boot-help summary{display:flex;align-items:center;justify-content:space-between;min-height:38px;cursor:pointer;list-style:none;font-size:12px;font-weight:500;color:#5d5a53}
+
+#intro .primary-btn{width:100%;min-height:56px;margin:0;padding:0 var(--s-16) 0 var(--s-24);border-radius:8px;font:700 var(--t-16)/24px var(--ui);letter-spacing:0}
+#intro .primary-btn>span:last-child{font-size:var(--t-20);line-height:1}
+.boot-enter{display:block;margin-top:var(--s-8);font:400 var(--t-12)/16px var(--ui);color:var(--muted)}
+#intro kbd{display:inline-flex;align-items:center;min-width:0;padding:2px 5px;margin:0 1px;font:600 11px/12px var(--ui);letter-spacing:.02em;color:var(--ink);background:#fff9;border:1px solid #30312e26;border-bottom-width:2px;border-radius:4px;vertical-align:1px}
+
+.boot-help{margin-top:var(--s-8)}
+.boot-help summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;list-style:none;font:500 var(--t-14)/20px var(--ui);color:var(--ink)}
 .boot-help summary::-webkit-details-marker{display:none}
-.boot-help summary>span{font-size:18px;font-weight:400;transition:transform .2s}
+.boot-help summary>span{font-size:var(--t-20);font-weight:400;line-height:1;color:var(--muted);transition:transform .2s}
 .boot-help[open] summary>span{transform:rotate(45deg)}
-.boot-help summary:focus-visible{outline:2px solid var(--orange);outline-offset:3px;border-radius:2px}
-.boot-controls{margin:3px 0 9px;font-size:11px;line-height:1.6;color:#615e57}
-.boot-controls>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:6px 0}
+.boot-help summary:focus-visible{outline:2px solid var(--orange);outline-offset:2px;border-radius:2px}
+.boot-controls{margin:0 0 var(--s-12);font:400 var(--t-12)/16px var(--ui);color:var(--muted)}
+.boot-controls>div{display:flex;align-items:center;justify-content:space-between;gap:var(--s-12);padding:var(--s-4) 0}
 .boot-controls dt,.boot-controls dd{margin:0}
 .boot-controls dd{text-align:right;white-space:nowrap}
-.boot-controls kbd{font:500 9px/1 'DM Sans',sans-serif;padding:3px 4px;border:1px solid #30312e26;border-bottom-width:2px;border-radius:3px;background:#fff8;color:var(--ink)}
-#intro .boot-touch{text-align:left;font-size:13px;line-height:1.6;color:#615e57;margin:3px 0 12px}
-.boot-footer{border-top:1px solid var(--line);margin-top:9px;padding-top:12px;font-size:11px;line-height:1.6;color:#737069}
-.boot-links{display:flex;align-items:center;flex-wrap:wrap;gap:7px 19px}
-.boot-footer a{color:#59564f;text-decoration:none;text-underline-offset:3px}
-.boot-footer a:hover{text-decoration:underline;color:var(--ink)}
-.boot-credit{display:block;margin:0 0 8px;font-size:12px;line-height:1.6}
-.boot-credit a{text-decoration:underline}
+#intro.boot-screen .boot-touch{max-width:none;margin:0 0 var(--s-12);font:400 var(--t-14)/20px var(--ui);color:var(--muted);text-align:left}
+#intro .boot-touch b{font-weight:600;color:var(--ink)}
+
+/* Footer: one block, one style. */
+.boot-footer{border-top:1px solid var(--line);padding-top:var(--s-16);font:400 var(--t-12)/20px var(--ui);color:var(--muted)}
+.boot-links{display:flex;align-items:center;flex-wrap:wrap;gap:0 var(--s-8)}
+.boot-links>span{opacity:.6}
+.boot-footer a{color:var(--ink);text-decoration:none;text-underline-offset:3px}
+.boot-footer a:hover{text-decoration:underline}
+
 #intro [hidden]{display:none!important}
-#intro.failed #boot-launch{margin-top:16px}
-#intro.failed :is(.boot-tagline,.boot-place-label,.boot-help){display:none}
-#intro.failed .boot-progress-heading{font-size:14px}
+#intro.failed #boot-launch{margin-top:var(--s-16)}
+#intro.failed :is(.boot-tagline,.boot-place-label,.boot-help,.start-arrow){display:none}
+#intro.failed .start-picker{min-height:0;padding:0;border:0;background:none}
+#intro.failed.boot-screen #boot-title{text-align:left;white-space:normal}
+#intro.failed .boot-progress-heading{font-size:var(--t-14)}
 body.game-failed #app>:not(#world):not(#intro){visibility:hidden!important;pointer-events:none!important}
 body.game-failed #intro{z-index:1000;pointer-events:auto}
+
+/* Phones (portrait) */
 @media(max-width:700px){
- #intro.boot-screen{left:16px;bottom:max(24px,env(safe-area-inset-bottom));width:358px;max-height:calc(100dvh - 48px);padding:22px 24px 17px}
- #intro .boot-brand{font-size:28px;margin-bottom:21px}
- #intro .boot-tagline{font-size:27px;margin-bottom:23px}
- #intro #boot-title{font-size:19px;margin-bottom:16px}
+ #intro.boot-screen{--pad:24px;left:16px;bottom:max(16px,env(safe-area-inset-bottom));width:358px;max-width:calc(100% - 32px);max-height:calc(100dvh - 32px);padding-bottom:var(--s-16)}
 }
 @media(pointer:coarse){
- .boot-help summary{min-height:44px}
- .boot-links{gap:0 18px}.boot-footer a{display:inline-block;min-height:32px;padding:7px 0}
- .boot-credit a{padding:0;min-height:0}
+ .boot-footer a{display:inline-flex;align-items:center;min-height:32px}
+ .boot-credit a{min-height:0}
 }
-@media(max-width:360px){#intro .boot-tagline{font-size:24px}}
-@media(max-height:540px){
- #intro.boot-screen{left:20px;bottom:20px;max-height:calc(100dvh - 40px);width:340px;padding:12px 22px 10px}
- #intro .boot-brand{font-size:25px;margin-bottom:10px}#intro .boot-brand .brand-icon{width:36px;height:36px}
- #intro .boot-tagline{font-size:24px;line-height:1.12;margin-bottom:12px}
- #intro .boot-place-label{display:none}
- #intro #boot-title{font-size:18px;margin-bottom:10px}
- #intro .primary-btn{min-height:48px;padding:11px 16px}
- .boot-enter{display:none}.boot-help{margin-top:5px}.boot-credit{font-size:11px;margin-bottom:3px}
- .boot-footer{margin-top:4px;padding-top:8px}
+@media(max-width:360px){#intro.boot-screen{--t-28:24px}#intro.boot-screen .boot-tagline{line-height:28px}}
+
+/* Short screens (phones held sideways): two columns, so nothing needs scrolling.
+   Left: wordmark, tagline, footer. Right: starting point, button, how to play. */
+@media(max-height:540px) and (min-width:560px){
+ #intro.boot-screen{--pad:24px;left:max(16px,env(safe-area-inset-left));bottom:16px;width:min(680px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:var(--s-24);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;column-gap:var(--s-32);align-items:start}
+ #intro.boot-screen>*{grid-column:2}
+ #intro.boot-screen>.boot-brand{grid-column:1;grid-row:1;margin-bottom:var(--s-16)}
+ #intro.boot-screen>.boot-tagline{grid-column:1;grid-row:2;margin:0}
+ #intro.boot-screen>.boot-footer{grid-column:1;grid-row:3;align-self:end;margin-top:var(--s-16)}
+ #intro.boot-screen>.boot-place-label{grid-row:1;align-self:end}
+ #intro.boot-screen>.start-picker{grid-row:2}
+ #intro.boot-screen>:is(#boot-loader,#boot-launch){grid-row:3}
+ .boot-enter{display:none}
 }
-@media(prefers-reduced-motion:reduce){#intro.boot-screen,#intro #load-fill,.boot-help summary>span{transition:none}}
+@media(max-height:540px) and (max-width:559px){
+ #intro.boot-screen{--pad:24px;bottom:16px;max-height:calc(100dvh - 32px)}
+ #intro.boot-screen .boot-brand{margin-bottom:var(--s-16)}#intro.boot-screen .boot-tagline{margin-bottom:var(--s-16)}
+}
+@media(prefers-reduced-motion:reduce){#intro.boot-screen,#intro #load-fill,.boot-help summary>span,#intro #boot-title{transition:none}#boot-title.slide-next,#boot-title.slide-prev{animation:none}}

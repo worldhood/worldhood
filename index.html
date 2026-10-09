@@ -32,7 +32,9 @@
       <section class="intro boot-screen" id="intro" aria-labelledby="boot-title" aria-busy="true">
         <a class="wordmark boot-brand" href="/" aria-label="worldhood home"><span class="brand-icon"><img src="/favicon.svg" width="48" height="48" alt="" /></span><span class="brand-name">worldhood</span></a>
         <p class="boot-tagline">Check out some hoods.<br />Then build your own.</p>
-        <p class="boot-place-label">Your starting point</p><h1 id="boot-title">Loading game</h1>
+        <p class="boot-place-label"><span id="boot-place-label">Your starting point</span><span id="start-count" class="start-count" aria-hidden="true" hidden></span></p>
+        <div class="start-picker"><button id="start-prev" class="start-arrow" type="button" aria-label="Previous starting point" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><h1 id="boot-title">Loading game</h1><button id="start-next" class="start-arrow" type="button" aria-label="Next starting point" hidden><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>
+        <p id="start-status" class="visually-hidden" role="status" aria-live="polite"></p>
         <div id="boot-loader"><div class="boot-progress-heading"><span id="load-detail" role="status">Loading resources</span><span id="load-percent">0%</span></div><div class="load-progress" role="progressbar" aria-label="Game setup progress" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="load-fill"></div></div></div>
         <div id="boot-launch" hidden>
           <button id="start-btn" class="primary-btn" disabled><span id="start-label">Let’s explore</span><span aria-hidden="true">↗</span></button>
@@ -50,7 +52,7 @@
             </dl>
           </details>
         </div>
-        <footer class="boot-footer"><p class="boot-credit">An open-source project by <span id="boot-creator"><a href="https://www.linkedin.com/in/lassesaari/" target="_blank" rel="noreferrer">Lasse</a></span>.<br />Contributors welcome!</p><div class="boot-links"><a href="https://github.com/worldhood/worldhood" target="_blank" rel="noreferrer">GitHub ↗</a><a href="https://www.linkedin.com/in/lassesaari/" target="_blank" rel="noreferrer">Message me ↗</a><a href="/about/">About</a></div></footer>
+        <footer class="boot-footer"><p class="boot-credit">Open source · by <span id="boot-creator"><a href="https://www.linkedin.com/in/lassesaari/" target="_blank" rel="noreferrer">Lasse</a></span> · Contributors welcome</p><p class="boot-links"><a href="https://github.com/worldhood/worldhood" target="_blank" rel="noreferrer">GitHub ↗</a><span aria-hidden="true">·</span><a href="https://www.linkedin.com/in/lassesaari/" target="_blank" rel="noreferrer">Message me ↗</a><span aria-hidden="true">·</span><a href="/about/">About</a></p></footer>
       </section>
       <div class="landmark-label" id="cathedral-label"><span class="landmark-dot"></span><span>HELSINGIN TUOMIOKIRKKO<small>Helsinki Cathedral · 1852</small></span></div>
       <aside class="right-tools"><span class="compass"><b>N</b><svg width="26" height="38" viewBox="0 0 26 38"><path d="M13 4L22 31L13 25L4 31Z" fill="#34423e"/><path d="M13 4V25L4 31Z" fill="#9ca49b"/></svg></span><div class="zoom"><button id="zoom-in" aria-label="Zoom in">+</button><span></span><button id="zoom-out" aria-label="Zoom out">−</button></div></aside>
