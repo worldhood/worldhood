@@ -44,6 +44,7 @@ import {createStationStreetLife} from './station-street-life.js';
 import {createStationStatues} from './station-statues.js';
 import {createStationBuildingDetails} from './station-building.js';
 import {createLocationReadout,describeLocation,useProjection} from './location-readout.js';
+import {areaCaption,HELSINKI_AREAS} from './area-caption.js';
 import {createWaterfrontLandmarks} from './waterfront-landmarks.js';
 import {createStreetNameSigns} from './street-name-signs.js';
 import {createPalaceLife} from './palace-life.js';
@@ -120,7 +121,7 @@ const roadRumble=createRumbleState();let cameraRumble=[0,0,0],surfaceNow={surfac
 let cityModelPromise,surfaceStreamer=null,extensionStreamer=null,switchingStart=false,places=[],speciesTrees=null;const placeHidden=new Set();
 let birds=null,birdColonies=[],crowd=null; // gulls, pigeons, crows and sparrows from the city's map data (birds.js)
 let cyclists,cyclistRenderer,buses,police,policeRenderer,roadblock; // five-star roadblocks and the officers' arrest scene, in every city
-let distance=0,viewSpan=150,desiredSpan=150,lastTime=0,lastUI=0,lastTile=0,lastToast=0,toastTimer;
+let distance=0,viewSpan=150,desiredSpan=150,lastTime=0,lastUI=0,lastTile=0,lastToast=0,toastTimer,areaLabel;
 let sound=false,audioContext,oscillator,gain,mobileControls=null;
 let startPicker=null,previewVersion=0,previewing=false,startAfterPreview=false; // the ‹ › starting-point picker on the welcome card
 onGameStop(()=>{mobileControls?.release();keys.clear();paused=true;peopleInteraction?.close();audioContext?.suspend().catch(()=>{});});
@@ -606,6 +607,7 @@ function updateHUD(now){
  if(car.battery===0)$('gear').textContent='R TO RECHARGE';else if(car.battery<=.2)$('gear').textContent='LOW BATTERY · R TO RECHARGE';
  if(!driving){$('gear').textContent=TRAVEL_MODES[travel.mode].label.toUpperCase();$('speed').title='Speed in kilometres per hour';}
  let nearest=data.landmarks[0],best=Infinity;for(const l of data.landmarks){const d=Math.hypot(l.x-car.x,l.z-car.z);if(d<best){best=d;nearest=l;}}$('district-label').textContent=nearest.district.toUpperCase();
+ if(areaLabel){const caption=document.querySelector('.minimap-caption')?.firstChild,text=`${areaLabel(car.x,car.z,now)} `;if(caption&&caption.textContent!==text)caption.textContent=text;}
  const location=currentLocation();locationReadout.update(location);
  $('coordinates').textContent=`${location.coordinates.latitude.toFixed(6)}° N · ${location.coordinates.longitude.toFixed(6)}° E`;
  drawMinimap();
@@ -741,6 +743,7 @@ async function boot(){
    // The catalog lists every destination; only the requested region blocks startup.
    if(helsinki)data.landmarks.push({...HARBOUR_START});
    for(const e of extensions)data.landmarks.push(...(e.starts||[]));
+   areaLabel=areaCaption(helsinki?[...HELSINKI_AREAS,...extensions.flatMap(e=>e.starts||[])]:data.landmarks,city.name);
    const requestedStart=new URLSearchParams(location.search).get('start'),firstStart=pickStart(data.landmarks,requestedStart)||pickStart(data.landmarks,city.defaultStart)||(helsinki?HARBOUR_START:data.landmarks[0]);
    const regionStages=new Map();
    extensionStreamer=createExtensionStreamer({entries:extensions,load:e=>loadExtension(e,json,unpack),onError:handleTileError,install:async e=>{

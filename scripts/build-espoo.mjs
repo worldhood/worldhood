@@ -20,6 +20,7 @@ import {readExtension,readRoute,extensionRegions,multiBounds,simplifyRing,pointI
 import {parseBuildings,parseStreets,parseCentrelines,parseTrees,parseDistricts,toLocal,triangulate,buildingBase,footprints,ringArea,planAtlas,atlasUv,jpegSize,splitAtJunctions,joinSeam} from './espoo-citygml.mjs';
 import {osmWater} from './osm-water.mjs';
 import {projector} from './official-wfs.mjs';
+import {placeStarts} from './place-starts.mjs';
 
 const id=process.argv[2]||'espoo',ext=readExtension(id),route=readRoute(id),RAW=path.join('data/raw/extensions',id),OUT=path.join('public/data/extensions',id),URL_DIR=`extensions/${id}`;
 const fetchReport=JSON.parse(fs.readFileSync(path.join(RAW,'fetch-report.json')));
@@ -173,3 +174,4 @@ const entry={id,title:ext.title,status:ext.status,dir:URL_DIR,mapBounds:cb.map(M
 registry.extensions=[...registry.extensions.filter(e=>e.id!==id),entry];
 fs.writeFileSync(indexFile,JSON.stringify(registry));
 console.log(JSON.stringify({counts:entry.counts,seam,atlasMetresPerPixel:entry.atlasMetresPerPixel,starts:starts.map(s=>`${s.name}: ${s.street} (${s.x},${s.z})`)},null,1));
+placeStarts([id]); // into a traffic lane, clear of kerbs

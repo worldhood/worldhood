@@ -16,6 +16,7 @@ import {bounds,SpatialIndex,pointInPolygon,registerPlayableArea,WORLD_EXTENT} fr
 import {nearestRoadPoint} from '../src/physics.js';
 import {GK25,readExtension,readRoute,extensionRegions,multiBounds,simplifyRing,boxesOverlap,rectangle,pointInMulti,SNAPSHOT_SQUARE,paveUncovered} from './extension-geometry.mjs';
 import {ktx2ToJpeg} from './ktx2.mjs';
+import {placeStarts} from './place-starts.mjs';
 
 const id=process.argv[2],ext=readExtension(id),route=readRoute(id),RAW=path.join('data/raw/extensions',id),OUT=path.join('public/data/extensions',id),URL_DIR=`extensions/${id}`;
 fs.rmSync(OUT,{recursive:true,force:true});for(const d of ['buildings3d','surfaces'])fs.mkdirSync(path.join(OUT,d),{recursive:true});
@@ -168,3 +169,4 @@ const entry={id,title:ext.title,status:ext.status,dir:URL_DIR,mapBounds:contextB
 registryFile.extensions=[...registryFile.extensions.filter(e=>e.id!==id),entry];
 fs.writeFileSync(indexFile,JSON.stringify(registryFile));
 console.log(JSON.stringify({counts:entry.counts,starts:starts.map(s=>`${s.name}: ${s.street} (${s.x},${s.z})`),dedup:skipped},null,1));
+placeStarts([id],{keep:ext.definition.starts.filter(s=>s.face).map(s=>s.name)}); // into a traffic lane, clear of kerbs
