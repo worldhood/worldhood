@@ -1,4 +1,13 @@
-# Area maintainers review changes to their area.
-# Add one line per area when its claim is accepted, e.g.:
-# /extensions/seurasaari/                   @your-handle
-# /public/data/extensions/seurasaari/       @your-handle
+# Every change is reviewed by a maintainer before it goes live.
+*                 @vedvekkuli
+
+# Sensitive: build, dependencies and automation. Always maintainer-approved.
+/.github/         @vedvekkuli
+/package.json     @vedvekkuli
+/package-lock.json @vedvekkuli
+/scripts/         @vedvekkuli
+/vite.config.*    @vedvekkuli
+
+# Area maintainers can be added per city or area when a claim is accepted, e.g.:
+# /cities/tampere/        @their-handle
+# /extensions/seurasaari/ @their-handle
