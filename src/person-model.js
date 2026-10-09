@@ -220,6 +220,8 @@ export function posePerson(actor,look,gait,out,time=0){
   if(cycle){const b=actor.bike;target=[sgn*b.barX,b.barY,b.barZ];}
   else if(scooter)target=[sgn*(scooterFeet?.barX??.22),scooterFeet?.barY??.95,scooterFeet?.barZ??-.455];
   else if(side===1&&actor.suitcase)target=[.34*H/1.74,.86*H/1.74+.0,.2*H/1.74];
+  // Carrying something bought (market-shop.js): right hand forward and out to the side (hold 0), raised to the mouth (hold 1).
+  else if(side===1&&actor.hold>=0&&actor.hold!==null){const q=H/1.74,t=actor.hold;target=[(.3-.17*t)*q,(.97+.42*t)*q,(-.2-.02*t)*q,1,-.6,.5];}
   // Angry driver: hand up over the head, shaken side to side (elbow out to the side).
   // ...and the other arm out to the side, palm up: "what are you doing?"
   else if(side===0&&actor.pose==='wave'){const q=H/1.74,beat=Math.max(0,Math.sin(clock*3.1));target=[-.42*q,1.12*q+.1*q*beat,-.26*q,-1,-.4,.3];}

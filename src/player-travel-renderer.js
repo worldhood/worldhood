@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {bicycleGeometry,scooterGeometry} from './parked-micromobility.js';
-import {createPersonBatch,personLook,advanceGait} from './person-model.js';
+import {createPersonBatch,personLook,advanceGait,JOINT} from './person-model.js';
 import {addBicycleMotion,PLAYER_BIKE,PLAYER_SCOOTER} from './player-ride-models.js';
 import {groundAt} from './terrain.js';
 
@@ -19,7 +19,8 @@ export function createPlayerTravelRenderer(scene){
   const label=new THREE.Sprite(new THREE.SpriteMaterial({map:texture,depthWrite:false}));label.position.y=1.6;label.scale.set(1.6,.4,1);root.add(label);
   models.set(id,{root,ring,label,motion:id==='bike'?addBicycleMotion(root):null});
  }
- return {group,look,update(travel,dt,{visible=true,actorVisible=true}={}){
+ let hand=null; // world position of the right hand, for a carried item (market-shop-renderer.js)
+ return {group,look,hand:()=>hand,update(travel,dt,{visible=true,actorVisible=true,hold=null}={}){
   group.visible=visible;if(!travel)return;
   const p=travel.viewActor();
   for(const [id,{root,ring,label,motion}] of models){
@@ -30,12 +31,15 @@ export function createPlayerTravelRenderer(scene){
    label.visible=false;
    ring.visible=actorVisible&&travel.mode==='walk'&&travel.riding!==ride&&Math.hypot(ride.x-p.x,ride.z-p.z)<3.2;
   }
-  person.begin();
+  person.begin();hand=null;
   if(actorVisible&&travel.mode!=='car'){
    const pose=travel.mode==='walk'?'walk':travel.mode==='bike'?'cycle':'scooter';
    const actor={...p,speed:Math.abs(p.speed),pose,groundY:pose==='scooter'?PLAYER_SCOOTER.groundY:.12,running:Math.abs(p.speed)>2.5,grip:true,
     bike:{...PLAYER_BIKE,crank:p.distance*PLAYER_BIKE.crankPerMetre},scooter:PLAYER_SCOOTER};
+   if(pose==='walk'&&hold!==null&&!p.knockdown)actor.hold=hold;
    advanceGait(actor,gait,dt,look);person.draw(actor,look,gait);
+   if(pose==='walk'&&!p.knockdown){const J=person.joints,j=JOINT.handR,c=Math.cos(p.heading),s=Math.sin(p.heading),y=actor.groundY+groundAt(p.x,p.z);
+    hand={x:p.x+J[j]*c+J[j+2]*s,y:y+J[j+1],z:p.z-J[j]*s+J[j+2]*c,heading:p.heading};}
   }
   person.end();
  }};

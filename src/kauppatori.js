@@ -4,6 +4,7 @@ import {architectureBuilder} from './cathedral.js';
 import {SpatialIndex,pointInPolygon} from './geo.js';
 import {createHavisAmanda} from './havis-amanda.js';
 import {addGraniteSetts} from './market-street-surface.js';
+import {assignStallKinds} from './market-shop.js';
 
 export const MARKET_MONUMENTS={amanda:{x:-39.066,z:281.183},empress:{x:124.882,z:275.284}};
 // Canopy centres digitised from the 2025 municipal orthophoto. These are a
@@ -16,10 +17,12 @@ const CANOPIES=[
  [941,476,0],[969,477,0],[865,514,0],[891,513,0],[929,509,0],[966,509,0],
  [961,545,0],[985,547,0],[790,560,0],[827,556,1],[927,609,1],[966,610,1],
 ].map(([px,py,orange])=>({x:px/3.84-90,z:py/3.84+150,orange:!!orange,w:5.2,d:4.4}));
+// What each canopy sells (market-shop.js): food and coffee under the orange tents, berries, flowers and crafts under canvas.
+const STALLS=assignStallKinds(CANOPIES);
 function footprint(x,z,w,d){return {name:'Market stall',rings:[[[x-w/2,z-d/2],[x+w/2,z-d/2],[x+w/2,z+d/2],[x-w/2,z+d/2]]]};}
 export function marketStallPlacements(data){
  const square=new SpatialIndex(data.pavement.filter(p=>p.name==='Kauppatori'&&p.kind==='Aukiot')),roads=new SpatialIndex(data.roads),buildings=new SpatialIndex(data.buildings);
- return CANOPIES.filter(s=>footprint(s.x,s.z,s.w,s.d).rings[0].every(([x,z])=>square.at(x,z)&&!roads.at(x,z)&&!buildings.at(x,z)&&!data.water.some(p=>pointInPolygon(x,z,p.rings)))&&Object.values(MARKET_MONUMENTS).every(m=>Math.hypot(s.x-m.x,s.z-m.z)>7));
+ return STALLS.filter(s=>footprint(s.x,s.z,s.w,s.d).rings[0].every(([x,z])=>square.at(x,z)&&!roads.at(x,z)&&!buildings.at(x,z)&&!data.water.some(p=>pointInPolygon(x,z,p.rings)))&&Object.values(MARKET_MONUMENTS).every(m=>Math.hypot(s.x-m.x,s.z-m.z)>7));
 }
 function pavingMaterial(kind){
  const asphalt=/Asfal/i.test(kind),small=/Noppa/.test(kind),cobble=/Mukulu/.test(kind);
@@ -47,6 +50,7 @@ export function createKauppatori(data){
  }
  for(const [kind,gs] of batches){const m=new THREE.Mesh(mergeGeometries(gs),pavingMaterial(kind));m.receiveShadow=true;group.add(m);gs.forEach(g=>g.dispose());}
  const b=architectureBuilder(),mat=(color,roughness=.8,metalness=0)=>new THREE.MeshStandardMaterial({color,roughness,metalness}),orange=mat('#d97827'),canvas=mat('#dfdac7'),iron=mat('#3a4847',.6,.5),wood=mat('#8c7151'),stone=mat('#858783'),red=mat('#a67c70'),bronze=mat('#456c5e',.6,.5),gold=mat('#ba9853',.35,.65),water=mat('#45777b',.25,.35),produce=[mat('#b24332'),mat('#b4a34c'),mat('#6e8650')];
+ const wares={berries:[mat('#b8262e'),mat('#2f3d74'),mat('#6f9a45'),mat('#c23a2c')],flowers:[mat('#d9435a'),mat('#f0c83a'),mat('#e9e3d6'),mat('#c25591')],souvenir:[mat('#9a7a55'),mat('#7a2f2a'),mat('#4b5d6e')],soup:[mat('#e8e2d2'),mat('#c98b38')],cafe:[mat('#d4a05a'),mat('#e8e2d2')]};
  const stalls=marketStallPlacements(data),obstacles=[];
  for(const [i,s] of stalls.entries()){
   obstacles.push(footprint(s.x,s.z,s.w,s.d));
@@ -58,7 +62,8 @@ export function createKauppatori(data){
    b.box(w,.24,.035,fabric,s.x+x,2.46,s.z+side*s.d/2);
   }
   b.box(s.w-.3,.65,.9,wood,s.x,.62,s.z+s.d/2-.6);
-  for(let j=0;j<4;j++){b.box(.95,.12,.7,wood,s.x-1.65+j*1.1,1.0,s.z+s.d/2-.6);b.box(.8,.16,.55,produce[(i+j)%3],s.x-1.65+j*1.1,1.13,s.z+s.d/2-.6);}
+  const goods=wares[s.kind]||produce;
+  for(let j=0;j<4;j++){b.box(.95,.12,.7,wood,s.x-1.65+j*1.1,1.0,s.z+s.d/2-.6);if(s.kind==='soup'&&j===1)b.cylinder(.26,.24,.34,iron,s.x-1.65+j*1.1,1.23,s.z+s.d/2-.6,14);else if(s.kind==='cafe'&&j===2)b.cylinder(.11,.11,.42,iron,s.x-1.65+j*1.1,1.27,s.z+s.d/2-.6,10);else b.box(.8,.16,.55,goods[(i+j)%goods.length],s.x-1.65+j*1.1,1.13,s.z+s.d/2-.6);}
  }
  // HAM's georeferenced monuments. Small sculptural forms are silhouettes, not scans.
  const a=MARKET_MONUMENTS.amanda;

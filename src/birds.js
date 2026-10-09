@@ -172,15 +172,17 @@ export function createBirdLife(plan,{seed=11}={}){
   if(b.kind==='sparrow'&&b.glide>.5)b.fold=.75; // bounding flight: wings tucked between bursts
  }
  let time=0;
- function step(dt,{viewer=null,threats=[],people=[],range=600}={}){
+ // `lure` ({x,z}): someone holding food. Nearby gulls get bold, walk up and drop in for a closer look.
+ function step(dt,{viewer=null,threats=[],people=[],range=600,lure=null}={}){
   dt=Math.min(.1,Math.max(0,dt));time+=dt;
   for(const f of plan.flocks){
    f.active=!viewer||Math.hypot(f.x-viewer.x,f.z-viewer.z)<range+f.radius;if(!f.active)continue;
    // Threats: the car (quick or close) and walkers near the ground birds, checked a few times a second.
    f.scan-=dt;
    if(f.scan<=0){f.scan=.2;
-    const shy=BIRD_KINDS[f.kind].shy;
-    for(const t of threats){const fast=Math.abs(t.speed||0)>1.2,reach=fast?shy*2:shy*.8;
+    const shy=BIRD_KINDS[f.kind].shy,bold=!!lure&&f.kind==='gull'&&Math.hypot(lure.x-f.x,lure.z-f.z)<f.radius+40;
+    if(bold)tempt(f,lure);else if(f.lured){f.lured=false;for(const b of f.birds)b.lured=false;}
+    for(const t of threats){const fast=Math.abs(t.speed||0)>1.2,reach=fast?shy*2:bold?1.2:shy*.8;
      if(Math.hypot(t.x-f.x,t.z-f.z)>reach+f.radius+40)continue;
      for(const b of f.birds)if((b.state==='ground'||b.state==='perch'&&b.spot.y<2.5)&&Math.hypot(b.x-t.x,b.z-t.z)<reach)scatter(f,b,t);}
     if(f.kind!=='sparrow')for(const list of people)for(const p of list){if(p.knocked||Math.abs(p.x-f.x)>f.radius+30||Math.abs(p.z-f.z)>f.radius+30)continue;
@@ -190,6 +192,18 @@ export function createBirdLife(plan,{seed=11}={}){
    }
    for(const b of f.birds)update(b,dt);
   }
+ }
+ function tempt(f,lure){
+  f.lured=true;let near=0;for(const b of f.birds)if(b.lured&&(b.state==='ground'||b.state==='fly'))near++;
+  for(const b of f.birds){
+   if(b.state!=='ground')continue;const d=Math.hypot(b.x-lure.x,b.z-lure.z);
+   if(d>16||d<2.4&&b.lured)continue;if(!b.lured&&near>=5)continue;
+   // Stop just out of reach, on the side the bird came from.
+   const a=Math.atan2(b.z-lure.z,b.x-lure.x)+(b.id%5-2)*.12,r=2+(b.id%3)*.35,x=lure.x+Math.cos(a)*r,z=lure.z+Math.sin(a)*r;
+   if(!b.lured)near++;b.lured=true;b.walkTo={x,z};b.spot={...b.spot,x,z};b.hop=d>6?.6:0;b.timer=Math.max(b.timer,10);
+  }
+  // Now and then one of the circling gulls drops in.
+  if(near<5&&random()<.12){const b=f.birds.find(o=>o.state==='soar'&&!o.lured);if(b){const a=random()*TAU;b.lured=true;land(b,{x:lure.x+Math.cos(a)*2.6,z:lure.z+Math.sin(a)*2.6});}}
  }
  function scatter(f,b,from){
   // Panic spreads: neighbours within a few metres follow within a quarter second.
@@ -361,7 +375,7 @@ export function createBirds(data,options={}){
  const group=new THREE.Group();group.name='City birds';group.add(renderer.mesh);
  let last=0;
  return {group,life,plan,renderer,
-  update(dt,{viewer,threats,people}={}){const t0=performance.now();life.step(dt,{viewer,threats,people});renderer.update(viewer);last=performance.now()-t0;},
+  update(dt,{viewer,threats,people,lure}={}){const t0=performance.now();life.step(dt,{viewer,threats,people,lure});renderer.update(viewer);last=performance.now()-t0;},
   audio(context,enabled,listener,dt){calls.update(context,enabled,life,listener,dt);},
   // Run the flocks forward (inspection and screenshots while the game is paused).
   advance(seconds,viewer){for(let t=0;t<seconds;t+=1/30)life.step(1/30,{viewer});renderer.update(viewer);},

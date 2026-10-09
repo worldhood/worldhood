@@ -81,7 +81,7 @@ export class MarketShop{
  constructor({wallet=WALLET_START,stalls=[]}={}){this.startMoney=wallet;this.reset(stalls);}
  reset(stalls=this.stalls||[]){
   this.stalls=(stalls||[]).map((s,i)=>({...s,id:s.id??`stall-${i}`})).filter(s=>finite(s)&&STALL_KINDS[s.kind]);
-  this.money=this.startMoney;this.hand=null;this.bag=[];this.open=null;this.nearby=null;this.enabled=false;this.messages=[];this.player=null;this.spent=0;this.flash=null;
+  this.money=this.startMoney;this.hand=null;this.bag=[];this.open=null;this.nearby=null;this.enabled=false;this.messages=[];this.player=null;this.spent=0;this.flash=null;this.closeIn=0;
  }
  get stall(){return this.open;}
  menu(stall=this.open){return STALL_KINDS[stall?.kind]?.items||[];}
@@ -89,6 +89,7 @@ export class MarketShop{
   dt=Math.max(0,Number.isFinite(dt)?dt:0);this.player=finite(player)?{x:player.x,z:player.z,heading:player.heading||0}:null;
   this.enabled=!!enabled&&player?.travelMode==='walk'&&!!this.stalls.length;
   if(this.flash&&(this.flash.left-=dt)<=0)this.flash=null;
+  if(this.closeIn>0&&(this.closeIn-=dt)<=0)this.close();
   const h=this.hand;
   if(h){
    h.age+=dt;
@@ -105,6 +106,8 @@ export class MarketShop{
  // One key / button: open the nearby stall, close an open card, otherwise use what is in hand.
  action(player=this.player,{enabled=this.enabled}={}){
   if(this.open){this.close();return {ok:true,closed:true};}
+  // Food in hand comes first (you cannot buy more with your hands full anyway).
+  if(this.hand&&edible(this.hand.item)&&this.hand.state!=='handover')return this.use();
   if(enabled&&nearestStall(player,this.stalls))return this.openAt(player);
   if(this.hand)return this.use();
   return {ok:false,message:this.stalls.length?'Walk up to a market stall to buy something.':''};
@@ -112,9 +115,9 @@ export class MarketShop{
  openAt(player=this.player){
   const stall=nearestStall(player,this.stalls);
   if(!stall)return {ok:false,message:'Walk up to the front of a stall.'};
-  this.open=stall;this.nearby=null;return {ok:true,opened:true,stall};
+  this.open=stall;this.nearby=null;this.closeIn=0;return {ok:true,opened:true,stall};
  }
- close(){const was=!!this.open;this.open=null;return was;}
+ close(){const was=!!this.open;this.open=null;this.closeIn=0;return was;}
  canBuy(entry){
   if(!this.open||!entry)return {ok:false,reason:'closed'};
   if(entry.price>this.money)return {ok:false,reason:'money',message:`Not enough left for the ${entry.name.toLowerCase()} (${formatEuro(this.money)} in your wallet).`};
@@ -129,7 +132,7 @@ export class MarketShop{
   this.money-=entry.price;this.spent+=entry.price;
   this.hand={item:entry,stall:this.open.id,stallRef:this.open,state:'handover',age:0,carried:0,progress:0};
   this.flash={text:`−${formatEuro(entry.price)}`,left:1.4};
-  const message=entry.toast;this.close();
+  const message=entry.toast;this.closeIn=1.1; // the card stays a moment to show the change, then gets out of the way
   return {ok:true,item:entry,message,money:this.money};
  }
  use({auto=false}={}){
@@ -141,6 +144,15 @@ export class MarketShop{
  }
  finish(){const h=this.hand;if(!h)return;this.hand=null;this.messages.push(h.item.done);}
  stow(){const h=this.hand;if(!h)return;this.hand=null;if(!edible(h.item))this.bag.push(h.item.id);}
+ // What the single action key would do now: 'close', 'use', 'buy', 'stow' or null.
+ intent(){
+  if(this.open)return 'close';
+  const h=this.hand,ready=h&&h.state==='carry';
+  if(ready&&edible(h.item))return 'use';
+  if(this.enabled&&this.nearby)return 'buy';
+  if(ready)return 'stow';
+  return null;
+ }
  drainMessages(){const m=this.messages;this.messages=[];return m;}
  // Arm pose for the person model: 0 = held in front, 1 = at the mouth. null = empty hand.
  holdPose(){
@@ -154,7 +166,7 @@ export class MarketShop{
  lure(){return this.hand&&edible(this.hand.item)&&this.player?{x:this.player.x,z:this.player.z}:null;}
  snapshot(){
   const s=this.open,n=this.nearby;
-  return {enabled:this.enabled,money:this.money,wallet:formatEuro(this.money),spent:this.spent,bag:[...this.bag],stalls:this.stalls.length,
+  return {enabled:this.enabled,intent:this.intent(),money:this.money,wallet:formatEuro(this.money),spent:this.spent,bag:[...this.bag],stalls:this.stalls.length,
    open:s?{id:s.id,kind:s.kind,title:stallTitle(s),local:STALL_KINDS[s.kind].local,canopy:STALL_KINDS[s.kind].canopy,items:this.menu(s).map(i=>({id:i.id,name:i.name,note:i.note,price:i.price,label:formatEuro(i.price),...this.canBuy(i)}))}:null,
    nearby:n?{id:n.id,kind:n.kind,title:stallTitle(n)}:null,
    hand:this.hand?{id:this.hand.item.id,name:this.hand.item.name,carry:this.hand.item.carry,use:this.hand.item.use,state:this.hand.state,progress:this.hand.progress,stall:this.hand.stall}:null,
