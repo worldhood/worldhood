@@ -182,3 +182,6 @@ body.tilt-steer #touch-controls>div:first-child{visibility:hidden}
 
 /* Compact identity when the full gameplay HUD is visible. The welcome mark lives in its panel. */
 .topbar .wordmark{background:#f8f5eee6;padding:5px 13px 5px 5px;border-radius:9px;box-shadow:0 3px 14px #30312e15;backdrop-filter:blur(6px)}
+
+/* No location tag or coordinate readout on screen: the minimap and street name already say where you are. */
+.location-tag,#location-readout{display:none!important}
