@@ -353,7 +353,8 @@ async function buildRoof(t,at){
 }
 // Worker-detailed buildings land a couple per frame, each replacing its interim shell, so a tile never freezes a frame.
 async function detailTile(group){
- const {tile:t,pending,textures}=group.userData;group.userData.pending=null;
+ // Two overlapping tile passes can both queue the same tile; only the first gets the work.
+ const {tile:t,pending,textures}=group.userData;if(!pending)return;group.userData.pending=null;
  const buildings=await buildTileInWorker(pending.array,pending.parts,pending.images);
  if(loadedTiles.get(t.file)!==group)return;
  for(const b of buildings)uploads.push(()=>{
@@ -432,7 +433,14 @@ async function visitStart(destination,button){
  finally{switchingStart=false;button.textContent=label;button.removeAttribute('aria-busy');for(const b of buttons)b.disabled=false;}
 }
 function tileDistance(t,at=focus){const b=t.bbox;return Math.hypot(Math.max(b[0]-at.x,0,at.x-b[2]),Math.max(b[1]-at.z,0,at.z-b[3]));}
-async function updateTiles(){
+// One tile pass at a time. A call while one runs (e.g. stepping through starts) asks for one more pass after it.
+let tilePass=null,tilePassAgain=false;
+function updateTiles(){
+ if(tilePass){tilePassAgain=true;return tilePass;}
+ tilePass=(async()=>{try{do{tilePassAgain=false;await runTilePass();}while(tilePassAgain);}finally{tilePass=null;}})();
+ return tilePass;
+}
+async function runTilePass(){
  if(!roofIndex)return;
  // Tiles where the car is heading load as early as tiles where it is.
  const range=430,ahead=aheadPoint(car),priority=t=>tilePriority(t,focus,ahead);
@@ -514,7 +522,7 @@ async function previewStart(destination){
  }
 }
 function setStart(l){mobileControls?.release();peopleInteraction?.reset(world);marketShop?.reset();cameraTransition=null;impacts.reset();crowd?.reset();finale.reset();startPoint=l;car=makeCar(l.x,l.z,l.heading??(l.name==='Senate Square'?0:-Math.PI/2+.17));car.distance=distance;if(travel)travel.reset(car,world);else travel=new PlayerTravel(car,world,{cars:()=>[...staticCars,...trafficCars],obstacles:travelObstacles});peopleInteraction??=new PeopleInteraction(world);playerCars.sync(travel);focus.set(car.x,0,car.z);cameraHeading=car.heading;tramSim?.reset(car);buses?.reset(car,tramSim?.obstacles);if(mobility){mobility.externalBodies=transitBodies();mobility.reset(car);}roadblock?.reset();police?.reset();marketLife?.reset();universityLife?.reset();terminalLife?.reset();$('district-label').textContent=l.district.toUpperCase();carGroup.position.set(car.x,.1+groundAt(car.x,car.z),car.z);carGroup.rotation.y=car.heading;if(ready)updateTiles().catch(handleTileError);drawMinimap();}
-function handleTileError(e){console.error(e);toast('Some scenery could not load. Nearby streets will retry.');}
+function handleTileError(e){console.error(e);if(!document.body.classList.contains('booting'))toast('Some scenery could not load. Nearby streets will retry.');} // not over the welcome card
 const touchScreen=matchMedia('(pointer:coarse)').matches; // phones and tablets: no keyboard, so the HUD and touch buttons stay on
 if(touchScreen){document.body.classList.remove('clean-capture');document.body.classList.add('touch');}
 function start(){if(!ready)return;if(previewing){startAfterPreview=true;return;}started=true;paused=false;document.body.classList.add('driving');loadingScreen.enter();carGroup.visible=true;marker.visible=false;toast(touchScreen?'Slide to steer · Hold Go to move · Menu for the map and settings':'WASD or arrow keys to drive · Space to handbrake');$('world').focus();}
