@@ -4,6 +4,10 @@ Build your own corner of the world, or help make the whole game better. City wor
 work are equally welcome. The [vision](docs/VISION.md) explains what works today and what we
 want to explore next. Small fixes, local knowledge, testing and documentation all count.
 
+How decisions and reviews work: [GOVERNANCE.md](GOVERNANCE.md).
+
+How decisions are made, the quality bar and how to become a maintainer: [GOVERNANCE.md](GOVERNANCE.md).
+
 Full guides: [build your city](docs/BUILD_YOUR_CITY.md) · [extending the map](docs/EXTENDING.md) · [building landmarks](docs/BUILDING_LANDMARKS.md) · [gameplay](docs/GAMEPLAY.md) · [adding a city](docs/ADDING_A_CITY.md).
 
 The map grows one **area** at a time. Areas can list maintainers to coordinate local work; many

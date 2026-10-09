@@ -2,6 +2,8 @@
 
 **Explore the world, and build your own corner of it.**
 
+There have been city games before. But for the first time, anyone can recreate the world, street by street.
+
 An open-source city playground in your browser. Explore Helsinki and Tampere by car, on foot,
 by bicycle or on an e-scooter. Greet people, try another car, or help recreate a place you know.
 The streets and buildings come from open map and city data, with local details added by contributors.
@@ -15,9 +17,20 @@ The game runs entirely in the browser (three.js + Vite), with no account, backen
 to play. Optional contributor tools that fetch data or process reference photos may require their
 own API keys; see `.env.example` and the city-building guide.
 
-Originally built by [Lasse](https://www.linkedin.com/in/lassesaari/). **Contributors welcome: build a place you know, improve the shared engine, or help test and explain the game.**
+## Two ways to help
 
-Read the **[vision](docs/VISION.md)**, find an idea in the [wishlist](docs/IDEAS.md), or start with [CONTRIBUTING.md](CONTRIBUTING.md). Have an idea? [Tell me](https://www.linkedin.com/in/lassesaari/).
+**🏙️ Build your city, properly.** Bring a place you know into the game. The bar is high: a city
+goes live on worldhood.org only when someone who lives there recognises every street. Real
+buildings, trees, trams, signs and paving, checked against photos. Drafts are welcome while you
+work. No coding needed: start with the [plain-language guide](docs/START_HERE.md).
+
+**🎮 Shape the gameplay.** What should you actually *do* in worldhood? Prototype activities,
+vehicles, people, missions, weather and sound. Play it, keep what's fun. Anything good works in
+every city. Start from the [wishlist](docs/IDEAS.md) and the [engine code map](docs/GAMEPLAY.md).
+
+How we work: [vision](docs/VISION.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [GOVERNANCE.md](GOVERNANCE.md) · [Discord](https://discord.gg/c6SaPvxhJG)
+
+Originally built by [Lasse](https://www.linkedin.com/in/lassesaari/). Have an idea? [Tell me](https://www.linkedin.com/in/lassesaari/).
 
 ## Run
 
@@ -175,8 +188,8 @@ This is a community project, and contributions of every size are welcome.
 - **Show it:** pull requests that change the game include a screenshot or a short gameplay
   video (before/after if you can); drag and drop it into the description. Docs-only changes
   don't need one. See [Show your change](CONTRIBUTING.md#show-your-change).
-- **Talk:** [Discord](https://discord.gg/tajQMEYxe9) for live chat and sharing drives, and
-  [GitHub issues](https://github.com/worldhood/worldhood/issues) for questions and ideas that should stay searchable.
+- **Talk:** [Discord](https://discord.gg/c6SaPvxhJG) for live chat and sharing drives, and
+  [Discussions](https://github.com/worldhood/worldhood/discussions) for questions and ideas that should stay searchable.
 
 Guides:
 - [docs/RECOGNISABILITY.md](docs/RECOGNISABILITY.md): what makes a city recognisable, learned from Helsinki.
