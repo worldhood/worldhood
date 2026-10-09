@@ -1,100 +1,94 @@
 # Hosting
 
-Open City Drive is a **static site**: HTML, JavaScript and data files, with no server code,
-database or accounts. Any static host works, and a CDN carries the traffic.
+Worldhood builds to a **static site**: HTML, JavaScript, fonts and city data, with no game server,
+database or accounts. Deploy the contents of `dist/` to a static host. Each player's browser runs
+the simulation; a CDN serves the files.
 
-## What one player downloads
+## Downloads and device performance
 
-Measured (October 2026), first visit, including a 30-second drive:
+Building tiles and surface chunks load around the player. Exploring farther downloads more data;
+the whole published world is larger than an individual player's first visit. Initial loading also
+depends on the selected city, starting point, cache, device and connection.
 
-| City | Downloaded | Files |
-| --- | --- | --- |
-| Helsinki | ~48 MB | 523 |
-| Tampere (OpenStreetMap build) | ~30 MB | 337 |
+Earlier October 2026 measurements were roughly 48 MB for Helsinki and 30 MB for Tampere after
+a first load and 30-second drive. Those measurements predate the latest terrain, Espoo and
+streaming changes, so they are **not current release benchmarks or a per-player traffic promise**.
 
-- **Why driving adds little:** building tiles stream in by distance, so a short drive adds almost
-  nothing; long drives across the city add more.
-- **Caching:** a return visit downloads close to nothing if files are cached.
-- **Compression:** the numbers come from the dev server without compression; a CDN's gzip/Brotli
-  makes the JSON data smaller.
+Before planning capacity, measure the production build with browser developer tools:
 
-Rule of thumb: **about 40 MB per new player**.
+1. Disable the network cache, reload a named city/start point and record transferred bytes and
+   time until playable. Record the commit, browser and device.
+2. Drive a repeatable route for 30 seconds and record the additional bytes.
+3. Repeat with a warm cache. Cached content and revalidation depend on the host's headers.
 
-| Players (new) | Traffic |
-| --- | --- |
-| 1,000 | ~40 GB |
-| 10,000 | ~400 GB |
-| 100,000 (a viral week) | ~4 TB |
+Estimate traffic from these measurements and expected travel, rather than multiplying the total
+site size by every player. `public/_headers` supplies cache settings for Cloudflare Pages; other
+hosts need equivalent configuration. Compression at the host can reduce JSON and JavaScript
+transfers. Already-compressed city packs, images and fonts benefit less.
 
-## Recommended: Cloudflare Pages, static only
+## Cloudflare Pages
 
-**Cost: zero, even with billing set up on the account,** as long as the site stays static. Cloudflare
-serves static asset requests free and without limits on every plan. Only server code (Pages
-Functions / Workers), storage products (R2, KV, D1) and paid add-ons are billed, and this project
-uses none of them. `tests/hosting.test.mjs` fails if anyone adds server code (`functions/`,
-`_worker.js`, Wrangler config) or outgrows the free file limits, so a pull request can't make
-hosting billable by accident.
+Cloudflare currently describes static asset requests that do not invoke Functions as free and
+unlimited on its free and paid plans. This makes Pages suitable for this build. Domains, paid
+add-ons, Functions/Workers and storage products have separate costs. Check the actual account
+configuration and current terms before deployment.
+[Cloudflare's static request pricing](https://developers.cloudflare.com/pages/functions/pricing/)
 
-Optional extra safety: in the Cloudflare dashboard, open **Notifications** and add a billing or
-usage alert so you're emailed if anything ever starts accruing.
+The Free plan currently allows 20,000 files per site, 25 MiB per file and 500 builds per month.
+At the 9 October 2026 review, `public/` contained about 2,400 files; the largest was about 8.4 MiB.
+The build adds JavaScript/CSS assets, and new areas change these totals. Verify the final `dist/`
+before upload. [Cloudflare Pages limits](https://developers.cloudflare.com/pages/platform/limits/)
 
-**Why:** static bandwidth on Cloudflare Pages is unmetered on the free plan. A viral spike costs
-nothing and doesn't take the site down. Check the current plan limits before relying on them;
-these are the published ones as of 2026:
-
-| Limit | Value | This project |
-| --- | --- | --- |
-| Files per site | 20,000 | ~1,900 today; each OSM city adds about 300–600 |
-| Size per file | 25 MiB | Largest file is about 6 MB |
-| Bandwidth | Unmetered | Fine |
-| Builds | 500 per month | Fine |
+`tests/hosting.test.mjs` catches several common server-code additions and checks the source asset
+size/count with a margin below those limits. It cannot inspect dashboard settings, prevent all
+billable changes, or guarantee availability during a traffic spike.
 
 Setup:
-1. Push the repository to GitHub.
-2. In Cloudflare, go to **Pages**, choose **Connect to Git**, and pick the repository.
-3. Build command: `npm ci && npm run build`. Output directory: `dist`.
-4. Add a custom domain (e.g. `opencitydrive.org`).
-5. Every merged pull request deploys automatically, and pull requests get preview links.
 
-## When there are many cities
+1. Connect the GitHub repository to a Pages project.
+2. Set the build command to `npm ci && npm run build` and output directory to `dist`.
+3. Configure the production branch, preview deployments and custom domain in Pages.
+4. Verify HTTPS, caching, all city/start links, and that the published Sources links and
+   `/THIRD_PARTY_LICENSES.txt` work.
 
-At roughly 30+ cities the file count and repository size become the limit, not bandwidth. Then:
+Only deploy `dist/`. Local credentials, downloaded reference material and development tools are
+not deployment inputs. The Vite development and preview commands bind to the local network for
+device testing; use a static host for the public game.
 
-1. **Move city data to object storage.** Put `public/cities/<id>/` files on **Cloudflare R2**,
-   which has S3-compatible storage and no download fees. Serve them at e.g.
-   `data.opencitydrive.org/<id>/<version>/…`. Storage is about $0.015 per GB per month after a
-   free 10 GB, so 50 cities cost a dollar or two a month.
-2. **Point each city at it.** Set `dataRoot` in `public/cities/index.json` to that URL; the game
-   already loads every file through `dataUrl()`.
-3. **Cache forever.** Use versioned paths with `Cache-Control: immutable`.
-4. **Upload from CI.** Each city's CI uploads its build output with a scoped token, so the main
-   repository stays code plus the small registry.
+## When the world grows
 
-## Other hosts
+Track repository size, deployed file count, largest assets and actual transfer sizes. The number
+of cities alone is a poor capacity measure: a detailed municipal model can outweigh many smaller
+areas. If city data outgrows the chosen static host:
 
-| Host | Good for | Watch out for |
-| --- | --- | --- |
-| GitHub Pages | Simplest setup | About 1 GB site and roughly 100 GB per month soft bandwidth limit, so a few thousand players a month |
-| Netlify / Vercel (free) | Previews | Bandwidth caps around 100 GB per month; Vercel's free plan is non-commercial |
-| Any VPS + nginx | Full control | You pay for and manage the bandwidth; put a CDN in front |
+1. Move versioned city data to object storage behind a CDN, preserving all source attributions.
+2. Point each registry entry's `dataRoot` at its HTTPS data URL. Configure CORS for the game origin.
+3. Use immutable caching only for versioned paths; keep registry updates short-lived.
+4. Upload through CI with a scoped deployment credential, stored outside the browser bundle.
 
-## Can the servers handle it?
+Cloudflare R2 is one option. Its pricing includes storage and request operations even though
+direct egress has no charge; estimate all of them for the workload.
+[R2 pricing](https://developers.cloudflare.com/r2/pricing/)
 
-Yes. No game logic runs on a server, so there is nothing to overload. Each player's browser runs
-the simulation; the host only serves files, which is exactly what CDNs are built for. The real
-limits:
+Other static hosts, including GitHub Pages, Netlify, Vercel or an nginx server, can also serve this
+build. Compare their current file, bandwidth, build and usage restrictions before choosing one.
 
-- **Players' devices:** the game targets 60 FPS on a recent laptop. Phones work but load more
-  slowly, and the adaptive resolution keeps them playable.
-- **First-load size:** 30–50 MB is fine on broadband and heavy on mobile data. Shrinking the first
-  load (loading the city around the start point first) is on the roadmap.
-- **Public map services:** the game never calls OpenStreetMap, Overpass, Nominatim or OSRM at
-  runtime. Only the build scripts do, and they cache.
+## Runtime limits
+
+Static hosting removes the need for a multiplayer simulation server in the current single-player
+game. It does not remove browser limits: GPU memory, startup work, texture size and frame rate still
+vary across devices. Test representative desktop and phone hardware before promising a frame rate.
+Future accounts, shared worlds and persistent territories will need a separate hosting and security
+design.
+
+The game uses bundled map data at runtime. OpenStreetMap, Overpass, Nominatim, OSRM and municipal
+data services are contacted by contributor build scripts, which cache their results.
 
 ## Run it locally
 
 ```sh
 npm ci
-npm run dev                     # http://localhost:5173/?city=helsinki
-npm run build && npm run preview  # production build at http://localhost:4173
+npm run dev                      # development server, usually localhost:5173
+npm run build
+npm run preview                  # inspect dist/, usually localhost:4173
 ```

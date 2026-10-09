@@ -4,6 +4,7 @@ import {SpatialIndex,segmentDistance,bounds,pointInPolygon} from './geo.js';
 import {createKnockables} from './knockables.js';
 import {crossingChains} from './crossing-markings.js';
 import {scooterGeometry,micromobilityMaterial,OPERATORS,createLooseMicromobility} from './parked-micromobility.js';
+import {createParkedCarSource,instancedCarVisibility} from './parked-car-sources.js';
 
 // Street-level detail along the demo route: granite kerbstones, asphalt wheel
 // tracks, manhole covers and gutter grates, parked cars, litter bins, e-scooters
@@ -245,7 +246,7 @@ export function planStreetFurniture(city,mobility,trams,{obstacles=[],corridor=n
 
 // ---------------------------------------------------------------------------
 export function createStreetFurniture(city,mobility,trams,options={}){
- const plan=planStreetFurniture(city,mobility,trams,options),group=new THREE.Group(),obstacles=[];group.name='Route street furniture';
+ const plan=planStreetFurniture(city,mobility,trams,options),group=new THREE.Group(),obstacles=[],enterableCars=[];group.name='Route street furniture';
  const dummy=new THREE.Object3D();
  // Wheel tracks: translucent dark strips where the NPC fleet actually drives (asphalt only).
  if(plan.tracks.length){
@@ -269,7 +270,11 @@ export function createStreetFurniture(city,mobility,trams,options={}){
  // Parked cars: one instanced low-poly body with per-instance paint; solid obstacles.
  if(plan.cars.length){
   const mesh=new THREE.InstancedMesh(parkedCarGeometry(),parkedCarMaterial(),plan.cars.length);mesh.name='Parked cars';mesh.castShadow=true;mesh.receiveShadow=true;
-  plan.cars.forEach((c,i)=>{dummy.position.set(c.x,.08,c.z);dummy.rotation.set(0,c.yaw,0);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new THREE.Color(c.colour));obstacles.push({id:`parked-${i}`,rings:[c.footprint],bbox:bounds([c.footprint])});});
+  plan.cars.forEach((c,i)=>{
+   dummy.position.set(c.x,.08,c.z);dummy.rotation.set(0,c.yaw,0);dummy.updateMatrix();mesh.setMatrixAt(i,dummy.matrix);mesh.setColorAt(i,new THREE.Color(c.colour));
+   const obstacle={id:`parked-${i}`,rings:[c.footprint],bbox:bounds([c.footprint])};obstacles.push(obstacle);
+   enterableCars.push(createParkedCarSource({id:`street-parked-${i}`,label:'Parked car',actor:{id:`street-parked-${i}`,x:c.x,z:c.z,heading:c.yaw,speed:0,edge:{},parked:true},obstacle,visual:{type:'estate',paint:c.colour},setHidden:instancedCarVisibility([{mesh,index:i}])}));
+  });
   mesh.instanceMatrix.needsUpdate=true;mesh.instanceColor.needsUpdate=true;mesh.computeBoundingSphere();group.add(mesh);
  }
  // Light furniture the car knocks over rather than stops against.
@@ -286,5 +291,5 @@ export function createStreetFurniture(city,mobility,trams,options={}){
  const knockables=sets.length?combineKnockables(sets):null;
  group.userData={tracks:plan.tracks.length,manholes:plan.manholes.length,drains:plan.drains.length,bins:plan.bins.length,scooters:plan.scooters.length,racks:plan.racks.length,bicycles:plan.bicycles.length,parkedCars:plan.cars.length,parkingPolygons:plan.parkingPolygons.length,routeEdges:plan.routeEdges,
   reference:'Municipal polygons (Ajorata, Pysäköintialue, pavement), HSL rail shapes and the traffic graph; furniture positions interpreted, not surveyed'};
- return {group,obstacles,knockables,plan};
+ return {group,obstacles,knockables,plan,enterableCars};
 }

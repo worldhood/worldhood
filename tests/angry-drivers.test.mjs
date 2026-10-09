@@ -28,3 +28,9 @@ test('at most ANGRY.max drivers at once',()=>{
  drivers.update(.1,10,{x:0,z:0});
  assert.equal(drivers.snapshot().length,ANGRY.max);
 });
+test('taking a crashed NPC car removes its old roadside driver and open door immediately',()=>{
+ const drivers=createAngryDrivers(),npc={...car(),edge:{}};npc.knocked.rest=0;drivers.trigger(npc,0);drivers.update(.1,3,{x:0,z:0});
+ assert.equal(drivers.snapshot().length,1);assert.ok(drivers.group.children.length>1,'an open door exists');
+ npc.playerTaken=true;npc.edge=null;drivers.update(.1,3.1,{x:0,z:0});
+ assert.equal(drivers.snapshot().length,0);assert.equal(drivers.group.children.length,1);assert.equal(drivers.group.visible,false);
+});

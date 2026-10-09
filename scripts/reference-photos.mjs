@@ -25,7 +25,7 @@ const registry=JSON.parse(fs.readFileSync('public/cities/index.json')).cities.fi
 const toLocal=proj4('EPSG:4326',registry.projection),local=(lon,lat)=>{const [x,y]=toLocal.forward([lon,lat]);return [+x.toFixed(1),+(-y).toFixed(1)];};
 const [cx,cz]=local(...search.centre),radius=search.radiusMetres||150,since=search.since||'2021-01-01';
 const dir=path.join('data/raw/photos',cityId,place);for(const d of ['commons','mapillary','panoramax'])fs.mkdirSync(path.join(dir,d),{recursive:true});
-const UA={'User-Agent':'open-city-drive/0.1 (https://opencitydrive.org; reference photos)'};
+const UA={'User-Agent':'worldhood/0.1 (https://worldhood.org; reference photos)'};
 const get=async(url,opts={})=>{for(let i=0;i<4;i++){try{const r=await fetch(url,{headers:UA,...opts});if(r.ok)return r;if(r.status<500&&r.status!==429)throw Error(`${r.status} ${url.split('?')[0]}`);}catch(e){if(i===3)throw e;}await new Promise(r=>setTimeout(r,1500*(i+1)));}throw Error(`Failed ${url.split('?')[0]}`);};
 const save=async(file,url)=>{if(!fs.existsSync(file)||refresh)fs.writeFileSync(file,Buffer.from(await (await get(url)).arrayBuffer()));};
 const catalog=[];

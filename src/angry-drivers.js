@@ -43,8 +43,8 @@ export function createAngryDrivers({vehicleOf=null}={}){
   batch.begin(player);
   for(const d of [...drivers]){
    const k=d.car.knocked;
-   // The car was recycled (respawned elsewhere): the driver is gone with it.
-   if(!k){remove(d);continue;}
+   // Recycled or claimed cars no longer own this old roadside animation.
+   if(!k||d.car.playerTaken||d.car.edge===null){remove(d);continue;}
    // Climb out once the car has stopped (or shortly after the hit if it keeps creeping).
    if(d.start===null){if(k.rest===null&&time-d.hit<ANGRY.delay+1.5)continue;if(time-d.hit<ANGRY.delay)continue;
     const h=d.car.heading,lx=-Math.cos(h),lz=Math.sin(h),fx=-Math.sin(h),fz=-Math.cos(h);

@@ -22,7 +22,7 @@ street with real photos and fixing what's wrong.** It takes time. That's normal,
 makes the game worth playing.
 
 Not finished? That's fine. Your city can still be shared as a **draft**, and others can help finish
-it. It goes live on opencitydrive.org once it reaches the bar.
+it. It goes live on worldhood.org once it reaches the bar.
 
 ## What you need
 
@@ -38,10 +38,10 @@ it. It goes live on opencitydrive.org once it reaches the bar.
 
 ### 1. Get your own copy
 
-On the [project page](https://github.com/opencitydrive/open-city-drive), press **Fork** to make your
+On the [project page](https://github.com/worldhood/worldhood), press **Fork** to make your
 own copy. Then ask your coding agent:
 
-> Clone my fork of open-city-drive, install it, and start the game so I can open it in my browser.
+> Clone my fork of worldhood, install it, and start the game so I can open it in my browser.
 
 Drive around Helsinki for a few minutes. **That's the quality you're aiming for.**
 
@@ -97,11 +97,11 @@ Ask your agent:
 > Open a pull request with my city, following the "Add your city" guide in the README.
 
 Maintainers review it. If something is missing, they tell you what. When it meets the bar, it goes
-live on **opencitydrive.org**.
+live on **worldhood.org**.
 
 ## Stuck?
 
-- Ask in the project's [Discussions](https://github.com/opencitydrive/open-city-drive/discussions).
+- Ask in the project's [Discussions](https://github.com/worldhood/worldhood/discussions).
 - Already someone working on your city? Check the issues labelled `city` before you start, and team
   up.
 

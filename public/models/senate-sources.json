@@ -1,6 +1,6 @@
 {
   "asset": "senate-pavilions.glb",
-  "authoring": "Blender 5.2 LTS; scripts/build-senate-assets.py; rebuild the editable .blend with that script",
+  "authoring": "Blender 5.2 LTS; scripts/build-senate-assets.py; editable assets/source/senate-pavilions.blend",
   "status": "Photo-guided architectural reconstruction, not a survey-exact digital twin",
   "geometry": {
     "source": "City of Helsinki LOD2, RATU 212 and 213",

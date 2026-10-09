@@ -15,7 +15,7 @@ export function createTrafficRenderer(actors,{types=VEHICLE_TYPES,paintColors=nu
   // Subtle per-car variety within each palette colour: hue drift, saturation and lightness.
   m.material.color.offsetHSL(((i*37)%7-3)*.006,((i*53)%5-2)*.035,((i*71)%9-4)*.018);}parts.push(m);}});model.rotation.order='YXZ';family.entries.push({actor,model,parts});});
  // Model size and paint per actor, for overlays that must match the car (angry-drivers.js door).
- const byActor=new Map();for(const family of families)for(const {actor,model,parts}of family.entries){const m=parts.find(p=>p.material.name==='paint')?.material;byActor.set(actor,{spec:model.userData.spec,paint:m?.color||new THREE.Color('#9aa0a0'),material:m||null});}
+ const byActor=new Map();for(const family of families)for(const {actor,model,parts}of family.entries){const m=parts.find(p=>p.material.name==='paint')?.material;byActor.set(actor,{type:family.type,spec:model.userData.spec,paint:m?.color||new THREE.Color('#9aa0a0'),material:m||null});}
  const group=new THREE.Group();group.name='Instanced traffic fleet';
  const bodyMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.45,metalness:.25}),cabinMaterial=new THREE.MeshStandardMaterial({color:'#182328',roughness:.25,metalness:.5});
  const tmp=new THREE.Matrix4(),slope={y:0,pitch:0,roll:0};

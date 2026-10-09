@@ -191,5 +191,5 @@ export function createHarbour(data){
  for(const p of SIGN_SUPPORTS)barrier([p.x-.065,p.z],[p.x+.065,p.z],.065);
  const terminalDetails=createTerminalDetails(data);group.add(terminalDetails.group);obstacles.push(...terminalDetails.obstacles);
  group.userData={...counts,frontage:frontage.group.userData,terminalDetails:terminalDetails.group.userData,overheadSigns:signs.userData,ferry:{...FERRY},reference:HARBOUR_REFERENCE,batches:group.children.length};
- return {group,obstacles,knockables:terminalDetails.knockables}; // knockables: docked terminal city bikes
+ return {group,obstacles,knockables:terminalDetails.knockables,enterableCars:terminalDetails.enterableCars}; // knockables: docked terminal city bikes
 }

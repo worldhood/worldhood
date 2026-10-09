@@ -1,0 +1,8 @@
+{
+  "family": "DM Sans",
+  "license": "SIL Open Font License 1.1",
+  "source": "https://github.com/google/fonts/tree/main/ofl/dmsans",
+  "download": "https://raw.githubusercontent.com/google/fonts/main/ofl/dmsans/DMSans%5Bopsz,wght%5D.ttf",
+  "sha256": "8cd08d97e89c24d0aa92edd2f0f4c8ee6195eee9b7c9f154865a58b02f0c1c0d",
+  "use": "Self-hosted UI font; replaces the external Google Fonts request."
+}

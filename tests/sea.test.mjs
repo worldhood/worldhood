@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {createSea,removeLegacyWater,createSeaMaterial,createRippleTexture,WATER_LEVEL} from '../src/sea.js';
+import {clearPlayableAreas,registerPlayableArea,insidePlayable} from '../src/geo.js';
 test('legacy water triangles are removed without lifting the sea or deleting quays',()=>{
  const g=new THREE.BufferGeometry(),vertices=[];
  for(const y of [.01,.035,.07,.01])vertices.push(0,y,0,1,y,0,0,y,1);
@@ -66,4 +67,22 @@ test('ripple texture is tileable, mipmapped and centred around a flat normal',()
  const d=t.image.data;let sx=0,sz=0;for(let i=0;i<d.length;i+=4){sx+=d[i]-127.5;sz+=d[i+1]-127.5;}
  assert.ok(Math.abs(sx/(d.length/4))<3&&Math.abs(sz/(d.length/4))<3);
  const vals=new Set();for(let i=0;i<d.length;i+=4)vals.add(d[i]);assert.ok(vals.size>40,'not a flat or banded texture');
+});
+
+test('sea ground can cover a pending region without opening its playable boundary',()=>{
+ clearPlayableAreas();
+ const sea=createSea([],{},{helsinkiHarbour:false,groundExtent:8500});sea.groundGeometry.computeBoundingBox();
+ assert.equal(sea.groundGeometry.boundingBox.max.x,10000);
+ assert.equal(sea.groundGeometry.boundingBox.min.x,-10000);
+ assert.equal(insidePlayable(8000,0),false,'geometry creation never registers a playable area');
+ sea.groundGeometry.dispose();sea.material.uniforms.uRipples.value.dispose();sea.material.dispose();
+});
+
+test('a subsequent smaller region never shrinks ground beneath an activated outer region',()=>{
+ clearPlayableAreas();registerPlayableArea([[[[8000,0],[9000,0],[9000,100],[8000,100],[8000,0]]]]);
+ try{
+  const sea=createSea([],{},{helsinkiHarbour:false,groundExtent:3000});sea.groundGeometry.computeBoundingBox();
+  assert.equal(sea.groundGeometry.boundingBox.max.x,10500);assert.equal(insidePlayable(8500,50),true);
+  sea.groundGeometry.dispose();sea.material.uniforms.uRipples.value.dispose();sea.material.dispose();
+ }finally{clearPlayableAreas();}
 });

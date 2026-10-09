@@ -3,18 +3,27 @@
 The code is MIT-licensed (see [LICENSE](LICENSE)). The data and assets below keep their own licences.
 Redistributions must keep these attributions. The game also shows them in its Sources panel.
 
+The built game includes [third-party software and font notices](public/THIRD_PARTY_LICENSES.txt),
+served at `/THIRD_PARTY_LICENSES.txt`. Keep that file with a redistributed build. After changing
+dependencies, run `npm ci` and `node scripts/third-party-licenses.mjs`; the normal test suite checks
+that the notices match the locked runtime packages and bundled fonts.
+
 ## At a glance
 
 | What | Licence | Files |
 | --- | --- | --- |
 | Source code, scripts, tests, docs | MIT | `src/`, `scripts/`, `tests/`, `docs/` |
-| Original procedural models made for this project | MIT | `src/` |
-| Senate pavilions model: geometry adapted from City of Helsinki 3D (see `public/models/senate-sources.json`) | CC BY 4.0, © City of Helsinki | `public/models/senate-pavilions.glb` |
+| Original assets made for this project (procedural models, `senate-pavilions` model and source) | MIT | `public/models/senate-pavilions.glb`, `assets/source/` |
 | City of Helsinki map, 3D and imagery data | CC BY 4.0 | most of `public/data/` |
+| City of Espoo 3D city model (CityGML LOD2 with 2024 photo textures), street areas, centrelines, trees and districts | CC BY 4.0, © Espoon kaupunki | `public/data/extensions/espoo/` (except `osm-water.json`) |
+| Traffic lights in the Espoo area from Digiroad (Väylävirasto) | CC BY 4.0 | `public/data/extensions/espoo/mobility.json` |
+| Sea and pond outlines in the Espoo area from OpenStreetMap | ODbL 1.0, © OpenStreetMap contributors | `public/data/extensions/espoo/osm-water.json` |
+| City of Espoo 3D city model, photo textures, streets, centrelines, trees and district boundaries | CC BY 4.0 | municipal data in `public/data/extensions/espoo/` |
+| OpenStreetMap coastlines and water in the Espoo extension | ODbL 1.0, © OpenStreetMap contributors | `public/data/extensions/espoo/osm-water.json` and derived water surfaces |
 | HSL transit data | CC BY 4.0 | `public/data/trams.json`, `buses.json`, `bus-corridors.json` |
 | OpenStreetMap-derived route outlines and landmark positions | ODbL 1.0 | `extensions/*/route.json`, `knownFor[].at` in `extensions/*/extension.json` |
 | Cities built from OpenStreetMap (`npm run city:build`) | ODbL 1.0, © OpenStreetMap contributors | `public/cities/**`, `cities/*/city.json` |
-| Street furniture positions from Mapillary map features (`npm run city:furniture`) | CC BY-SA 4.0, © Mapillary contributors | `public/cities/*/furniture.json` |
+| Street furniture positions extracted by Mapillary (`npm run city:furniture`) | Mapillary Terms of Use; downstream dataset redistribution rights need confirmation | Mapillary-derived entries in `public/cities/*/furniture.json` |
 | Façade descriptions written from Mapillary street-level photos (`npm run facades:photos`) | CC BY-SA 4.0, © Mapillary contributors | `cities/*/facades.json`, `public/cities/*/facades.json` |
 | Place descriptions written from current photos on Wikimedia Commons and Mapillary (`npm run photos:fetch`) | CC BY-SA 4.0 (the photos' licences: CC BY-SA 3.0/4.0) | `cities/*/*-reference.json`, `cities/*/*-sources.json` |
 | Rectified photo textures of walls and paving (`npm run place:textures`), derived from the CC BY-SA 4.0 photos listed in the sources file | CC BY-SA 4.0, © the photographers (JIP, kallerna, MOs810 on Wikimedia Commons) | `public/cities/*/places/*/*.jpg` |
@@ -22,7 +31,12 @@ Redistributions must keep these attributions. The game also shows them in its So
 | Traffic signs, traffic lights, stops and regulation stretches from Digiroad (Finnish Transport Infrastructure Agency, Väylävirasto), used by `npm run city:furniture` for Finnish cities | CC BY 4.0 | `public/cities/*/furniture.json` |
 | City of Tampere open data (pedestrian crossings, signalled junctions, public transport stops) used by `npm run city:furniture` | CC BY 4.0 | `public/cities/tampere/furniture.json` |
 | Ground elevation (hills, lake and river levels) from the National Land Survey of Finland's Elevation model 2 m, via Mapterhorn terrain tiles, used by `npm run city:terrain` | CC BY 4.0 | `public/cities/*/terrain.pack` |
-| Third-party marks | Not licensed | `public/branding/` |
+| Original worldhood logo artwork and favicon | MIT (font files retain their own licences) | `public/branding/worldhood-*.svg`, `public/favicon.svg` |
+| Bundled interface typefaces | SIL Open Font License 1.1; notices alongside each font | `public/fonts/` |
+| Helvetiker, Optimer and Gentilis typefaces for 3D signs | MgOpen font licence (Helvetiker/Optimer); SIL OFL 1.1 (Gentilis) | Imported from `three/examples/fonts`; full notices in `public/THIRD_PARTY_LICENSES.txt` |
+| Bundled JavaScript libraries | MIT, ISC and Unlicense; individual notices apply | `public/THIRD_PARTY_LICENSES.txt` |
+| Third-party marks | Not licensed by this project | `public/branding/helsinki-logo-white.svg`, `public/branding/bind-logo.svg` |
+| Official Mapillary attribution logo | Mapillary Terms of Use; trademark retained by its owner | `public/branding/mapillary-logo.png`; provenance in `mapillary-source.json` |
 
 **Forking for another city?** Keep the MIT notice for the code, replace `public/data` with your own
 city's data under its licence, and update this file and the in-game Sources panel.
@@ -34,6 +48,24 @@ city's data under its licence, and update this file and the in-game Sources pane
   © City of Helsinki, City Survey Services / Urban Environment Division, licensed
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   Machine-readable provenance: `public/data/provenance.json` and `public/data/extensions/index.json`.
+- **City of Espoo, city model data, fetched 9 October 2026:** © City of Espoo
+  (Espoon kaupunki), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+  The Espoo extension uses the open aboveground CityGML city model and its façade/roof photographs,
+  street areas, centrelines, registered trees and district boundaries. Building bases are levelled,
+  photo textures are repacked into atlases, and geometry is cropped for the game. See
+  [Espoo's data and attribution terms](https://www.espoo.fi/en/open-data-of-the-geographic-information-unit)
+  and the per-extension provenance in `public/data/extensions/index.json`.
+  Its traffic lights come from Digiroad (CC BY 4.0); its coastline and water polygons are derived
+  from © OpenStreetMap contributors ([ODbL 1.0](https://www.openstreetmap.org/copyright)), with
+  source geometry retained in `public/data/extensions/espoo/osm-water.json`.
+- **City of Espoo open data** (area `espoo`: Keilaniemi, Otaniemi, Tapiola): the 3D city model
+  (CityGML 2.0 LOD2 with 2024 oblique-aerial façade and orthophoto roof textures, WFS layer
+  `bldg:building_lod2`), street areas (`tran:road_lod2`), street centrelines (`GIS:Keskilinjat`),
+  trees (`kanta:Lehtipuu`, `kanta:Havupuu`) and districts (`GIS:Kaupunginosat`) from
+  kartat.espoo.fi/teklaogcweb/wfs.ashx. © Espoon kaupunki, licensed
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Traffic lights in the area: Digiroad
+  © Väylävirasto, CC BY 4.0. Sea and ponds: © OpenStreetMap contributors,
+  [ODbL](https://opendatacommons.org/licenses/odbl/), kept in their own file (`osm-water.json`).
 - **HSL public transport data** (GTFS routes and stops for trams and buses): © HSL, licensed
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See `public/models/tram-sources.json`
   and `public/models/bus-sources.json`.
@@ -71,9 +103,14 @@ city's data under its licence, and update this file and the in-game Sources pane
   posts, traffic lights, road signs, bins, junction boxes and other street furniture that Mapillary's
   computer vision detected in contributors' street-level photos, filtered and moved off the carriageway
   by `scripts/mapillary-features.mjs`. Each object in `public/cities/*/furniture.json` lists the
-  Mapillary map feature ids it came from. © Mapillary contributors, licensed
-  [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); `furniture.json` is shared under
-  the same licence. The city's Sources panel credits Mapillary.
+  Mapillary map feature ids it came from. These extracted features are distinct from user-uploaded
+  imagery: the imagery's CC BY-SA licence alone does not establish a redistribution licence for
+  Mapillary's extracted data. [Mapillary's Terms of Use](https://www.mapillary.com/terms), sections
+  3 and 11, govern this integration and require a visible Mapillary logo linked to its homepage.
+  **Before public dataset distribution, confirm the downstream redistribution rights for these
+  entries.** Adding the required attribution addresses the credit requirement; it does not by
+  itself resolve that licence question. Municipal and OSM entries in the same file retain their
+  separately stated licences. [Mapillary's official map-data guidance](https://help.mapillary.com/hc/en-us/articles/4407521157138-Downloading-map-data-via-the-Mapillary-web-app)
 
 - **Reference photos for places** (`npm run photos:fetch`, e.g. Keskustori in Tampere): current
   photos from Wikimedia Commons (each under its own licence, mostly CC BY-SA 4.0) and Mapillary
@@ -90,8 +127,6 @@ city's data under its licence, and update this file and the in-game Sources pane
   the tree register (species, height class, girth) and public transport stops from
   geodata.tampere.fi, © City of Tampere, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
 
-- **Cities overview map:** country outlines from [Natural Earth](https://www.naturalearthdata.com), public domain.
-
 ## Assets
 
 - **Granite material:** [Poly Haven Granite Tile 03](https://polyhaven.com/a/granite_tile_03), CC0.
@@ -101,7 +136,19 @@ city's data under its licence, and update this file and the in-game Sources pane
   references, licences and what is measured versus interpreted. Reference photographs are not
   embedded in the game.
 
+## Fonts
+
+The interface bundles DM Sans, Manrope and Spectral locally. Their SIL Open Font License notices
+are included with the files under `public/fonts/`. Playing the game does not request fonts from Google.
+
+The game's 3D signs also use the Helvetiker, Optimer and Gentilis example typefaces distributed
+with three.js. Their original font notices are preserved in `public/THIRD_PARTY_LICENSES.txt`;
+they do not become MIT-licensed because the surrounding game code is MIT-licensed.
+
 ## Logos
+
+The original worldhood globe, city highlight and wordmark artwork are included under the project’s
+MIT licence. Embedded text outlines do not change the licences of the separately distributed fonts.
 
 - `public/branding/helsinki-logo-white.svg`: the City of Helsinki logo, from the
   [Helsinki Design System](https://github.com/City-of-Helsinki/helsinki-design-system). It is a
@@ -109,5 +156,11 @@ city's data under its licence, and update this file and the in-game Sources pane
 - `public/branding/bind-logo.svg`: the Bind wordmark ([bindlegal.com](https://bindlegal.com/)), used for
   fictional in-game advertising with permission. It is a trademark of Bind and is not covered by this
   project's licence.
+- `public/branding/mapillary-logo.png`: unmodified official artwork from the
+  [Mapillary press kit](https://www.mapillary.com/press-kit), displayed with its homepage link to
+  attribute integrated Mapillary data as required by section 11 of its Terms of Use. The mark
+  remains its owner's trademark; it is not covered by this project's MIT licence.
 
-If you fork this project, replace or remove these logos unless you have your own permission.
+If you fork this project, replace or remove the Helsinki and Bind logos unless you have your own
+permission. Retain the required Mapillary attribution if you retain Mapillary-derived content,
+and check the applicable data rights separately.

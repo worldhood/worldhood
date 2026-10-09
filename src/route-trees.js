@@ -1,22 +1,8 @@
 import * as THREE from 'three';
 import {Tree} from '@dgreenheck/ez-tree';
-import {mannerheimintieTree,treeVariant,treeHeight,crownWidthRatio,STREET_VARIANTS} from './street-trees.js';
+import {mannerheimintieTree,treeVariant,treeHeight,crownWidthRatio,STREET_VARIANTS,detailedTreeArea,detailedTreeCell} from './street-trees.js';
 
-// A bounded set: registered trees along the recorded waterfront, the proposed Esplanadi approach
-// and the Mannerheimintie boulevard past Lasipalatsi. Crown dimensions remain artistic estimates.
-export function detailedTreeArea(tree){
- const [x,z]=tree.p;
- const harbour=z>580&&z<1180&&Math.abs(x-(220-Math.max(0,940-z)*.72))<80;
- const esplanadi=x>-650&&x<15&&z>215&&z<380;
- return harbour||esplanadi||mannerheimintieTree(x,z);
-}
-// Detailed trees batch per grid cell; main.js keys its blob-proxy chunks with the same function so
-// applyTreeLod can swap them. The Mannerheimintie rows use 50 m cells: the camera sits among them,
-// so finer cells let rows behind the car frustum-cull and keep shadow casting to nearby trees.
-export function detailedTreeCell(x,z){
- const s=mannerheimintieTree(x,z)?50:100;
- return `d${Math.floor(x/s)},${Math.floor(z/s)}`;
-}
+export {detailedTreeArea,detailedTreeCell} from './street-trees.js';
 // Two detail levels share one silhouette: the near template keeps every branch level with
 // slightly fewer, larger leaf cards (about a third fewer triangles than before, invisible from
 // the driving camera); the far template drops twigs and uses a few big cards for the canopy.

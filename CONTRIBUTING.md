@@ -1,24 +1,30 @@
-# Contributing
+# Contributing to worldhood
+
+Build your own corner of the world, or help make the whole game better. City work and engine
+work are equally welcome. The [vision](docs/VISION.md) explains what works today and what we
+want to explore next. Small fixes, local knowledge, testing and documentation all count.
 
 Full guides: [build your city](docs/BUILD_YOUR_CITY.md) · [extending the map](docs/EXTENDING.md) · [building landmarks](docs/BUILDING_LANDMARKS.md) · [gameplay](docs/GAMEPLAY.md) · [adding a city](docs/ADDING_A_CITY.md).
 
-The map grows one **area** at a time. Each area has named maintainers who are responsible for it.
-Areas that touch join into one continuous drivable map.
+The map grows one **area** at a time. Areas can list maintainers to coordinate local work; many
+still need volunteers. Connected areas can join into one continuous playable map. You can
+contribute without claiming an area, and an area claim coordinates work rather than granting
+exclusive ownership.
 
 ## Your first contribution
 
-New to open source? This is the usual flow, and you can't break anything by trying:
+New to open source? Work in your own fork and branch so you can experiment:
 
 1. **Pick something:**
    - an issue labelled
-     [`good first issue`](https://github.com/opencitydrive/open-city-drive/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
+     [`good first issue`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22),
      anything on the [wishlist](docs/IDEAS.md), or your own city
      ([playbook](docs/BUILD_YOUR_CITY.md));
    - comment on the issue ("I'd like to try this") so others know.
 2. **Fork** the repository (the *Fork* button on GitHub). This makes your own copy.
 3. **Clone your fork and make a branch:**
    ```sh
-   git clone https://github.com/<you>/open-city-drive && cd open-city-drive
+   git clone https://github.com/<you>/worldhood && cd worldhood
    git checkout -b weather-director     # any short name
    npm ci && npm run dev                # play at http://localhost:5173
    ```
@@ -30,17 +36,18 @@ New to open source? This is the usual flow, and you can't break anything by tryi
    - Automated checks run on every pull request.
    - A maintainer (and for city changes, that city's maintainer) reviews, may ask for changes, and
      merges.
-   - Your name appears in the history and the release notes.
+   - Git records your contribution under the author identity you choose.
 
-Stuck? Ask in [Discussions](https://github.com/opencitydrive/open-city-drive/discussions) or on the issue. Questions are
-welcome; nobody expects you to know the codebase.
+Stuck? Ask on the relevant GitHub issue. Questions are welcome; nobody expects you to know
+the whole codebase. Coding agents are optional, and contributions made with them need the
+same review, source attribution and testing as other work.
 
 ## Kinds of contribution
 
 | You like… | Start with |
 | --- | --- |
 | Your own city | [docs/BUILD_YOUR_CITY.md](docs/BUILD_YOUR_CITY.md) |
-| Gameplay, sound, weather | [docs/IDEAS.md](docs/IDEAS.md) and [docs/GAMEPLAY.md](docs/GAMEPLAY.md) |
+| Shared engine, gameplay, controls, performance, sound or weather | [docs/IDEAS.md](docs/IDEAS.md) and [docs/GAMEPLAY.md](docs/GAMEPLAY.md) |
 | Modelling famous buildings | [docs/BUILDING_LANDMARKS.md](docs/BUILDING_LANDMARKS.md) |
 | Maps and data | Fix OpenStreetMap at the source, then rebuild the city |
 | Testing and feedback | Play, then open a **Bug** issue with the `?city=&start=` link |
@@ -87,6 +94,11 @@ welcome; nobody expects you to know the codebase.
 | `reviewed` | Checked against the real street by its maintainers and one other contributor |
 
 ## Code changes
+
+Start with the [engine code map](docs/GAMEPLAY.md). Describe what the player should experience,
+keep reusable behaviour independent of city names, and keep local scenery in its city data or
+modules. Check another city when changing shared gameplay; check touch input when changing
+controls. For loading or rendering work, include what you measured and the browser/device used.
 
 - Keep changes focused, add or update tests in `tests/`, and run `npm test` and `npm run build`
   before opening a pull request.

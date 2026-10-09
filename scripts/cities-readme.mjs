@@ -10,7 +10,7 @@ const registry=fs.existsSync('public/cities/index.json')?JSON.parse(fs.readFileS
 const rows=[{id:'helsinki',name:'Helsinki',country:'Finland',status:'playable',maintainers:[],source:'City of Helsinki 3D city model + open data, HSL',radius:2000},
  ...registry.map(c=>({...c,country:(c.country||'').split(' / ').at(-1),source:'OpenStreetMap'}))];
 const table=['| City | Play | Status | Data | Maintainers |','| --- | --- | --- | --- | --- |',
- ...rows.map(c=>`| ${c.name}${c.country?`, ${c.country}`:''} | [\`?city=${c.id}\`](https://opencitydrive.org/?city=${c.id}) | ${c.status||'draft'} | ${c.source} | ${c.maintainers?.length?c.maintainers.join(', '):'wanted'} |`)].join('\n');
+ ...rows.map(c=>`| ${c.name}${c.country?`, ${c.country}`:''} | [\`?city=${c.id}\`](https://worldhood.org/?city=${c.id}) | ${c.status||'draft'} | ${c.source} | ${c.maintainers?.length?c.maintainers.join(', '):'wanted'} |`)].join('\n');
 const readme=fs.readFileSync('README.md','utf8');
 if(!readme.includes(START))throw Error('README.md has no CITIES markers');
 const next=readme.replace(new RegExp(`${START}[\\s\\S]*?${END}`),`${START}\n${table}\n${END}`);

@@ -2,7 +2,7 @@
  "schemaVersion": 1,
  "place": "keskustori",
  "city": "tampere",
- "note": "Reference photos looked at to describe Keskustori (cities/tampere/keskustori-reference.json). Used for reference only: no image content is stored in the game. Photos are downloaded by npm run photos:fetch -- tampere keskustori into data/raw/photos/ (git-ignored). Google imagery was not used.",
+ "note": "Reference photos used to describe Keskustori (cities/tampere/keskustori-reference.json). Photos marked with textures also supply the credited CC BY-SA wall and ground textures listed below. Source photos are downloaded by npm run photos:fetch -- tampere keskustori into data/raw/photos/ (git-ignored). Google imagery was not used.",
  "searched": {
   "commons": "categories listed in the reference photoSearch, photos taken 2021 or later: 114 found",
   "mapillary": "24 current images (2021-2022) inside 170 m",
@@ -137,7 +137,7 @@
    "licence": "CC BY-SA 4.0",
    "captured": "2022-06-10",
    "title": "Keskustori bus station on a June evening.jpg",
-   "usedFor": "Hämeenkatu from the south platform: masts, pavement bands, bus canopies",
+   "usedFor": "Hämeenkatu frontage: Sumelius upper-storey photo panel and modelled arched shop openings; masts, pavement bands and bus canopies. Foreground taxis, people and canopy roofs are excluded from the wall panel by its visibleY geometry crop.",
    "textures": "sumelius-north",
    "textureLicence": "CC BY-SA 4.0"
   },

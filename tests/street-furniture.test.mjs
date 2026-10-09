@@ -68,11 +68,15 @@ test('parked car geometry is cheap, paint-masked and instanced with per-instance
 });
 
 test('scene assembly: solid obstacles for cars and racks, knockable bins and scooters, few draw submissions',()=>{
- const {group,obstacles,knockables}=createStreetFurniture(city,mobility,trams,{obstacles:[]});
+ const {group,obstacles,knockables,enterableCars}=createStreetFurniture(city,mobility,trams,{obstacles:[]});
  assert.equal(obstacles.length,plan.cars.length+plan.racks.length);
  for(const o of obstacles)assert.ok(o.rings[0].length===4&&o.rings[0].every(p=>p.every(Number.isFinite)));
  let meshes=0;group.traverse(o=>{if(o.isMesh)meshes++;});
  assert.ok(meshes<=6,`at most six draw submissions, got ${meshes}`);
+ assert.equal(enterableCars.length,plan.cars.length);const source=enterableCars[0],fleet=group.getObjectByName('Parked cars'),matrix=new THREE.Matrix4();fleet.getMatrixAt(0,matrix);const initial=matrix.clone();
+ assert.ok(obstacles.includes(source.obstacle));assert.equal(source.visual.paint,plan.cars[0].colour);
+ assert.equal(source.claim(),true);fleet.getMatrixAt(0,matrix);assert.equal(matrix.determinant(),0);assert.equal(source.obstacle.disabled,true);
+ assert.equal(source.release(),true);fleet.getMatrixAt(0,matrix);assert.deepEqual(matrix.elements,initial.elements);assert.equal(source.obstacle.disabled,false);
  // Bins, scooters and the bikes parked at the racks are knockable; the rack hoops stay solid.
  assert.equal(knockables.snapshot().count,plan.bins.length+plan.scooters.length+plan.bicycles.length);
  const bike=plan.bicycles[0],bikeBody=knockables.bodies.find(b=>b.id===bike.id),bikeCar=makeCar(bike.x+Math.sin(bike.heading+Math.PI/2)*5,bike.z+Math.cos(bike.heading+Math.PI/2)*5,bike.heading+Math.PI/2);bikeCar.speed=9;

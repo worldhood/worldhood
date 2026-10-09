@@ -1,10 +1,11 @@
 // Shared conservative footprints for traffic, impacts and police.
 const axes=p=>{const h=p.heading||0;return [[Math.cos(h),-Math.sin(h)],[Math.sin(h),Math.cos(h)]];};
 const dot=(a,b)=>a[0]*b[0]+a[1]*b[1];
+const size=p=>({w:p.halfWidth??.98,l:p.halfLength??2.36});
 function depths(a,b,pedestrian=false,basis=axes(a).concat(pedestrian?[]:axes(b))){
- const aa=axes(a),bb=axes(b),delta=[b.x-a.x,b.z-a.z];
- return basis.map(axis=>(pedestrian?1.25:.98)*Math.abs(dot(axis,aa[0]))+(pedestrian?2.65:2.36)*Math.abs(dot(axis,aa[1]))+
-  (pedestrian?0:.98*Math.abs(dot(axis,bb[0]))+2.36*Math.abs(dot(axis,bb[1])))-Math.abs(dot(delta,axis)));
+ const aa=axes(a),bb=axes(b),delta=[b.x-a.x,b.z-a.z],sa=size(a),sb=size(b);
+ return basis.map(axis=>(sa.w+(pedestrian?.27:0))*Math.abs(dot(axis,aa[0]))+(sa.l+(pedestrian?.29:0))*Math.abs(dot(axis,aa[1]))+
+  (pedestrian?0:sb.w*Math.abs(dot(axis,bb[0]))+sb.l*Math.abs(dot(axis,bb[1])))-Math.abs(dot(delta,axis)));
 }
 export const trafficFootprintsOverlap=(a,b)=>Math.hypot(b.x-a.x,b.z-a.z)<5.2&&depths(a,b).every(d=>d>0);
 // Overlap measure for the escape rule. Car against car: the actual overlap
@@ -28,7 +29,7 @@ function clipArea(subject,clip){
 }
 const overlapMeasure=(p,actor,pedestrian)=>{
  if(pedestrian){const [d0,d1]=depths(p,actor,true);return d0>0&&d1>0?d0*d1:0;}
- return clipArea(corners(p,.98,2.36),corners(actor,.98,2.36));
+ const a=size(p),b=size(actor);return clipArea(corners(p,a.w,a.l),corners(actor,b.w,b.l));
 };
 export function sweptContact(from,to,actor,pedestrian=false){
  if(Math.hypot(actor.x-from.x,actor.z-from.z)>Math.hypot(to.x-from.x,to.z-from.z)+(pedestrian?3:5.2))return false;
@@ -36,7 +37,7 @@ export function sweptContact(from,to,actor,pedestrian=false){
  const n=Math.max(1,Math.ceil(Math.hypot(to.x-from.x,to.z-from.z)/.2),Math.ceil(Math.abs(turn)/.04));
  const initial=overlapMeasure(from,actor,pedestrian);
  for(let i=1;i<=n;i++){
-  const t=i/n,current=overlapMeasure({x:from.x+(to.x-from.x)*t,z:from.z+(to.z-from.z)*t,heading:(from.heading||0)+turn*t},actor,pedestrian);
+  const t=i/n,current=overlapMeasure({...to,x:from.x+(to.x-from.x)*t,z:from.z+(to.z-from.z)*t,heading:(from.heading||0)+turn*t},actor,pedestrian);
   // Already overlapping (last frame's hit, a bus that shoved us, traffic that
   // drove into us): backing out, steering out or sliding along the body is
   // allowed as long as the overlap never grows beyond where it started.

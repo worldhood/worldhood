@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {WATER_LEVEL,extractQuayEdges,buildQuayGeometry,createGroundGeometry} from './quay.js';
+import {WATER_LEVEL,extractQuayEdges,buildQuayGeometry,createGroundGeometry,groundSizeForExtent} from './quay.js';
 import {ALLAS} from './waterfront-landmarks.js';
 import {drapeGeometry,createLakeGeometry} from './terrain-mesh.js';
 
@@ -121,7 +121,7 @@ const kauppatoriBollards=(x,z)=>x>12&&x<300&&z>265&&z<545;
 // Lowered Baltic water on the municipal sea polygons, granite quay walls on
 // every shore edge that borders land, and the ground plane cut under the sea.
 // Three draw calls: water, quay walls (merged), transparent wall shade.
-export function createSea(water,land={},{helsinkiHarbour=true}={}){
+export function createSea(water,land={},{helsinkiHarbour=true,groundExtent=0}={}){
  const group=new THREE.Group();group.name='Helsinki harbour water and quays';
  const time={value:0},geometries=[];
  for(const {rings} of water){
@@ -159,7 +159,7 @@ export function createSea(water,land={},{helsinkiHarbour=true}={}){
   const shade=new THREE.Mesh(drapeGeometry(skirt,{water:true,lift:-WATER_LEVEL-.1}),new THREE.MeshBasicMaterial({color:'#ffffff',vertexColors:true,transparent:true,depthWrite:false,polygonOffset:true,polygonOffsetFactor:-1,polygonOffsetUnits:-2}));
   shade.name='Quay shade on water';shade.renderOrder=1;group.add(shade);
  }
- const groundGeometry=createGroundGeometry(water);
+ const groundGeometry=createGroundGeometry(water,groundSizeForExtent(groundExtent));
  const kinds={};for(const e of edges)kinds[e.kind]=(kinds[e.kind]||0)+1;
  group.userData={polygons:geometries.length,surfaceHeight:WATER_LEVEL,animated:true,quayEdges:edges.length,quayKinds:kinds,drawCalls:group.children.length};
  return {group,groundGeometry,edges,material,

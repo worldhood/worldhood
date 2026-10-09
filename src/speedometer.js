@@ -12,12 +12,12 @@ export function createSpeedometer(doc=document){
   if(major){const [x,y]=point(angle,65),label=svgTag('text',{x,y,'text-anchor':'middle','dominant-baseline':'middle'});label.textContent=speed;ticks.append(label);}
  }
  const motion=globalThis.matchMedia?.('(prefers-reduced-motion: reduce)');let shown=0;
- return {update(car,dt){
-  const target=displayedSpeedKmh(car.speed);shown=motion?.matches?target:smoothSpeed(shown,target,dt);
+ return {update(car,dt,{mode='car'}={}){
+  const target=mode==='car'?displayedSpeedKmh(car.speed):Math.abs(car.speed)*3.6;shown=motion?.matches?target:smoothSpeed(shown,target,dt);
   if(Math.abs(shown-target)<.05)shown=target;
   el('speed').textContent=String(Math.round(shown));needle.setAttribute('transform',`rotate(${dialAngle(shown)} 120 114)`);
   arc.setAttribute('stroke-dasharray',`${Math.min(100,shown/120*100)} 100`);
-  el('drive-gear').textContent=car.speed<-.2?'R':Math.abs(car.speed)>.2?'D':'P';
+  el('drive-gear').textContent=mode==='car'?(car.speed<-.2?'R':Math.abs(car.speed)>.2?'D':'P'):mode==='walk'?'W':mode==='bike'?'B':'S';
   const charge=Math.max(0,Math.min(1,car.battery??1)),percent=charge*100;
   el('battery-value').textContent=`${percent.toFixed(1)}%`;el('battery-fill').style.width=`${percent}%`;
   el('battery-gauge').setAttribute('aria-valuenow',percent.toFixed(1));panel.classList.toggle('low-battery',charge<=.2);panel.classList.toggle('empty-battery',charge===0);

@@ -6,6 +6,7 @@ import {YARD_RING,YARD_DEPTH,yardWest,inLowerYard} from './port-yard.js';
 import {createTrafficRenderer} from './traffic-renderer.js';
 import {createLooseMicromobility} from './parked-micromobility.js';
 import {createBreakableSigns} from './breakable-signs.js';
+import {createParkedCarSource} from './parked-car-sources.js';
 
 export const TERMINAL_SIGN_TEXT=['SILJA LINE','OLYMPIATERMINAALI / OLYMPIATERMINALEN','OLYMPIAPARKKI'];
 export const TERMINAL_POSTS=[
@@ -163,11 +164,17 @@ export function createTerminalDetails(city){
  placements.parked=parked;
  // Three body families plus varied paint keep the dense parked fleet under
  // the harbour geometry budget without reducing its vehicle count.
- const fleet=createTrafficRenderer(parked.map((p,id)=>({...p,id,speed:0,edge:{}})),{types:['hatchback','estate','van']});fleet.update(0,{x:170,z:800});group.add(fleet.group);
+ const fleetTypes=['hatchback','estate','van'],fleetActors=parked.map((p,id)=>({...p,id,speed:0,edge:{},parked:true}));
+ const fleet=createTrafficRenderer(fleetActors,{types:fleetTypes});let fleetViewer={x:170,z:800};fleet.update(0,fleetViewer);group.add(fleet.group);
+ const enterableCars=fleetActors.map((actor,i)=>{
+  const vehicle=fleet.vehicleOf(actor),obstacle=obstacles.find(o=>o.rings[0]===actor.ring);
+  return createParkedCarSource({id:`terminal-parked-${i}`,label:vehicle.type==='van'?'Parked van':'Parked car',actor,obstacle,
+   visual:{type:vehicle.type||fleetTypes[i%fleetTypes.length],paint:`#${vehicle.paint.getHexString()}`},setHidden:()=>fleet.update(0,fleetViewer)});
+ });
  group.add(postSigns.finish());group.breakable=postSigns;
  for(const [mat,parts]of batches){const m=new THREE.Mesh(mergeGeometries(parts),mats[mat]);m.castShadow=!['asphalt','soil'].includes(mat);m.receiveShadow=true;group.add(m);parts.forEach(g=>g.dispose());}
  group.userData={...placements,shrubs,crossingStripes,lowerYardDepth:YARD_DEPTH,signText:TERMINAL_SIGN_TEXT,accuracy:'Photo-guided (Aug 2024 / Apr 2023); metre-scale estimated props constrained to municipal ground, not exact surveyed placements.'};
  // Distance levels for the parked fleet (traffic-renderer.js); non-enumerable so state snapshots stay serialisable.
- Object.defineProperty(group.userData,'fleetLod',{value:viewer=>fleet.update(0,viewer),enumerable:false});
- return {group,obstacles,knockables:bikes};
+ Object.defineProperty(group.userData,'fleetLod',{value:viewer=>{fleetViewer=viewer;fleet.update(0,viewer);},enumerable:false});
+ return {group,obstacles,knockables:bikes,enterableCars};
 }

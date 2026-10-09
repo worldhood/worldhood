@@ -4,6 +4,7 @@ import {vehicleFitsRoad,safeVehicleSegment,trafficFootprintsOverlap} from './roa
 import {cornerSpeedLimit} from './traffic-driving.js';
 import {sweptContact} from './contact-geometry.js';
 import {annotateJunctions,annotateCrossings,annotateTramRelations,annotateTramSignals,signalGreen as phaseGreen,tramThreat,boxesOverlap,carBox,oncomingPasses,CAR_HALF_LENGTH} from './lane-model.js';
+import {mergeGraph} from './graph-extension.js';
 export const TRAFFIC_MAX_SPEED=50/3.6;
 export const nearStation=p=>Math.hypot(p.x+620,p.z+45)<430;
 export const inStationTrafficArea=p=>p.x>-885&&p.x<-440&&p.z>-145&&p.z<55;
@@ -55,7 +56,7 @@ export class Mobility {
   this.roads=prepareGraph(data.roads);this.walks=prepareGraph(data.walks);this.signals=data.signals;this.signalControl=annotateJunctions(this.roads,data.signals||[]);annotateCrossings(this.walks,this.signalControl);this.signalAxes=this.signalControl.axes;this.world=world;this.random=random;this.time=0;this.collisions=0;this.externalObstacles=[];this.externalBodies=[];this.trams=null;this.edgeCars=new Map();this.boxCars=new Map();this.approaching=new Map();
   this.stationEdges=this.roads.edges.filter(e=>e.points.some(([x,z])=>inStationTrafficArea({x,z})));
   // Main-road pool: extra cars that live only on a busy corridor (e.g. Olympia terminal → Kauppatori), both directions.
-  this.corridorEdges=corridor?this.roads.edges.filter(e=>e.length>10&&corridor(...e.points[Math.floor(e.points.length/2)])):[];
+  this.corridor=corridor;this.corridorEdges=corridor?this.roads.edges.filter(e=>e.length>10&&corridor(...e.points[Math.floor(e.points.length/2)])):[];
   this.corridorIds=new Set(this.corridorEdges.map(e=>e.id));
   this.cars=Array.from({length:cars+stationCars+(this.corridorEdges.length?corridorCars:0)},(_,id)=>({id,stationOnly:id>=cars&&id<cars+stationCars,corridorOnly:id>=cars+stationCars,walking:false,edge:null,s:0,speed:0,cruise:6+random()*5,x:0,z:0,heading:0}));
   this.people=Array.from({length:people},(_,id)=>({id,walking:true,edge:null,s:0,speed:0,cruise:.85+random()*.65,x:0,z:0,heading:0}));
@@ -63,7 +64,20 @@ export class Mobility {
  // Trams share the street: tracks are related to lanes once, and their positions are read every step.
  attachTrams(trams){this.trams=trams;annotateTramRelations(this.roads.edges,trams.paths);annotateTramSignals(trams.paths,this.signals||[],this.signalControl);}
  // Buses stop at the same junction stop lines, in the same signal groups, as cars and trams.
- attachBuses(buses){annotateTramSignals(buses.paths,this.signals||[],this.signalControl);buses.keepBaysClear?.(box=>this.laneTaken(box));}
+ attachBuses(buses){this.buses=buses;annotateTramSignals(buses.paths,this.signals||[],this.signalControl);buses.keepBaysClear?.(box=>this.laneTaken(box));}
+ // Existing actor routes, claimed cars, panic and contact state survive a
+ // streamed region. Only derived junction and route lookup data is refreshed.
+ appendRegion(data){
+  const offset=this.signals.length,roads=this.roads.edges.length,walks=this.walks.edges.length;
+  this.signals.push(...data.signals);mergeGraph(this.roads,data.roads,offset);mergeGraph(this.walks,data.walks,offset);
+  for(const e of this.roads.edges)if(e.mappedSignal!==undefined)e.signal=e.mappedSignal;
+  this.signalControl=annotateJunctions(this.roads,this.signals);annotateCrossings(this.walks,this.signalControl);this.signalAxes=this.signalControl.axes;
+  this.stationEdges=this.roads.edges.filter(e=>e.points.some(([x,z])=>inStationTrafficArea({x,z})));
+  this.corridorEdges=this.corridor?this.roads.edges.filter(e=>e.length>10&&this.corridor(...e.points[Math.floor(e.points.length/2)])):[];
+  this.corridorIds=new Set(this.corridorEdges.map(e=>e.id));
+  if(this.trams)this.attachTrams(this.trams);if(this.buses)this.attachBuses(this.buses);
+  return {roads:this.roads.edges.slice(roads),walks:this.walks.edges.slice(walks),signalOffset:offset};
+ }
  // True when a body (an oriented box) covers any car lane position.
  laneTaken(box){
   const r=box.hl+3;
@@ -120,6 +134,7 @@ export class Mobility {
  }
  nearCorridor(player){return this.corridorEdges.some(e=>{const p=e.points[Math.floor(e.points.length/2)];return Math.hypot(p[0]-player.x,p[1]-player.z)<420;});}
  spawn(a,player){
+  if(a.playerTaken){a.edge=null;a.speed=0;return;}
   delete a.knocked;delete a.damage;
   if(a.stationOnly&&!nearStation(player)){a.edge=null;a.speed=0;return;}
   if(a.corridorOnly&&!this.nearCorridor(player)){a.edge=null;a.speed=0;return;}
@@ -141,7 +156,7 @@ export class Mobility {
   }
   a.edge=null;a.speed=0;
  }
- reset(player){this.updateParked();for(const a of [...this.cars,...this.people])a.edge=null;for(const a of [...this.cars,...this.people])this.spawn(a,player);}
+ reset(player){this.updateParked();for(const a of [...this.cars,...this.people]){a.edge=null;delete a.playerTaken;delete a.conversation;}for(const a of [...this.cars,...this.people])this.spawn(a,player);}
  canRecycle(a,player){return Math.hypot(a.x-player.x,a.z-player.z)>80&&(a.hiddenFor||0)>2;}
  retire(a,player,force=false){a.speed=0;if(force||a.walking||this.canRecycle(a,player))a.edge=null;}
  // Lanes a parked bus stands in (mapped bays on the carriageway) are avoided when routing allows; a car that
@@ -306,9 +321,11 @@ export class Mobility {
   const traffic=[player,...this.cars,...this.externalObstacles];for(const p of this.people)if(p.edge?.crossing&&this.world.roads.at(p.x,p.z))traffic.push(p);
   const tramList=this.trams?.trams||[];this.updateParked();
   for(const a of [...this.cars,...this.people]){
+   if(a.playerTaken)continue;
    a.hiddenFor=(this.visibilityTest?this.visibilityTest(a):Math.hypot(a.x-player.x,a.z-player.z)<350)?0:(a.hiddenFor||0)+dt;
    if(a.knockdown){a.speed=0;a.running=false;continue;}
    if(a.walking&&this.time<(a.holdUntil||0)){a.speed=0;a.running=false;continue;}
+   if(a.walking&&a.conversation){a.speed=0;continue;}
    // A car the player crashed into coasts on its own momentum, then sits where it stopped as an obstacle
    // until it is out of sight (or long enough has passed) and gets recycled like any other car.
    if(a.knocked){if(!stepKnocked(a,dt,this.world,this.time,{cars:this.cars,obstacles:this.externalObstacles,knock:(b,pose,impulse)=>{if(this.cars[b.id]===b&&b.edge){knockCar(b,impulse,this.time);this.collisions++;}}})&&(this.time-a.knocked.rest>REST_RECYCLE_AFTER&&Math.hypot(a.x-player.x,a.z-player.z)>80||this.canRecycle(a,player)&&Math.hypot(a.x-player.x,a.z-player.z)>160)){delete a.knocked;delete a.damage;a.edge=null;this.spawn(a,player);}continue;}
@@ -389,7 +406,7 @@ export class Mobility {
   for(const a of this.cars)if(a.edge&&trafficFootprintsOverlap(player,a)&&sweptContact(player,next,a)){
    if(a.knocked&&a.knocked.at>=this.time-dt)continue; // the impact pass already shoved it this frame
    // Both cars move: shove the other one and let the player keep the rest of the speed (crash-physics.js).
-   const impulse=this.knock(a,player,next);
+   const impulse=player.travelMode&&player.travelMode!=='car'?null:this.knock(a,player,next);
    if(impulse)player.speed=playerSpeedAfter(player,impulse);else{player.speed=0;a.speed=0;}
   }
  }

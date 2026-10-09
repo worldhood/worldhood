@@ -5,27 +5,34 @@ import {cornerSpeedLimit} from './traffic-driving.js';
 export const wantedLevel=heat=>heat>=24?5:heat>=16?4:heat>=10?3:heat>=6?2:heat>=3?1:0;
 const distance=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 
-// arcade-style severity. Relative closing speed in world m/s (HUD shows 70%).
-// A parking-speed tap is ignored; a real traffic crash is one star; hurting a
-// person is at least two stars straight away. Traffic crashes alone escalate
-// to three stars at most – only violence against people reaches 4–5.
+// Relative closing speed in world m/s (HUD shows 70%). A parking-speed tap
+// is ignored; a real collision starts at two stars, anywhere in the world.
 export const CRASH_MIN_SPEED=4;
-export const VEHICLE_HEAT_CAP=15;
+export const INCIDENT_WINDOW=12,CONTACT_COOLDOWN=3;
+export const RECKLESS={speed:75/3.6,turnSpeed:40/3.6,lateralAcceleration:5,pavementSpeed:30/3.6,duration:2,cooldown:8};
 export function incidentHeat(kind,speed=8){
+ if(kind==='reckless')return 3;
  // Hitting a person: a stumble, a knock-down or a throw (impacts.js SEVERITY_REPORT); 7 when unknown.
- if(kind==='pedestrian')return speed<3?4:speed<9?7:10;
+ if(kind==='pedestrian')return speed<3?6:speed<9?7:10;
  if(!(speed>=CRASH_MIN_SPEED))return 0;
- if(kind==='police')return 4;
- return speed>=16?4:3;
+ if(kind==='police')return 8;
+ return speed>=16?7:6;
+}
+// Use actual motion for dangerous cornering; holding the steering key against
+// a wall does not count. Missing pavement data never invents an offence.
+export function recklessDriving(from,player,dt,world){
+ if(!(dt>0))return false;
+ const speed=Math.abs(player.speed||0);
+ if(speed>=RECKLESS.speed)return true;
+ const turn=Math.abs(Math.atan2(Math.sin(player.heading-from.heading),Math.cos(player.heading-from.heading)))/dt;
+ if(speed>=RECKLESS.turnSpeed&&speed*turn>=RECKLESS.lateralAcceleration)return true;
+ return speed>=RECKLESS.pavementSpeed&&!world?.roads?.at(player.x,player.z)&&!!world?.pavement?.at(player.x,player.z);
 }
 // Seconds out of every unit's sight before the search is called off.
 export const escapeTime=level=>level?10+level*5:0;
 export const heatForLevel=level=>[0,3,6,10,16,24][Math.max(0,Math.min(5,Math.round(level)))];
-// Station hot zone (src/finale.js): a tram or building crash in the zone calls
-// a surge. Units spawn close by (70–120 m, preferring spots the player cannot
-// see), faster, know where the player is, box them in and arrest sooner. The
-// surge only applies while finale.js keeps `pressure` on (player inside the
-// zone); everywhere else the ordinary rules above hold.
+// Four- and five-star incidents call a stronger response in every city.
+// Units arrive closer, prefer spots the player cannot see, and arrest sooner.
 // arrestRange: a car stopped on the tram tracks is 10–20 m from the lane
 // beside the platform where units can actually pull up, so the surge arrests
 // from further away than the ordinary 10 m.
@@ -60,11 +67,17 @@ export class PoliceSimulation{
   this.graph=graph;this.world=world;this.incoming=Array.from({length:graph.nodes.length},()=>[]);
   graph.edges.forEach(e=>this.incoming[e.to].push(e));this.reset();
  }
- reset(){this.time=0;this.heat=0;this.units=[];this.contacts=new Map();this.blocked=new Map();this.escape=0;this.bust=0;this.contact=0;this.stopped=0;this.backupAt=-Infinity;this.grace=0;this.repath=0;this.dispatch=0;this.costs=[];this.target=null;this.message=null;this.serial=0;this.busted=false;this.lastSeen=null;this.seen=false;this.intercept=null;this.predicted=null;this.pressure=false;this.surgeUntil=-Infinity;this.minUnits=0;this.units=[...(this.parked||[])];}
+ // Extension edges retain their IDs; wanted state and units are left intact.
+ refreshGraph(){
+  this.incoming=Array.from({length:this.graph.nodes.length},()=>[]);
+  for(const e of this.graph.edges)this.incoming[e.to].push(e);
+  this.costs=[];this.target=null;this.intercept=null;this.predicted=null;this.repath=0;
+ }
+ reset(){this.time=0;this.heat=0;this.units=[];this.contacts=new Map();this.recentIncidents=[];this.recklessSeconds=0;this.recklessAt=-Infinity;this.blocked=new Map();this.escape=0;this.bust=0;this.contact=0;this.stopped=0;this.backupAt=-Infinity;this.grace=0;this.repath=0;this.dispatch=0;this.costs=[];this.target=null;this.message=null;this.serial=0;this.busted=false;this.lastSeen=null;this.seen=false;this.intercept=null;this.predicted=null;this.pressure=false;this.surgeUntil=-Infinity;this.minUnits=0;this.units=[...(this.parked||[])];}
  get level(){return wantedLevel(this.heat);}
  get obstacles(){return this.units;}
- // Surge rules apply only inside the finale zone, after an escalation, while wanted.
- get surging(){return this.pressure&&this.level>0&&this.time<this.surgeUntil;}
+ // Location never starts or ends the stronger response.
+ get surging(){return this.level>=4&&this.time<this.surgeUntil;}
  get bustTime(){return this.surging?SURGE.bustTime:BUST_TIME;}
  setPressure(active){this.pressure=!!active;}
  // Roadblock (src/roadblock.js): parked units stand still with lights on, block
@@ -75,7 +88,7 @@ export class PoliceSimulation{
   if(this.busted)return false;this.busted=true;this.heat=0;this.bust=this.bustTime;this.escape=0;
   if(this.player)this.player.speed=0;for(const u of this.units)u.speed=0;this.message=message;return true;
  }
- // Finale escalation: jump straight to `level` stars and call the surge.
+ // Explicit escalation for scripted incidents; ordinary driving uses report().
  escalate({level=4,message='Police alerted — units converging.'}={}){
   if(this.busted)return false;
   this.heat=Math.max(this.heat,heatForLevel(level));this.grace=0;
@@ -86,13 +99,27 @@ export class PoliceSimulation{
   if(this.busted||this.time<this.grace)return false;
   const add=incidentHeat(kind,speed);if(!add)return false;
   const key=`${kind}:${id}`,last=this.contacts.get(key)??-Infinity;this.contacts.set(key,this.time);
-  if(this.time-last<3)return false;
+  if(this.time-last<CONTACT_COOLDOWN)return false;
   const before=this.level;
-  this.heat=kind==='pedestrian'?Math.min(30,this.heat+add):Math.max(this.heat,Math.min(VEHICLE_HEAT_CAP,this.heat+add));
+  this.recentIncidents=this.recentIncidents.filter(t=>this.time-t<=INCIDENT_WINDOW);
+  this.heat=Math.min(30,this.heat+add+Math.min(3,this.recentIncidents.length));
+  this.recentIncidents.push(this.time);
+  if(this.level>=4)this.surgeUntil=this.time+SURGE.duration;
   this.escape=0;this.lastSeen=null;this.repath=0;this.dispatch=Math.min(this.dispatch,this.time+.5);
-  this.message=kind==='pedestrian'?'Pedestrian hit — police alerted.':kind==='police'?'You hit a police car!':!before?'Crash reported — a patrol is responding.':this.level>before?'Another crash — wanted level increased.':'Crash reported.';
+  this.message=kind==='reckless'?(before?'Reckless driving — wanted level increased.':'Reckless driving — a patrol is responding.'):kind==='pedestrian'?'Pedestrian hit — police alerted.':kind==='police'?'You hit a police car!':!before?'Crash reported — a patrol is responding.':this.level>before?'Another crash — wanted level increased.':'Crash reported.';
   this.onIncident?.(kind,id,speed,this.level);
   return true;
+ }
+ // Called once per movement step, including driving:false on foot or a bike.
+ // Two seconds of sustained risk earns a report; continuous risky driving can
+ // escalate again only after eight seconds, independently of render rate.
+ observeDriving(from,player,dt,{driving=player?.travelMode==='car'}={}){
+  if(!(dt>0)||!Number.isFinite(dt))return false;
+  if(!driving||!from||!player||this.busted||this.time<this.grace){this.recklessSeconds=0;return false;}
+  this.recklessSeconds=recklessDriving(from,player,dt,this.world)?this.recklessSeconds+Math.max(0,dt):Math.max(0,this.recklessSeconds-Math.max(0,dt)*2);
+  if(this.recklessSeconds+1e-9<RECKLESS.duration||this.time<this.recklessAt)return false;
+  if(!this.report('reckless','driving',Math.abs(player.speed)))return false;
+  this.recklessSeconds=0;this.recklessAt=this.time+RECKLESS.cooldown;return true;
  }
  observe(from,player,cars,people){
   const moving=Math.abs(player.speed)>=2&&this.time>=this.grace;
@@ -170,9 +197,8 @@ export class PoliceSimulation{
  // Interceptors only cut ahead of a player who is visibly driving away.
  fieldFor(unit){return unit.role==='intercept'&&this.intercept?.target?this.intercept:this;}
  clearSight(a,b){
-  // Under the surge only real buildings block the view: tram platforms, railings
-  // and kiosks sit in world.buildings as driving obstacles, and a car stopped on
-  // the Lasipalatsi tracks must still be arrestable from the lane beside them.
+  // At high wanted levels, platform furniture does not hide a car from units
+  // in the adjacent lane. Real buildings still block the line of sight.
   const index=this.surging&&this.world.sightBuildings||this.world.buildings;
   const d=distance(a,b),n=Math.ceil(d/4);for(let i=1;i<n;i++)if(index.at(a.x+(b.x-a.x)*i/n,a.z+(b.z-a.z)*i/n))return false;return true;
  }
@@ -240,6 +266,7 @@ export class PoliceSimulation{
   if(this.bust>=this.bustTime||this.contact>=CONTACT_BUST.time){this.busted=true;this.heat=0;this.bust=this.bustTime;this.escape=0;player.speed=0;for(const u of this.units)u.speed=0;this.message='Busted — pursuit ended.';}
   else if(this.escape>=escapeTime(this.level)*(surge?SURGE.escapeScale:1)){
    const was=this.level;this.heat=0;this.units=[...(this.parked||[])];this.lastSeen=null;this.intercept=null;
+   this.recentIncidents=[];this.contacts.clear();this.recklessSeconds=0;this.recklessAt=-Infinity;this.surgeUntil=-Infinity;
    this.message=was<=1?'The patrol gave up — wanted level cleared.':'Escaped — wanted level cleared.';
   }
  }

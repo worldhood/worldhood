@@ -29,7 +29,7 @@ export function buildPlace(cityId,place,{refresh=false,registry='public/cities/i
  const [w,s]=toWgs.forward([cx-R-40,-(cz+R+40)]),[e,n]=toWgs.forward([cx+R+40,-(cz-R-40)]);
  const wfs=key=>{const layer=off.layers[key];if(!layer)return [];const file=path.join(RAW,`${key}.json`);
   if(!fs.existsSync(file)||refresh){const url=`${off.wfs}?service=WFS&version=2.0.0&request=GetFeature&typeNames=${layer}&count=10000&outputFormat=application/json&srsName=EPSG:4326&bbox=${[s,w,n,e].map(v=>v.toFixed(5)).join(',')},urn:ogc:def:crs:EPSG::4326`;
-   fs.writeFileSync(file,execFileSync('curl',['-sS','-f','--max-time','300','-A','open-city-drive/0.1 (place build)',url],{maxBuffer:1<<28}));}
+   fs.writeFileSync(file,execFileSync('curl',['-sS','-f','--max-time','300','-A','worldhood/0.1 (place build)',url],{maxBuffer:1<<28}));}
   return JSON.parse(fs.readFileSync(file)).features||[];};
  const polys=g=>!g?[]:(g.type==='Polygon'?[g.coordinates]:g.type==='MultiPolygon'?g.coordinates:[]).map(p=>p.map(r=>r.map(c=>local(c[0],c[1]))));
  const clean=v=>String(v||'').replace(/^\d+/,'');

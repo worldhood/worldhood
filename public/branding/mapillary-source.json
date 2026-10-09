@@ -1,0 +1,13 @@
+{
+  "brand": "Mapillary",
+  "logo": "mapillary-logo.png",
+  "sourcePage": "https://www.mapillary.com/press-kit",
+  "archive": "https://github.com/mapillary/mapillary_press/releases/download/v0.0.4/logos.zip",
+  "archiveEntry": "logos/mapillary/mapillary_logo_dark@2x.png",
+  "sha256": "0c36737753efeac686e644b1618c049ec46f24b8f0783ab0ff0aca21d8ad1ce7",
+  "retrieved": "2026-10-09",
+  "modified": false,
+  "usage": "Official logo displayed with a link to Mapillary to attribute integrated data under section 11 of the Mapillary Terms of Use. Trademark remains with its owner; not relicensed under MIT.",
+  "terms": "https://www.mapillary.com/terms",
+  "termsEffectiveDate": "2024-02-15"
+}

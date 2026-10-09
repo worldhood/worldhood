@@ -163,7 +163,11 @@ export function buildQuayGeometry(edges,{bollardSpacing=16,skipBollards=()=>fals
 
 // Ground plane (in PlaneGeometry local XY, rotated -90° about X by main.js)
 // with the water cut out, so the lowered sea is visible behind the quays.
-export function createGroundGeometry(water,size=Math.max(11000,2*playableExtent()+3000)){
+// An installing region can request ground before its playable boundary opens.
+// Already activated regions still contribute, so loading a nearer one cannot
+// shrink the ground under a previously visited place.
+export function groundSizeForExtent(extent=0){return Math.max(11000,2*Math.max(playableExtent(),Number.isFinite(extent)?extent:0)+3000);}
+export function createGroundGeometry(water,size=groundSizeForExtent()){
  const h=size/2,polys=[[[[-h,-h],[h,-h],[h,h],[-h,h]],...water.map(w=>openRing(w.rings?.[0]||[])).filter(r=>r.length>2)]];
  for(const w of water)for(const r of (w.rings||[]).slice(1)){const o=openRing(r);if(o.length>2)polys.push([o]);}
  const pos=[];

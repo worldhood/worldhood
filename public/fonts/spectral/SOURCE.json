@@ -1,0 +1,30 @@
+{
+  "family": "Spectral",
+  "copyright": "Copyright 2017 The Spectral Project Authors",
+  "license": "SIL Open Font License 1.1",
+  "source": "https://github.com/google/fonts/tree/main/ofl/spectral",
+  "upstream": "https://github.com/productiontype/Spectral",
+  "files": [
+    {
+      "file": "Spectral-Regular.ttf",
+      "download": "https://raw.githubusercontent.com/google/fonts/main/ofl/spectral/Spectral-Regular.ttf",
+      "sha256": "c89021dc20720c8d0dcf40b0b2f6e00c13665fa8041717f581396f51b8c78f5d"
+    },
+    {
+      "file": "Spectral-Medium.ttf",
+      "download": "https://raw.githubusercontent.com/google/fonts/main/ofl/spectral/Spectral-Medium.ttf",
+      "sha256": "f385bc588599c879112272711d4acecc126674009d747a27284f59e93a240e83"
+    },
+    {
+      "file": "Spectral-SemiBold.ttf",
+      "download": "https://raw.githubusercontent.com/google/fonts/main/ofl/spectral/Spectral-SemiBold.ttf",
+      "sha256": "5f86915a744832ecf6e4a17ab04bea091b9fa992ef5164ff65ae34c1da2fe94b"
+    },
+    {
+      "file": "Spectral-Italic.ttf",
+      "download": "https://raw.githubusercontent.com/google/fonts/main/ofl/spectral/Spectral-Italic.ttf",
+      "sha256": "7ec97244259db4008c4b1224c7914e5371c797c0044af9d85c2d761ba0e5f787"
+    }
+  ],
+  "use": "Self-hosted lowercase worldhood wordmark, headings, reading text and italic tagline. Logo SVG lettering is outlined from the bundled fonts."
+}

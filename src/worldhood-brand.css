@@ -1,0 +1,12 @@
+@font-face{font-family:Spectral;src:url('/fonts/spectral/Spectral-Regular.ttf') format('truetype');font-style:normal;font-weight:400;font-display:swap}
+@font-face{font-family:Spectral;src:url('/fonts/spectral/Spectral-Medium.ttf') format('truetype');font-style:normal;font-weight:500;font-display:swap}
+@font-face{font-family:Spectral;src:url('/fonts/spectral/Spectral-SemiBold.ttf') format('truetype');font-style:normal;font-weight:600;font-display:swap}
+.wordmark{gap:10px;color:#30312e;letter-spacing:-.025em;font-family:Spectral,Georgia,serif;font-size:25px;font-weight:600;line-height:1.1}
+.wordmark .brand-icon{display:block;width:48px;height:48px;border-radius:0;padding:0;background:none;letter-spacing:0;flex-shrink:0}
+.brand-icon svg,.brand-icon img{display:block;width:100%;height:100%}.brand-name{display:block}.brand-light{display:block;font-family:Spectral,Georgia,serif;font-size:12px;letter-spacing:0;font-weight:400;font-style:normal;text-transform:none;margin-top:5px;color:#747168}
+/* Spectral for the name and reading; compact gameplay information keeps DM Sans. */
+h1,.dialog-head h2,#pause-overlay h2,#intro #boot-title{font-family:Spectral,Georgia,serif;font-weight:600;letter-spacing:-.025em}
+.intro-copy,.dialog-copy,.help-note{font-family:Spectral,Georgia,serif;font-weight:400;font-size:16px;line-height:1.6}
+.dialog-copy{font-weight:500}
+@media(max-width:700px){.wordmark{font-size:21px;gap:7px}.wordmark .brand-icon{width:40px;height:40px}.brand-light{font-size:11px;letter-spacing:0}.intro-copy,.dialog-copy,.help-note{font-size:15px}}
+@media(pointer:coarse) and (max-width:760px){.wordmark .brand-icon{width:44px;height:44px}}

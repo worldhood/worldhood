@@ -2,14 +2,20 @@
 // first, the worker details only nearby tiles, and GPU uploads are rationed across frames.
 
 export async function loadTileImages(files,url=f=>f){
- const entries=await Promise.all(files.map(async file=>{
+ const entries=await Promise.allSettled(files.map(async file=>{
   const r=await fetch(url(file));if(!r.ok)throw Error(`Could not load ${url(file)} (${r.status})`);
   const blob=await r.blob();
   // The bitmap feeds the GPU texture; the encoded bytes go to the worker, which decodes its own copy.
-  const [bitmap,bytes]=await Promise.all([createImageBitmap(blob,{premultiplyAlpha:'none',colorSpaceConversion:'none'}),blob.arrayBuffer()]);
-  return [file,{bitmap,bytes}];
+  const [image,encoded]=await Promise.allSettled([createImageBitmap(blob,{premultiplyAlpha:'none',colorSpaceConversion:'none'}),blob.arrayBuffer()]);
+  if(image.status==='rejected')throw image.reason;
+  if(encoded.status==='rejected'){image.value.close();throw encoded.reason;}
+  return [file,{bitmap:image.value,bytes:encoded.value}];
  }));
- return new Map(entries);
+ const failed=entries.find(e=>e.status==='rejected');
+ // Wait for every decode before cleanup: an early HTTP failure must not leave
+ // a later successful bitmap alive after the entire tile has been abandoned.
+ if(failed){for(const e of entries)if(e.status==='fulfilled')e.value[1].bitmap.close();throw failed.reason;}
+ return new Map(entries.map(e=>e.value));
 }
 
 export function tileDistanceTo(t,p){const b=t.bbox;return Math.hypot(Math.max(b[0]-p.x,0,p.x-b[2]),Math.max(b[1]-p.z,0,p.z-b[3]));}

@@ -3,7 +3,7 @@ import {prepareGraph,routePoint} from './mobility.js';
 import {signalGreen,untilGreen,oncomingPasses} from './lane-model.js';
 
 export const BUS_DIMENSIONS=Object.freeze({city:{length:12,width:2.55,height:3.3,wheelbase:6},coach:{length:12,width:2.55,height:3.3,wheelbase:6},trunk:{length:15,width:2.55,height:3.3,wheelbase:7.6},tourist:{length:11.4,width:2.55,height:4.3,wheelbase:5.6}});
-const dims=a=>BUS_DIMENSIONS[a.kind]||{length:4.72,width:1.96};
+const dims=a=>BUS_DIMENSIONS[a.kind]||{length:(a.halfLength??2.36)*2,width:(a.halfWidth??.98)*2};
 const turn=(a,b)=>Math.atan2(Math.sin(b-a),Math.cos(b-a));
 export function busSamples(p){const d=dims(p),c=Math.cos(p.heading),s=Math.sin(p.heading),out=[];for(let along=-d.length/2;along<=d.length/2+.01;along+=.5)for(const side of [-d.width/2,0,d.width/2])out.push([p.x+c*side+s*along,p.z-s*side+c*along]);return out;}
 // Adjacent municipal road polygons do not always meet exactly: a hair-thin unmapped sliver at a seam is
@@ -123,7 +123,7 @@ export class BusSimulation{
   // A bus that cannot restart leaves the street; the supply brings a new one in later.
   if(this.buses.some(b=>b.done)){this.buses=this.buses.filter(b=>!b.done);this.buses.forEach((b,i)=>b.id=i);}
   // Stop player contact against the actual 12/13 m body, never a tiny car box.
-  for(const b of this.buses)if(busOverlaps(b,player)){if(!leavingBody(player,dt,b))player.speed=0;b.speed=0;const side=(player.x-b.x)*Math.cos(b.heading)-(player.z-b.z)*Math.sin(b.heading);nudgeOut(player,b.heading,(BUS_DIMENSIONS[b.kind].width/2+1.03-Math.abs(side))*(side<0?-1:1),this.world);}
+  for(const b of this.buses)if(busOverlaps(b,player)){if(!leavingBody(player,dt,b))player.speed=0;b.speed=0;const side=(player.x-b.x)*Math.cos(b.heading)-(player.z-b.z)*Math.sin(b.heading);nudgeOut(player,b.heading,(BUS_DIMENSIONS[b.kind].width/2+(player.halfWidth??.98)+.05-Math.abs(side))*(side<0?-1:1),this.world);}
   this.refreshObstacles();
  }
  snapshot(){return this.buses.map(({id,kind,path,x,z,heading,speed,parked,stopId,platform})=>({id,kind,line:path.line,destination:path.destination,x,z,heading,speed,parked:!!parked,stopId,platform}));}

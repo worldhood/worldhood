@@ -30,7 +30,7 @@ export function parts(g){
  return [];
 }
 
-const curl=url=>JSON.parse(execFileSync('curl',['-sS','-f','--retry','4','--retry-delay','5','--max-time','300','-A','open-city-drive/0.1 (city build)',url],{encoding:'utf8',maxBuffer:1<<30}));
+const curl=url=>JSON.parse(execFileSync('curl',['-sS','-f','--retry','4','--retry-delay','5','--max-time','300','-A','worldhood/0.1 (city build)',url],{encoding:'utf8',maxBuffer:1<<30}));
 // bbox: [west,south,east,north] in WGS84. Returns {features,crs}.
 export function fetchWfs({url,layer,bbox,file,refresh=false,page=5000}){
  if(fs.existsSync(file)&&!refresh)return JSON.parse(fs.readFileSync(file));

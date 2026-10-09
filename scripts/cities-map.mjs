@@ -30,7 +30,7 @@ const colour={reviewed:'#2e7d4f',playable:'#e0603a','playable-draft':'#e0603a',d
 const markers=cities.map(c=>{const [x,y]=xy(c.origin),fill=colour[c.status]||colour.draft;
  return `<g><circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="9" fill="${fill}" stroke="#fff" stroke-width="2.5"/><text x="${(x+14).toFixed(1)}" y="${(y+5).toFixed(1)}" font-family="system-ui,-apple-system,Segoe UI,sans-serif" font-size="17" font-weight="600" fill="#1f2a27" stroke="#fff" stroke-width="4" paint-order="stroke">${c.name}</text></g>`;}).join('\n');
 const legend=[['reviewed','Reviewed'],['playable','Playable'],['draft','Draft']].map(([k2,label],i)=>`<g transform="translate(${20+i*120},${H-22})"><circle r="6" fill="${colour[k2]}"/><text x="12" y="5" font-family="system-ui,sans-serif" font-size="13" fill="#3a4642">${label}</text></g>`).join('');
-const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Map of Open City Drive cities">
+const svg=`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Map of Worldhood cities">
 <rect width="${W}" height="${H}" rx="14" fill="#cfe1e4"/>
 <g fill="#eef0e8" stroke="#b9c2b8" stroke-width=".8">${land.map(d=>`<path d="${d}"/>`).join('')}</g>
 ${markers}

@@ -154,4 +154,4 @@ export function boxesOverlap(a,b){
  return test(ac,-as)&&test(as,ac)&&test(bc,-bs)&&test(bs,bc);
 }
 export function oncomingPasses(a,b){if(Math.cos((a.heading||0)-(b.heading||0))>-.7)return false;const dx=-Math.sin(a.heading),dz=-Math.cos(a.heading);return Math.abs((b.x-a.x)*dz-(b.z-a.z)*dx)>ONCOMING_PASS;}
-export const carBox=(p,grow=0)=>({x:p.x,z:p.z,heading:p.heading,hl:CAR_HALF_LENGTH+grow,hw:CAR_HALF_WIDTH+grow});
+export const carBox=(p,grow=0)=>({x:p.x,z:p.z,heading:p.heading,hl:(p.halfLength??CAR_HALF_LENGTH)+grow,hw:(p.halfWidth??CAR_HALF_WIDTH)+grow});

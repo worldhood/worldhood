@@ -126,8 +126,8 @@ export function posePerson(actor,look,gait,out,time=0){
  const H=look.height||1.72,k=H/REFERENCE_HEIGHT,P=PROPORTIONS,build=look.body||1,fem=look.figure||0;
  const sw=(1-.07*fem)*(.92+.08*build),hw=(1+.08*fem)*(.94+.06*build);
  const Lt=P.thigh*H,Ls=P.shin*H,Lu=P.upperArm*H,Lf=P.forearm*H,Lh=P.hand*H,ankleH=P.ankle*H;
- const cycle=actor.pose==='cycle'&&actor.bike;
- const w=cycle?0:gait.gaitWalk??0,r=cycle?0:gait.gaitRun??0,phase=gait.gaitPhase??look.phase??0,clock=(gait.gaitClock??time)+(look.phase||0);
+ const cycle=actor.pose==='cycle'&&actor.bike,scooter=actor.pose==='scooter',scooterFeet=scooter&&actor.scooter;
+ const w=cycle||scooter?0:gait.gaitWalk??0,r=cycle||scooter?0:gait.gaitRun??0,phase=gait.gaitPhase??look.phase??0,clock=(gait.gaitClock??time)+(look.phase||0);
  // Legs (left = phase, right = phase + pi). Hip flexion forward, knee swing bump after toe-off.
  // Walking hip swing from the stride the gait clock assumes (advanceGait): the
  // stance foot travels back by about half a stride, so feet do not skate.
@@ -143,7 +143,7 @@ export function posePerson(actor,look,gait,out,time=0){
  for(let side=0;side<2;side++){
   const sgn=side?1:-1,ph=phase+(side?Math.PI:0),hj=JOINT.hipL+side*3,kj=JOINT.kneeL+side*3,aj=JOINT.ankleL+side*3;
   const hx=sgn*P.hipX*H*hw;
-  if(cycle){continue;}
+  if(cycle||scooterFeet){continue;}
   const u=(((ph-Math.PI/2)/TAU)%1+1)%1;
   // Late stance: the heel peels up and the foot rolls onto the toes before lifting.
   if(u<STANCE){walkZ[side]=-A*FRONT+2*A*u/STANCE;const e=heel*smooth(HEEL_OFF,1,u/STANCE);walkY[side]=ankleH+e;walkPitch[side]=-Math.asin(Math.min(.9,e/(.112*H)));}
@@ -163,7 +163,16 @@ export function posePerson(actor,look,gait,out,time=0){
   for(let side=0;side<2;side++){const sgn=side?1:-1,ang=b.crank+(side?Math.PI:0),hj=JOINT.hipL+side*3;
    set(out,hj,sgn*P.hipX*H*hw,py,b.hipZ);
    // Pedal under the ball of the foot; knee points forward and up.
-   ik(out,hj,JOINT.kneeL+side*3,JOINT.ankleL+side*3,sgn*P.hipX*H*hw*1.1,b.crankY+b.crankR*Math.cos(ang)+ankleH*.9,b.crankZ+b.crankR*Math.sin(ang)+.05,Lt,Ls,0,.5,-1);
+   const fp=-.25+.2*Math.sin(ang),ball=.06656*H,drop=.028*H;
+   const ankleY=b.pedalX?b.crankY+b.crankR*Math.cos(ang)+(b.pedalTop||0)+.036*k-Math.sin(fp)*ball+Math.cos(fp)*drop:b.crankY+b.crankR*Math.cos(ang)+ankleH*.9;
+   const ankleZ=b.pedalX?b.crankZ+b.crankR*Math.sin(ang)+Math.cos(fp)*ball+Math.sin(fp)*drop:b.crankZ+b.crankR*Math.sin(ang)+.05;
+   ik(out,hj,JOINT.kneeL+side*3,JOINT.ankleL+side*3,sgn*(b.pedalX||P.hipX*H*hw*1.1),ankleY,ankleZ,Lt,Ls,0,.5,-1);
+  }
+ }else if(scooterFeet){
+  py=scooterFeet.hipY;
+  for(let side=0;side<2;side++){const sgn=side?1:-1,hj=JOINT.hipL+side*3;
+   set(out,hj,sgn*P.hipX*H*hw,py,0);
+   ik(out,hj,JOINT.kneeL+side*3,JOINT.ankleL+side*3,sgn*scooterFeet.footX,ankleH,side?scooterFeet.backZ:scooterFeet.frontZ,Lt,Ls,0,0,-1);
   }
  }else{
   // Runners keep their hips high and leave the ground between steps (flight phase).
@@ -175,7 +184,7 @@ export function posePerson(actor,look,gait,out,time=0){
    ik(out,hj,JOINT.kneeL+side*3,aj,ax,walkY[side]+(ry-walkY[side])*r,walkZ[side]+(rz-walkZ[side])*r,Lt,Ls,0,0,-1);
   }
  }
- const sway=cycle?0:.012*H*w*(1-r)*Math.sin(phase)+(1-w)*.006*H*Math.sin(clock*.7);
+ const sway=cycle||scooterFeet?0:.012*H*w*(1-r)*Math.sin(phase)+(1-w)*.006*H*Math.sin(clock*.7);
  for(let side=0;side<2;side++)for(const j of [JOINT.hipL,JOINT.kneeL,JOINT.ankleL])out[j+side*3]+=sway;
  set(out,JOINT.pelvis,sway,py,cycle?actor.bike.hipZ:0);
  // Feet: flat during stance, heel strike toe-up, toe-down after push-off.
@@ -190,7 +199,7 @@ export function posePerson(actor,look,gait,out,time=0){
  const weights=poseWeights(actor,gait),phoneLook=Math.max(weights.phone,look.phoneWalk&&!actor.pose?1:0);
  // Browsing only reaches out when (nearly) standing; chat gestures fade in the same way.
  const browseW=weights.browse*(1-smooth(.35,.6,w)),chatW=weights.chat*(1-smooth(.1,.4,w));
- const stoop=cycle?0:(look.stoop||0)+(actor.lean||0),lean=cycle?.62:.035*w+.2*r+.03*phoneLook+(1-w)*.01*Math.sin(clock*1.1)+stoop,twist=cycle?0:-.11*w*(1-.4*r)*Math.sin(phase);
+ const stoop=cycle?0:(look.stoop||0)+(actor.lean||0),lean=cycle?.62:scooter?.25:.035*w+.2*r+.03*phoneLook+(1-w)*.01*Math.sin(clock*1.1)+stoop,twist=cycle?0:-.11*w*(1-.4*r)*Math.sin(phase);
  const yy=Math.cos(lean),yz=-Math.sin(lean);let xx=Math.cos(twist),xy=0,xz=Math.sin(twist);
  const d=xy*yy+xz*yz;xy-=d*yy;xz-=d*yz;const xl=Math.hypot(xx,xy,xz);xx/=xl;xy/=xl;xz/=xl;
  const zx=xy*yz-xz*yy,zy=xz*0-xx*yz,zz=xx*yy-xy*0;
@@ -209,6 +218,7 @@ export function posePerson(actor,look,gait,out,time=0){
   const ph=phase+(side?Math.PI:0);
   let target=null;
   if(cycle){const b=actor.bike;target=[sgn*b.barX,b.barY,b.barZ];}
+  else if(scooter)target=[sgn*(scooterFeet?.barX??.22),scooterFeet?.barY??.95,scooterFeet?.barZ??-.455];
   else if(side===1&&actor.suitcase)target=[.34*H/1.74,.86*H/1.74+.0,.2*H/1.74];
   // Angry driver: hand up over the head, shaken side to side (elbow out to the side).
   // ...and the other arm out to the side, palm up: "what are you doing?"
@@ -236,6 +246,13 @@ export function posePerson(actor,look,gait,out,time=0){
   else if(side===0&&accessoryOn(actor,look)==='dog'){const q=H/1.74;target=[-.24*q,.86*q,-.24*q,-1,-.6,.5];}
   if(target){
    ik(out,sj,ej,wj,target[0],target[1],target[2],Lu,Lf,target[3]??sgn*.35,target[4]??-.6,target[5]??.75);
+   if(actor.grip&&(cycle||scooter)){
+    // Put the palm around the bar. A normal outstretched hand continues well
+    // past its wrist target, which made riders look as if they missed the grips.
+    const dx=out[ej]-target[0],dy=out[ej+1]-target[1],dz=out[ej+2]-target[2],d=Math.hypot(dx,dy,dz)||1,back=Lh*.40;
+    ik(out,sj,ej,wj,target[0]+dx/d*back,target[1]+dy/d*back,target[2]+dz/d*back,Lu,Lf,sgn*.35,-.6,.75);
+    set(out,hj,target[0]-dx/d*.028,target[1]-dy/d*.028,target[2]-dz/d*.028);continue;
+   }
    const fx=out[wj]-out[ej],fy=out[wj+1]-out[ej+1],fz=out[wj+2]-out[ej+2],fl=Math.hypot(fx,fy,fz)||1;
    set(out,hj,out[wj]+fx/fl*Lh,out[wj+1]+fy/fl*Lh,out[wj+2]+fz/fl*Lh);continue;
   }

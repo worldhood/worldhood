@@ -1,14 +1,23 @@
-# Open City Drive
+# worldhood
 
-An open-source browser driving game set in real cities, starting with Helsinki. Streets, buildings, parks, trees and the shoreline come from
-the City of Helsinki's open data, and trams follow HSL routes. Drive from the Olympia Terminal past
-Kauppatori and the Cathedral, up Mannerheimintie through Töölö, and out to Seurasaari.
+**Explore the world, and build your own corner of it.**
 
-**Play it now: [opencitydrive.org](https://opencitydrive.org)**
+An open-source city playground in your browser. Explore Helsinki and Tampere by car, on foot,
+by bicycle or on an e-scooter. Greet people, try another car, or help recreate a place you know.
+The streets and buildings come from open map and city data, with local details added by contributors.
 
-It runs entirely in the browser (three.js + Vite). No accounts, API keys or backend.
+**Play: [worldhood.org](https://worldhood.org)**
 
-Originally built by [Lasse](https://www.linkedin.com/in/lassesaari/); now open to contributors. Have an idea? [Tell me](https://www.linkedin.com/in/lassesaari/).
+The current game is single-player. A shared online world and player-owned territories are future
+plans. Adding and improving cities currently happens through this repository, rather than an in-game editor.
+
+The game runs entirely in the browser (three.js + Vite), with no account, backend or API key needed
+to play. Optional contributor tools that fetch data or process reference photos may require their
+own API keys; see `.env.example` and the city-building guide.
+
+Originally built by [Lasse](https://www.linkedin.com/in/lassesaari/). **Contributors welcome: build a place you know, improve the shared engine, or help test and explain the game.**
+
+Read the **[vision](docs/VISION.md)**, find an idea in the [wishlist](docs/IDEAS.md), or start with [CONTRIBUTING.md](CONTRIBUTING.md). Have an idea? [Tell me](https://www.linkedin.com/in/lassesaari/).
 
 ## Run
 
@@ -17,13 +26,17 @@ npm ci
 npm run dev
 ```
 
-Open the URL Vite prints. Requires a modern browser with WebGL2.
+Use Node.js 22 or newer. Open the URL Vite prints in a modern browser with WebGL2.
 
 | Key | Action |
 | --- | --- |
 | W / S or ↑ / ↓ | Accelerate / brake and reverse |
 | A / D or ← / → | Steer |
-| Space | Handbrake |
+| Space | Brake (car, bicycle or scooter) |
+| F | Get out of the car / get off a ride |
+| Enter | Enter a nearby stopped car / mount a bicycle or scooter |
+| Shift (hold) | Run while on foot |
+| G | Greet a nearby person / end a conversation |
 | R | Back to your starting point |
 | M | City map and starting points |
 | C | Drive / Follow / High camera |
@@ -31,6 +44,10 @@ Open the URL Vite prints. Requires a modern browser with WebGL2.
 | T | Time of day / weather |
 | H | Hide the HUD |
 | V | Capture mode (full resolution, no camera shake) |
+
+On a phone, slide the steering control and hold **Go**; **Brake** slows down, then reverses.
+**Menu** contains the map, camera, weather, sound and steering choices. Small context buttons
+let you get out, run, use a nearby ride or greet someone.
 
 ```sh
 npm test          # unit tests
@@ -42,16 +59,24 @@ npm run build     # static build in dist/, deployable to any static host
 <!-- CITIES:START -->
 | City | Play | Status | Data | Maintainers |
 | --- | --- | --- | --- | --- |
-| Helsinki, Finland | [`?city=helsinki`](https://opencitydrive.org/?city=helsinki) | playable | City of Helsinki 3D city model + open data, HSL | wanted |
-| Tampere, Finland | [`?city=tampere`](https://opencitydrive.org/?city=tampere) | draft | OpenStreetMap | wanted |
+| Helsinki, Finland | [`?city=helsinki`](https://worldhood.org/?city=helsinki) | playable | City of Helsinki 3D city model + open data, HSL | wanted |
+| Tampere, Finland | [`?city=tampere`](https://worldhood.org/?city=tampere) | draft | OpenStreetMap | wanted |
 <!-- CITIES:END -->
 
 Running it locally? Use `http://localhost:5173/?city=<id>`.
 
+## Improve the game engine
+
+Movement, vehicle entry, conversations, police, cameras and touch controls are shared across cities.
+Work on rendering and streaming helps every place load and play better. Start with the
+[engine code map](docs/GAMEPLAY.md), choose a small improvement, and include a reproducible
+example or a test for the behaviour you change. You do not need to build a city to contribute.
+
 ## Build your own city
 
 **Not a programmer?** Start with **[docs/START_HERE.md](docs/START_HERE.md)**: a plain-language,
-step-by-step guide. You bring the photos and local knowledge; an AI coding agent writes the code.
+step-by-step guide. Local knowledge, properly licensed reference material and testing all help.
+You can work with another contributor or a coding agent; AI tools are optional.
 
 Any city works, starting from just its name:
 
@@ -69,11 +94,13 @@ You get:
 - tram and bus lines with stops, from OpenStreetMap routes
 - start points at the city's best-known places
 
-A fresh build is only the skeleton. **A city is published when it looks as good as Helsinki**: you
-refine it street by street against real photos (buildings, trees, signs, surfaces, local buses
-and trams) until locals recognise it. The step-by-step **[playbook](docs/BUILD_YOUR_CITY.md)** ends with
+A fresh build is only a starting point. Refine a small area street by street using permitted
+reference material: buildings, trees, signs, surfaces, local buses and trams. Drafts can be
+reviewed with their gaps documented; recognisable, carefully checked streets are the aim. The step-by-step **[playbook](docs/BUILD_YOUR_CITY.md)** ends with
 a ready-made **agent prompt** you can paste into your own coding agent so it builds your city for
-you. ### Add your city to the game
+you.
+
+### Add your city to the game
 
 1. **Fork** this repository and create a branch, e.g. `city/tampere`.
 2. **Build:**
@@ -107,20 +134,21 @@ someone to help.
 ## The map
 
 - The core area is a 2 km circle around Helsinki Cathedral.
-- **Extensions** add more areas; the first is the Mannerheimintie → Töölö → Seurasaari corridor.
+- **Extensions** add more areas: the Mannerheimintie → Töölö → Seurasaari corridor, Länsiväylä over
+  Lauttasaari and Koivusaari, and on into Espoo (Keilaniemi, Otaniemi, Tapiola) on Espoo's own open 3D city model.
 - **Pick a city and start point** in the URL: `?city=helsinki&start=seurasaari-bridge` or
   `?city=tampere`.
-- Coordinates are local metres (X east, Z south) from 24.9522 E, 60.1701 N, using the municipal
+- Coordinates are local metres (X east, Z south) from each city’s configured origin. Helsinki uses 24.9522 E, 60.1701 N and the municipal
   ETRS-GK25 projection (EPSG:3879).
 
 The game is not a survey-exact digital twin:
-- The terrain is flat.
+- Terrain depends on the city: Tampere uses bundled elevation data; Helsinki and the Espoo extension currently use flattened ground.
 - Some façades and landmark details are approximations.
 - Traffic, pedestrians and police are simulated.
 
 ## Rebuilding data
 
-All runtime data is bundled in `public/data`. To refresh it from the public sources:
+Runtime data is bundled in `public/data` and `public/cities/<id>`; optional regions and distant scenery load as needed. To refresh it from the public sources:
 
 ```sh
 npm run data:fetch && npm run data:build
@@ -136,10 +164,10 @@ This is a community project, and contributions of every size are welcome.
 - **Pick a task:**
   - the [wishlist](docs/IDEAS.md), where every idea is an open issue: changing weather, sound,
     seagulls, walking, changing cars, driving trams;
-  - [`good first issue`](https://github.com/opencitydrive/open-city-drive/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
+  - [`good first issue`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
     for small starters;
   - or build your city.
-- **Talk:** [Discussions](https://github.com/opencitydrive/open-city-drive/discussions) for
+- **Talk:** [Discussions](https://github.com/worldhood/worldhood/discussions) for
   questions, ideas and showing off drives.
 
 Guides:

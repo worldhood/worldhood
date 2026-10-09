@@ -1,5 +1,5 @@
 // npm run city:furniture -- <id> [--refresh]
-// Street furniture from Mapillary map features (CC BY-SA 4.0): lamp posts, traffic lights, sign
+// Street furniture from Mapillary map features (Mapillary Terms of Use): lamp posts, traffic lights, sign
 // posts, bins, junction boxes, barriers and more, found by computer vision in street-level photos.
 // Fetches every detection inside the playable circle (raw responses cached in
 // data/raw/cities/<id>/mapillary/), drops weak or outdated detections, moves kerbside items that
@@ -16,7 +16,9 @@ import {signalAnchor} from '../src/road-safety.js';
 import {signFace} from '../src/sign-faces.js';
 import {env} from './env.mjs';
 
-export const SOURCE='Mapillary map features',LICENCE='CC BY-SA 4.0',ATTRIBUTION='Street furniture positions from Mapillary map features (mapillary.com), CC BY-SA 4.0';
+// Extracted features are not covered merely by the imagery's CC BY-SA licence.
+// Confirm downstream dataset redistribution rights before publishing these entries.
+export const SOURCE='Mapillary map features',LICENCE='Mapillary Terms of Use (downstream redistribution rights unconfirmed)',ATTRIBUTION='Street furniture positions from Mapillary map features (mapillary.com), under Mapillary Terms of Use (mapillary.com/terms)';
 const YEAR=365.25*864e5;
 
 // ---------- Classification ----------
@@ -306,8 +308,9 @@ export async function buildFurniture(id,{refresh=false}={}){
  fs.writeFileSync(path.join(OUT,'furniture.json'),JSON.stringify(out));
  const kinds={};for(const i of layer.items)kinds[i.k]=(kinds[i.k]||0)+1;
  entry.furniture='furniture.json';
- if(!entry.attribution.includes('Mapillary'))entry.attribution=entry.attribution.replace(/ Building heights/,` ${ATTRIBUTION}. Building heights`);
- if(!entry.attribution.includes('Mapillary'))entry.attribution+=` ${ATTRIBUTION}.`;
+ entry.attribution=entry.attribution.replace('Street furniture positions from Mapillary map features (mapillary.com), CC BY-SA 4.0',ATTRIBUTION);
+ if(!entry.attribution.includes(ATTRIBUTION))entry.attribution=entry.attribution.replace(/ Building heights/,` ${ATTRIBUTION}. Building heights`);
+ if(!entry.attribution.includes(ATTRIBUTION))entry.attribution+=` ${ATTRIBUTION}.`;
  for(const credit of official?.credits||[])if(!entry.attribution.includes(credit.split(',')[0]))entry.attribution+=` ${credit}.`;
  entry.counts={...entry.counts,furniture:{placed:layer.items.length,...kinds}};
  fs.writeFileSync(regFile,JSON.stringify(registry,null,1));

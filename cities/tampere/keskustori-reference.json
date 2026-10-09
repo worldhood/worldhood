@@ -721,7 +721,11 @@
     15
    ],
    "ppm": 32,
-   "note": "Hämeenkatu front of Keskustori 1 (1901) between the two corner turrets, from a 2022 photo across Hämeenkatu; the bus canopies and parked taxis in front of the ground floor stay in the texture."
+   "note": "Hämeenkatu front of Keskustori 1 (1901), from a 2022 photo across Hämeenkatu. Only the unobstructed top storey is displayed. The lower photo contains taxis, pedestrians and bus canopies; visibleY excludes them without stretching the upper windows. The modelled arched shop openings and windows in facades.json supply the lower wall.",
+   "visibleY": [
+    11.3,
+    15
+   ]
   }
  ],
  "groundTextures": [

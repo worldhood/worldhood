@@ -1,6 +1,8 @@
 # Wishlist: things to build
 
-**None of these exist yet.** Each one is an open GitHub issue labelled
+**These are areas for further work.** Walking/running, nearby car entry, usable bicycles and scooters,
+and basic pedestrian conversations now have shared implementations; garages, missions and multiplayer remain future work.
+The linked GitHub issues may describe the original proposal and are labelled
 [`idea`](../../../issues?q=is%3Aissue+is%3Aopen+label%3Aidea) and `help wanted`. The issue is where
 people claim the idea, discuss it, and link their pull request. Small ones are also
 [`good first issue`](../../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
@@ -23,11 +25,11 @@ Live status is on each issue: open, claimed (someone commented), or closed (buil
 | Seagulls in Helsinki | [#6](../../../issues/6) | S–M | `gullRatePerSecond` in `src/audio-math.js` |
 | Tram bells and stop announcements | [#7](../../../issues/7) | S | `src/tram-simulation.js` |
 | Car radio | [#8](../../../issues/8) | M | `getLocation()` in `src/main.js` |
-| Step out of the car and walk | [#9](../../../issues/9) | L | `src/person-model.js`, walking network |
+| Walking: expand the existing implementation | [#9](../../../issues/9) | L | `src/person-model.js`, walking network |
 | Things to do on foot | [#10](../../../issues/10) | M each | on-foot mode |
 | Change car / garage | [#11](../../../issues/11) | M | `src/vehicle-models.js` (7 body types) |
 | Drive a tram or bus on the real line | [#12](../../../issues/12) | L | `src/tram-simulation.js`, `src/bus-simulation.js` |
-| Hop on a city bike or e-scooter | [#13](../../../issues/13) | M | `src/parked-micromobility.js` |
+| Bikes and scooters: expand the existing rides | [#13](../../../issues/13) | M | `src/parked-micromobility.js` |
 | Ferry to Suomenlinna | [#14](../../../issues/14) | L | harbour ferry in `src/harbour.js` |
 | EV charging stations | [#15](../../../issues/15) | S | `src/battery.js` + OSM `amenity=charging_station` |
 | Day and night with lights | [#16](../../../issues/16) | M | `src/sky.js`, OSM `highway=street_lamp` |
@@ -84,9 +86,9 @@ when switched with **T**. Other shaders can read `WEATHER_UNIFORMS.wetness` and 
 
 ## On foot
 
-- **Step out of the car and walk (L).** Press **F** to park and walk. Reuse the pedestrian model
-  and walk/run poses in `src/person-model.js`, walk on the mapped pavements and crossings, and
-  use a walking camera. The parked car stays where you left it.
+- **Walking is implemented.** Press **F** to park and walk, and **Shift** to run. The shared controller
+  is `src/player-travel.js`; the parked car stays where you left it. Future work can add activities
+  and richer interactions to this existing mode.
 - **Things to do on foot (M each):**
   - buy something at Kauppatori
   - ride a tram a few stops

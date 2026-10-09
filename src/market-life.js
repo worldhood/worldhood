@@ -69,6 +69,7 @@ export function createInstancedPeople(records,options={}){
    // Crowd reactions (crowd-reaction.js): standing to watch, or running from a crash.
    if(p.heldFor>0){p.heldFor-=step;p.speed=0;continue;}
    if(p.scared&&(p.scared.left-=step)<=0)p.scared=null;
+   if(p.conversation){p.speed=0;continue;}
    const distance=player?Math.hypot(p.x-player.x,p.z-player.z):Infinity,panic=player&&Math.abs(player.speed||0)>2&&distance<7;
    p.running=panic||p.panicUntil>time||p.scared?1:0;p.speed=0;
    let dx=0,dz=0;

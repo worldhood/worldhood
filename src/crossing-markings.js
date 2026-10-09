@@ -70,7 +70,7 @@ function clippedToRoad(ring,world){
  }
 }
 
-export function crossingPolygons(edges,world,{excluded=()=>false}={}){
+export function crossingPolygons(edges,world,{excluded=()=>false,reviewed=REVIEWED_CROSSINGS}={}){
  const chains=crossingChains(edges),polygons=[];
  for(const chain of chains){
   let phase=.45;
@@ -85,7 +85,7 @@ export function crossingPolygons(edges,world,{excluded=()=>false}={}){
    phase=((phase-length)%1.05+1.05)%1.05;
   }
  }
- for(const crossing of REVIEWED_CROSSINGS){
+ for(const crossing of reviewed){
   const [x0,z0,x1,z1]=bounds(crossing.corners),vertical=crossing.axis==='z',first=vertical?z0:x0,last=vertical?z1:x1;
   for(let s=first+.12;s<last;s+=1.05){
    const band=vertical?[[x0-1,s],[x1+1,s],[x1+1,s+.5],[x0-1,s+.5]]:[[s,z0-1],[s+.5,z0-1],[s+.5,z1+1],[s,z1+1]];

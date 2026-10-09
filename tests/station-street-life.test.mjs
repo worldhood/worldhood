@@ -37,7 +37,7 @@ test('station kit is finite, batched and hidden beyond the local area',()=>{
  assert.equal(kit.group.userData.foodStands,6);assert.equal(kit.group.userData.metroEntrance,true);assert.ok(kit.group.userData.people>=40);
  kit.update({x:-620,z:-45});assert.equal(kit.group.visible,true);
  let calls=0,triangles=0;kit.group.traverse(m=>{if(!m.isMesh)return;calls++;const p=m.geometry.attributes.position;assert.ok(p.array.every(Number.isFinite));triangles+=(m.geometry.index?.count??p.count)/3*(m.isInstancedMesh?m.count:1);});
- assert.ok(calls<=29,`draw calls ${calls}`); // +4: breakable taxi-sign posts (3 materials + stumps)assert.ok(triangles<90000,`triangles ${triangles}`); // smoother shared person meshes (8-segment limbs) raised the crowd budget
+ assert.ok(calls<=30,`draw calls ${calls}`); // +1 instanced taxi roof-sign batch keeps signs attached to cars when they are taken.
  kit.update({x:200,z:1000});assert.equal(kit.group.visible,false);
 });
 test('station-only traffic slots stay dormant outside the area and follow safe local road lanes',()=>{
@@ -50,4 +50,17 @@ test('station-only traffic slots stay dormant outside the area and follow safe l
  assert.ok(moved);sim.step(1/30,away);assert.ok(sim.cars.some(c=>c.edge),'leaving the area must not instantly delete visible traffic');
  for(let i=0;i<65;i++)sim.step(1/30,away);
  assert.equal(sim.cars.filter(c=>c.edge).length,0,'distant traffic can retire after remaining unseen');
+});
+
+test('a station taxi can be claimed with all body, wheel and roof-sign instances hidden, then restored',()=>{
+ assert.equal(kit.enterableCars.length,kit.plan.taxis.length);
+ const source=kit.enterableCars[0],fleet=kit.group.getObjectByName('Parked station taxi queue'),before=fleet.children.map(m=>Array.from(m.instanceMatrix.array));
+ assert.equal(source.visual.type,'taxi');assert.ok(kit.obstacles.includes(source.obstacle));
+ try{
+  assert.equal(source.claim(),true);assert.equal(source.obstacle.disabled,true);
+  for(const [i,mesh]of fleet.children.entries())for(let j=0;j<(i===2?4:1);j++){const matrix=new Matrix4();mesh.getMatrixAt(j,matrix);assert.equal(matrix.determinant(),0);}
+  for(const [i,mesh]of fleet.children.entries()){const start=i===2?4:1;assert.deepEqual(Array.from(mesh.instanceMatrix.array.slice(start*16)),before[i].slice(start*16),'other taxis stay visible');}
+ }finally{source.release();}
+ for(const [i,mesh]of fleet.children.entries())assert.deepEqual(Array.from(mesh.instanceMatrix.array),before[i]);
+ assert.equal(source.obstacle.disabled,false);
 });

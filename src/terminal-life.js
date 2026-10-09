@@ -100,6 +100,7 @@ export function createTerminalLife(city,walks,obstacles=[]){
   if(player&&Math.hypot(player.x-185,player.z-875)>650){crowd.group.visible=false;return;}
   for(const p of crowd.people){
    if(p.knockdown){p.speed=0;continue;}
+   if(p.conversation){p.speed=0;continue;}
    if(p.wait>0){p.wait=Math.max(0,p.wait-step);p.speed=0;p.pose=p.suitcase?'chat':'phone';continue;}
    p.pose='walk';const target=walkingPoint(p,p.s+p.direction*1);
    const blocked=(player&&(Math.hypot(p.x-player.x,p.z-player.z)<2.7||approachingPedestrian(p,player)))||crowd.people.some(q=>q!==p&&Math.hypot(q.x-target.x,q.z-target.z)<.48);

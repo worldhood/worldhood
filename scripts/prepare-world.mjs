@@ -1,3 +1,4 @@
+import {surfaceRecord} from '../src/surface-streaming.js';
 import {readFileSync,writeFileSync,mkdirSync} from 'node:fs';
 import {gzipSync} from 'node:zlib';
 import polygonClipping from 'polygon-clipping';
@@ -41,7 +42,7 @@ for(const p of data.roads)add(p.rings,/Koroke/.test(p.kind)?'dddacd':/Nupu|Noppa
 // Building footprints remain visible in the overview even before detailed tiles arrive.
 for(const p of data.buildings)add(p.rings,'c9c6b9',.085);
 mkdirSync('public/data/surfaces',{recursive:true});const surfaceIndex=[];
-for(const [key,values] of chunks){const arr=new Float32Array(values);const filename=`surfaces/${key}.bin`;writeFileSync(`public/data/${filename}`,Buffer.from(arr.buffer));surfaceIndex.push({file:filename});}
+for(const [key,values] of chunks){const arr=new Float32Array(values);const filename=`surfaces/${key}.bin`;writeFileSync(`public/data/${filename}`,Buffer.from(arr.buffer));surfaceIndex.push(surfaceRecord(filename,arr));}
 writeFileSync('public/data/surface-index.json',JSON.stringify(surfaceIndex));
 writeFileSync('public/data/city.json.gz',gzipSync(Buffer.from(JSON.stringify(data)),{level:9}));
 writeFileSync('public/data/city.json',JSON.stringify(data));

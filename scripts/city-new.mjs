@@ -10,7 +10,7 @@ if(!/^[a-z0-9-]+$/.test(id||'')||!query)throw Error('Usage: npm run city:new -- 
 const file=path.join('cities',id,'city.json');
 if(fs.existsSync(file))throw Error(`${file} already exists`);
 const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
-const [place]=JSON.parse(execFileSync('curl',['-sS','-f','--max-time','60','-A','open-city-drive/0.1 (city setup)',url],{encoding:'utf8'}));
+const [place]=JSON.parse(execFileSync('curl',['-sS','-f','--max-time','60','-A','worldhood/0.1 (city setup)',url],{encoding:'utf8'}));
 if(!place)throw Error(`Nominatim found nothing for “${query}”`);
 const lon=+(+place.lon).toFixed(5),lat=+(+place.lat).toFixed(5);
 const city={schemaVersion:1,id,name:place.name||query,country:place.address?.country||'',

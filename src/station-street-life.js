@@ -1,10 +1,12 @@
 import * as THREE from 'three';
+import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {FontLoader} from 'three/addons/loaders/FontLoader.js';
 import fontData from 'three/examples/fonts/helvetiker_regular.typeface.json' with {type:'json'};
 import {architectureBuilder} from './cathedral.js';
 import {SpatialIndex,pointInPolygon,bounds} from './geo.js';
 import {createInstancedPeople} from './market-life.js';
 import {createBreakableSigns} from './breakable-signs.js';
+import {createParkedCarSource,instancedCarVisibility} from './parked-car-sources.js';
 
 const font=new FontLoader().parse(fontData);
 export function stationFootprint(x,z,w,d,heading=0){const c=Math.cos(heading),s=Math.sin(heading);return [[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].map(([a,b])=>[x+c*a+s*b,z-s*a+c*b]);}
@@ -82,7 +84,8 @@ export function createStationStreetLife(city,tramData,existing=[]){
  group.add(taxiSigns.finish());group.breakable=taxiSigns;
  // Delineate the parked queue without spanning the entrance or pedestrian routes.
  for(const t of plan.taxis){for(const side of [-1,1])b.box(.06,.012,5.3,yellow,t.x+side*1.3,.17,t.z,t.heading);}
- for(const t of plan.taxis){b.box(.48,.19,.23,yellow,t.x,1.69,t.z+.15,t.heading);for(const side of [-1,1])text('TAKSI',t.x,1.65,t.z+.15+side*.123,.07,.43,black,t.heading+(side===1?0:Math.PI));}
+ // Roof signs belong to each car's instanced geometry below, so taking a taxi
+ // removes its whole visual instead of leaving a floating sign at the rank.
 
  // Asema-aukio frontage: the photographed snack kiosks sit on the pedestrian
  // apron between Sokos and the station entrance, with the metro vestibule
@@ -142,11 +145,25 @@ export function createStationStreetLife(city,tramData,existing=[]){
  const taxiBody=new THREE.InstancedMesh(new THREE.BoxGeometry(1.9,.56,4.35),white,plan.taxis.length),taxiRoof=new THREE.InstancedMesh(new THREE.BoxGeometry(1.45,.45,2.25),black,plan.taxis.length),taxiWheel=new THREE.InstancedMesh(new THREE.CylinderGeometry(.31,.31,.16,10).rotateZ(Math.PI/2),black,plan.taxis.length*4);
  const dummy=new THREE.Object3D(),taxiPaint=['#ededE8','#22282d','#a9afb1','#30353b','#e6e4de'];
  const taxiCap=new THREE.InstancedMesh(new THREE.BoxGeometry(1.49,.2,2.29),white,plan.taxis.length);
+ const signParts=[];
+ const signPart=(geometry,color)=>{
+  const g=geometry.index?geometry.toNonIndexed():geometry;if(g!==geometry)geometry.dispose();g.deleteAttribute('uv');
+  const tint=new THREE.Color(color),colors=new Float32Array(g.attributes.position.count*3);
+  for(let i=0;i<colors.length;i+=3){colors[i]=tint.r;colors[i+1]=tint.g;colors[i+2]=tint.b;}
+  g.setAttribute('color',new THREE.BufferAttribute(colors,3));signParts.push(g);
+ };
+ signPart(new THREE.BoxGeometry(.48,.19,.23).translate(0,1.69,.15),'#ecc849');
+ for(const side of [-1,1]){
+  const g=new THREE.ShapeGeometry(font.generateShapes('TAKSI',.07),3);g.computeBoundingBox();const box=g.boundingBox,w=box.max.x-box.min.x;
+  g.translate(-(box.min.x+box.max.x)/2,-box.min.y,0);if(w>.43)g.scale(.43/w,1,1);g.rotateY(side===1?0:Math.PI);g.translate(0,1.65,.15+side*.123);signPart(g,'#1a2529');
+ }
+ const taxiSign=new THREE.InstancedMesh(mergeGeometries(signParts),new THREE.MeshStandardMaterial({vertexColors:true,roughness:.75}),plan.taxis.length);taxiSign.name='Taxi roof signs';signParts.forEach(g=>g.dispose());
  plan.taxis.forEach((t,i)=>{
   // Reset the entire transform: wheel rotation must never leak into the next cab.
   dummy.position.set(t.x,.72,t.z);dummy.rotation.set(0,t.heading,0);dummy.scale.set(1,1,1);dummy.updateMatrix();taxiBody.setMatrixAt(i,dummy.matrix);taxiBody.setColorAt(i,new THREE.Color(taxiPaint[i%taxiPaint.length]));
   dummy.position.y=1.21;dummy.updateMatrix();taxiRoof.setMatrixAt(i,dummy.matrix);
   dummy.position.y=1.49;dummy.updateMatrix();taxiCap.setMatrixAt(i,dummy.matrix);taxiCap.setColorAt(i,new THREE.Color(taxiPaint[i%taxiPaint.length]));
+  dummy.position.y=0;dummy.updateMatrix();taxiSign.setMatrixAt(i,dummy.matrix);
   for(let w=0;w<4;w++){
    const sx=w<2?-.91:.91,sz=w%2?-1.35:1.35;
    dummy.position.set(t.x+Math.cos(t.heading)*sx+Math.sin(t.heading)*sz,.44,t.z-Math.sin(t.heading)*sx+Math.cos(t.heading)*sz);
@@ -154,7 +171,10 @@ export function createStationStreetLife(city,tramData,existing=[]){
    dummy.rotation.set(0,t.heading,0);dummy.updateMatrix();taxiWheel.setMatrixAt(i*4+w,dummy.matrix);
   }
  });
- [taxiBody,taxiRoof,taxiWheel,taxiCap].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;taxiGroup.add(m);});group.add(taxiGroup);
+ [taxiBody,taxiRoof,taxiWheel,taxiCap,taxiSign].forEach(m=>{m.instanceMatrix.needsUpdate=true;m.castShadow=true;m.receiveShadow=true;taxiGroup.add(m);});group.add(taxiGroup);
+ const enterableCars=plan.taxis.map((actor,i)=>createParkedCarSource({id:`station-taxi-${i}`,label:'Taxi',actor,
+  obstacle:plan.obstacles.find(o=>o.rings[0]===actor.ring),visual:{type:'taxi',paint:taxiPaint[i%taxiPaint.length]},
+  setHidden:instancedCarVisibility([...([taxiBody,taxiRoof,taxiCap,taxiSign].map(mesh=>({mesh,index:i}))),...Array.from({length:4},(_,w)=>({mesh:taxiWheel,index:i*4+w}))])}));
  group.userData={stops:plan.stops.map(s=>({id:s.id,name:s.name,x:s.x,z:s.z,shelters:s.shelters.length})),taxis:plan.taxis.length,signs:plan.signs.length,foodStands:frontProps.length,metroEntrance:!!metro,people:crowdRecords.length,reference:'HSL bundled stop coordinates, municipal 2025 orthophoto; approximate furniture and illustrative taxi occupancy',taxiRank:'Asema-aukio, west entrance between Sokos and Central Station'};
- return {group,obstacles:plan.obstacles,people:crowd.people,reset:crowd.reset,plan,update(player,dt=0){group.visible=!!player&&Math.hypot(player.x+660,player.z+60)<440;if(group.visible)crowd.update(dt,player);}};
+ return {group,obstacles:plan.obstacles,people:crowd.people,reset:crowd.reset,plan,enterableCars,update(player,dt=0){group.visible=!!player&&Math.hypot(player.x+660,player.z+60)<440;if(group.visible)crowd.update(dt,player);}};
 }

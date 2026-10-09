@@ -207,10 +207,11 @@ export class TramSimulation{
   // against a tram with the platform on the free side, the sideways nudge
   // below has nowhere to go and the car would otherwise be stuck for good.
   for(const t of this.trams)for(let i=0;i<3;i++){const p=routePoint(t.path,t.s+TRAM_DIMENSIONS.centres[i],0),c=Math.cos(p.heading),s=Math.sin(p.heading),dx=player.x-p.x,dz=player.z-p.z,side=dx*c-dz*s,along=dx*s+dz*c;
-   if(Math.abs(side)<2.15&&Math.abs(along)<TRAM_DIMENSIONS.sections[i]/2+2.2){
+   const sideClear=TRAM_DIMENSIONS.width/2+(player.halfWidth??.95),endClear=player.halfLength??2.2;
+   if(Math.abs(side)<sideClear&&Math.abs(along)<TRAM_DIMENSIONS.sections[i]/2+endClear){
     // A real knock (not resting against it) jolts the passengers; trams.js animates them from hitAt/hitSide.
     if(Math.abs(player.speed)>1.2&&!(this.time-(t.hitAt??-1e9)<3)){t.hitAt=this.time;t.hitSide=side<0?-1:1;}
-    if(!leavingBody(player,dt,p))player.speed=0;t.speed=0;nudgeOut(player,p.heading,(2.2-Math.abs(side))*(side<0?-1:1),this.world);}
+    if(!leavingBody(player,dt,p))player.speed=0;t.speed=0;nudgeOut(player,p.heading,(sideClear+.05-Math.abs(side))*(side<0?-1:1),this.world);}
   }
  }
  snapshot(){return this.trams.map(t=>({id:t.id,line:t.path.line,destination:t.path.destination,x:t.x,z:t.z,heading:t.heading,speed:t.speed,waiting:t.wait>0,stop:t.wait>0?t.stop||null:null,hotspot:t.hotspot?.name||null}));}

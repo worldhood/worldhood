@@ -1,3 +1,4 @@
+import {surfaceRecord} from '../src/surface-streaming.js';
 // npm run city:build -- <id> [--refresh]
 // Builds a playable city from OpenStreetMap (ODbL) around cities/<id>/city.json:
 // footprint-extruded 3D buildings, road and pavement polygons, water, parks,
@@ -37,7 +38,7 @@ function overpass(name,body){
  const q=`[out:json][timeout:240];${body}`;
  for(let attempt=0;attempt<6;attempt++){
   const endpoint=ENDPOINTS[attempt%ENDPOINTS.length];
-  try{const text=execFileSync('curl',['-sS','-f','--max-time','300','-A','open-city-drive/0.1 (city build)','--data-urlencode',`data=${q}`,endpoint],{encoding:'utf8',maxBuffer:1<<30});
+  try{const text=execFileSync('curl',['-sS','-f','--max-time','300','-A','worldhood/0.1 (city build)','--data-urlencode',`data=${q}`,endpoint],{encoding:'utf8',maxBuffer:1<<30});
    const json=JSON.parse(text);fs.writeFileSync(file,text);console.log(`  ${name}: ${json.elements.length} elements`);return json;}
   catch(error){console.log(`  ${name}: retry ${attempt+1} (${String(error.message).slice(0,80)})`);execFileSync('sleep',[String(10+attempt*10)]);}
  }
@@ -190,7 +191,7 @@ if(official){
  const wfs=(name,layer)=>{const file=path.join(RAW,`official-${name}.json`);
   if(!fs.existsSync(file)||refresh){const features=[],page=5000;let total=Infinity;
    for(let start=0;start<total;start+=page){const url=`${official.wfs}?service=WFS&version=2.0.0&request=GetFeature&typeNames=${layer}&count=${page}&startIndex=${start}&outputFormat=application/json&srsName=EPSG:4326&bbox=${bbox},urn:ogc:def:crs:EPSG::4326`;
-    const d=JSON.parse(execFileSync('curl',['-sS','-f','--max-time','300','-A','open-city-drive/0.1 (city build)',url],{encoding:'utf8',maxBuffer:1<<30}));
+    const d=JSON.parse(execFileSync('curl',['-sS','-f','--max-time','300','-A','worldhood/0.1 (city build)',url],{encoding:'utf8',maxBuffer:1<<30}));
     total=d.numberMatched??d.totalFeatures??d.features.length;features.push(...d.features);if(!d.features.length)break;}
    // numberMatched is an estimate on some servers; a gap under 1% is logged, a larger one stops the build.
    if(features.length<total*.99)throw Error(`Incomplete official ${name}: ${features.length}/${total}`);if(features.length<total)console.log(`  official ${name}: ${features.length}/${total} returned by the server`);
@@ -311,7 +312,7 @@ function dissolve(){
 }
 const rendered=dissolve();
 const chunks=surfaceChunks(rendered);const surfaceIndex=[];
-for(const [k,values] of chunks){const file=`surfaces/${k}.bin`;fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push({file});}
+for(const [k,values] of chunks){const file=`surfaces/${k}.bin`;fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push(surfaceRecord(file,values));}
 fs.writeFileSync(path.join(OUT,'surface-index.json'),JSON.stringify(surfaceIndex));
 fs.writeFileSync(path.join(OUT,'mobility.json'),JSON.stringify(mobility));
 fs.writeFileSync(path.join(OUT,'trams.json'),JSON.stringify({source:'OpenStreetMap route=tram relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables and frequencies are simulated.'],paths:tramPaths,stops:transitStops.filter(s=>s.tram)}));

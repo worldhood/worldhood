@@ -79,7 +79,7 @@ done.
 ## 0. Set up (once)
 
 ```sh
-git clone <this repo> && cd open-city-drive
+git clone <this repo> && cd worldhood
 npm ci
 cp .env.example .env.local   # optional keys for the review steps (stage 3)
 ```
@@ -257,10 +257,13 @@ shapes; everything you see comes from photos taken after the place last changed.
    furniture, landmark dimensions and colours. `npm run place:build -- <id> <place>` joins it with the
    city's open data (3D building heights, street parts, tree register, stops) into
    `public/cities/<id>/places/<place>.json`; `city:build` reruns it.
-3. **Photo textures beat drawn detail.** For walls and paving seen straight on, give the four corners
+3. **Use unobstructed photo detail.** For walls and paving seen straight on, give the four corners
    of the area in the photo and its size in metres under `photoPanels` / `groundTextures`;
    `npm run place:textures -- <id> <place>` rectifies them into textures (CC BY-SA photos stay
-   CC BY-SA: credit them). Drawn geometry is kept for depth and for sides no photo shows.
+   CC BY-SA: credit them). Cars, people, trees and bus shelters in front of a wall must not become
+   part of its texture in the game. Use a clear photo or restrict a panel with `visibleY: [min, max]`
+   in wall metres, leaving its original `y` range unchanged so the image keeps its scale. Keep
+   modelled windows and shop fronts behind excluded areas; use geometry for depth and unseen sides.
 4. **Trees:** every registered tree gets its species family's model (`src/tree-species.js`) at its
    register height. Check species against the photos tree by tree and record the result in
    `<place>-trees.json`; flag trees no photo shows instead of guessing.
@@ -315,7 +318,7 @@ the place agrees.
 
 ## Agent prompt (copy into your coding agent)
 
-> You are helping build **<City>** for Open City Drive, an open-source browser driving game. Work in
+> You are helping build **<City>** for Worldhood, an open-source browser driving game. Work in
 > this repository and follow `docs/BUILD_YOUR_CITY.md`, including **the publishing bar: Helsinki
 > is the minimum**.
 >

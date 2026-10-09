@@ -62,19 +62,26 @@ const NONE=Object.freeze([]);
 const cellKey=(x,z)=>(x+1048576)*2097152+(z+1048576);
 export class SpatialIndex {
   constructor(items, size=64) {
-    this.size=size; this.cells=new Map();
+    this.size=size; this.cells=new Map();this.items=new WeakSet();this.add(items);
+  }
+  // Streaming appends to the same index held by collision, camera and AI.
+  // Reusing an installed polygon is harmless when an installation is retried.
+  add(items) {
+    const size=this.size;
     for(const item of items) {
+      if(this.items.has(item))continue;this.items.add(item);
       item.bbox ??= bounds(item.rings);
       const b=item.bbox;
       for(let x=Math.floor(b[0]/size);x<=Math.floor(b[2]/size);x++) for(let z=Math.floor(b[1]/size);z<=Math.floor(b[3]/size);z++) {
         const k=cellKey(x,z);if(!this.cells.has(k))this.cells.set(k,[]);this.cells.get(k).push(item);
       }
     }
+    return this;
   }
   near(x,z){return this.cells.get(cellKey(Math.floor(x/this.size),Math.floor(z/this.size)))||NONE;}
   at(x,z){
     // Hot path: called thousands of times per frame by physics, traffic and pedestrians.
-    for(const p of this.near(x,z)){const b=p.bbox;if(x>=b[0]&&x<=b[2]&&z>=b[1]&&z<=b[3]&&pointInPolygon(x,z,p.rings))return p;}
+    for(const p of this.near(x,z)){if(p.disabled)continue;const b=p.bbox;if(x>=b[0]&&x<=b[2]&&z>=b[1]&&z<=b[3]&&pointInPolygon(x,z,p.rings))return p;}
     return undefined;
   }
 }

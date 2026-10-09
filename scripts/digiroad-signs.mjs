@@ -309,7 +309,7 @@ const ENDPOINTS=['https://overpass-api.de/api/interpreter','https://overpass.pri
 function overpass(file,query,refresh){
  if(fs.existsSync(file)&&!refresh)return JSON.parse(fs.readFileSync(file));
  for(let attempt=0;attempt<6;attempt++){
-  try{const text=execFileSync('curl',['-sS','-f','--max-time','300','-A','open-city-drive/0.1 (city build)','--data-urlencode',`data=[out:json][timeout:240];${query}`,ENDPOINTS[attempt%ENDPOINTS.length]],{encoding:'utf8',maxBuffer:1<<30});
+  try{const text=execFileSync('curl',['-sS','-f','--max-time','300','-A','worldhood/0.1 (city build)','--data-urlencode',`data=[out:json][timeout:240];${query}`,ENDPOINTS[attempt%ENDPOINTS.length]],{encoding:'utf8',maxBuffer:1<<30});
    const json=JSON.parse(text);fs.mkdirSync(path.dirname(file),{recursive:true});fs.writeFileSync(file,text);console.log(`  osm signs: ${json.elements.length} elements`);return json;}
   catch(error){console.log(`  osm signs: retry ${attempt+1} (${String(error.message).slice(0,80)})`);execFileSync('sleep',[String(10+attempt*10)]);}
  }

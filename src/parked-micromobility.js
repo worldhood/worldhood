@@ -173,13 +173,14 @@ export function cityBikeGeometry(){
 }
 // Personal parked bicycle (bike racks, photo-guided squares): same shape as the old static bikes, but one rigid
 // knockable body. Frame tubes carry `paint` = 1 so each instance keeps its own frame colour.
-export function bicycleGeometry(){
+export function bicycleGeometry({animated=false}={}){
  const dark='#2c3333',parts=[];
- for(const wz of [-.58,.58]){parts.push(coloured(new THREE.TorusGeometry(.32,.032,5,14).rotateY(Math.PI/2).translate(0,.33,wz),dark),coloured(new THREE.CylinderGeometry(.05,.05,.09,6).rotateZ(Math.PI/2).translate(0,.33,wz),'#7b8583'));
+ for(const wz of animated?[]:[-.58,.58]){parts.push(coloured(new THREE.TorusGeometry(.32,.032,5,14).rotateY(Math.PI/2).translate(0,.33,wz),dark),coloured(new THREE.CylinderGeometry(.05,.05,.09,6).rotateZ(Math.PI/2).translate(0,.33,wz),'#7b8583'));
   for(const a of [0,.79,1.57,2.36])parts.push(tube([0,.33-Math.cos(a)*.3,wz-Math.sin(a)*.3],[0,.33+Math.cos(a)*.3,wz+Math.sin(a)*.3],.005,'#a0aaa7',0,3));}
  const n={back:[0,.33,.58],front:[0,.33,-.58],crank:[0,.33,.05],seat:[0,.84,.23],neck:[0,.91,-.42],low:[0,.5,-.26],bar:[0,1.05,-.48]};
  for(const [a,b] of [['back','seat'],['back','crank'],['seat','crank'],['crank','low'],['low','neck'],['neck','front'],['neck','bar']])parts.push(tube(n[a],n[b],.026,'#ffffff',1));
- parts.push(tube([-.27,1.05,-.48],[.27,1.05,-.48],.021,'#313d3c'),tube([-.18,.25,.08],[.18,.4,.08],.018,'#787e7b'),tube([.03,.35,.1],[.19,.035,.3],.014,'#5b6261'),coloured(new THREE.BoxGeometry(.21,.08,.29).translate(0,.89,.24),'#343b3c'));
+ parts.push(tube([-.27,1.05,-.48],[.27,1.05,-.48],.021,'#313d3c'),coloured(new THREE.BoxGeometry(.21,.08,.29).translate(0,.89,.24),'#343b3c'));
+ if(!animated)parts.push(tube([-.18,.25,.08],[.18,.4,.08],.018,'#787e7b'),tube([.03,.35,.1],[.19,.035,.3],.014,'#5b6261'));
  return merge(parts);
 }
 // Dock post (fixed): a grey post with a wheel slot; the station's end pillar is a plain dark terminal with a yellow band.

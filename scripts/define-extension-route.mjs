@@ -9,7 +9,7 @@ import {execFileSync} from 'node:child_process';
 import {local,simplify,simplifyRing,readExtension,extensionDir} from './extension-geometry.mjs';
 
 const id=process.argv[2],ext=readExtension(id),def=ext.definition,RAW=path.join('data/raw/extensions',id);fs.mkdirSync(RAW,{recursive:true});
-const UA='open-city-drive/0.1 (local build; extension crop definition)';
+const UA='worldhood/0.1 (local build; extension crop definition)';
 function get(url,file){const dest=path.join(RAW,file);if(!fs.existsSync(dest)||process.argv.includes('--refresh'))execFileSync('curl',['-f','-L','--retry','3','--max-time','90','-sS','-A',UA,url,'-o',dest],{stdio:'inherit'});return JSON.parse(fs.readFileSync(dest));}
 const centrelines=[],steps=[];
 for(const leg of def.legs){

@@ -10,7 +10,7 @@ Decisions are recorded on GitHub (issues, pull requests, discussions), not only 
 
 ## Discord server setup
 
-**Name:** Open City Drive
+**Name:** Worldhood
 **Icon:** the `o↗` brand mark
 
 ### Roles
@@ -49,11 +49,11 @@ VOICE
 
 ### Welcome message (pin in #welcome)
 
-> **Welcome to Open City Drive.** Open-world driving across the real world, built from open data.
+> **Welcome to Worldhood.** Open-world driving across the real world, built from open data.
 > Build your own city into it.
 >
-> - **Play:** https://opencitydrive.org (try `?city=helsinki` or `?city=tampere`)
-> - **Code:** https://github.com/opencitydrive/open-city-drive
+> - **Play:** https://worldhood.org (try `?city=helsinki` or `?city=tampere`)
+> - **Code:** https://github.com/worldhood/worldhood
 > - **Build your city:** the playbook in `docs/BUILD_YOUR_CITY.md`; it takes about 10 minutes to
 >   get a drivable city
 > - **Pick a task:** the wishlist (issues labelled `idea`), or `good first issue`

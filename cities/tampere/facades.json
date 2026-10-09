@@ -162,13 +162,12 @@
     "glass": "#3a4851"
    },
    "ground": {
-    "type": "shops",
+    "type": "arcade",
     "pitch": 3.8,
     "band": "#2a2a2c",
-    "awning": "#2a2a2c",
     "frame": "#2a2b2d"
    },
-   "description": "Four-storey pale sand-ochre rendered stone-style house with tall narrow windows in light surrounds, a dark shop and restaurant floor and a dark hipped metal roof. Domed corner turrets and dark brown roofs over the bus terminal canopies in 2025.",
+   "description": "Four-storey pale sand-ochre rendered stone-style house with tall narrow windows in light surrounds, a dark shop and restaurant floor and a dark hipped metal roof. Domed corner turrets and dark brown roofs over the bus terminal canopies in 2025. Round-headed shop openings on the Hämeenkatu front are modelled rather than displaying foreground vehicles from the reference photo.",
    "evidence": {
     "photos": [
      {
@@ -178,6 +177,10 @@
      {
       "id": "182386369",
       "captured": "2025-06-06"
+     },
+     {
+      "id": "148602285",
+      "captured": "2022-06-10"
      }
     ],
     "confidence": 0.5

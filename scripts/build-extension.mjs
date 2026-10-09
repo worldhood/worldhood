@@ -1,3 +1,4 @@
+import {surfaceRecord} from '../src/surface-streaming.js';
 // node scripts/build-extension.mjs <id>
 // Converts data/raw/extensions/<id> into the game's runtime formats under
 // public/data/extensions/<id>/ and registers it in public/data/extensions/index.json.
@@ -13,7 +14,7 @@ import proj4 from 'proj4';
 import {Matrix4,Vector3} from 'three';
 import {bounds,SpatialIndex,pointInPolygon,registerPlayableArea,WORLD_EXTENT} from '../src/geo.js';
 import {nearestRoadPoint} from '../src/physics.js';
-import {GK25,readExtension,readRoute,extensionRegions,multiBounds,simplifyRing,boxesOverlap,rectangle,pointInMulti,SNAPSHOT_SQUARE} from './extension-geometry.mjs';
+import {GK25,readExtension,readRoute,extensionRegions,multiBounds,simplifyRing,boxesOverlap,rectangle,pointInMulti,SNAPSHOT_SQUARE,paveUncovered} from './extension-geometry.mjs';
 import {ktx2ToJpeg} from './ktx2.mjs';
 
 const id=process.argv[2],ext=readExtension(id),route=readRoute(id),RAW=path.join('data/raw/extensions',id),OUT=path.join('public/data/extensions',id),URL_DIR=`extensions/${id}`;
@@ -57,6 +58,15 @@ for(const park of city.parks.filter(p=>/^Metsä/.test(p.kind)&&boxesOverlap(p.bb
   if(pointInPolygon(p[0],p[1],park.rings)&&!paved.at(...p)&&!insideSnapshot(p)&&pointInMulti(p[0],p[1],context))city.trees.push({p,species:'(inferred forest)',size:random()<.5?'30 - 50 cm':'20 - 30 cm',inferred:true});
  }
 }
+// Motorways and their ramps (Länsiväylä) are not in the street-area register: pave them from the traffic
+// lines wherever no street area covers the centreline (one-way carriageway ≈ 10.4 m, ramp ≈ 7.2 m).
+{const lines=[];
+ for(const f of raw('traffic-lines').features){const p=f.properties;if(!/Moottoriväylä|Väylälinkki/.test(p.alatyyppi)||p.paatyyppi==='Jalankulku ja pyöräliikenne')continue;
+  const half=p.alatyyppi==='Väylälinkki'?3.6:/Yksisuuntainen/.test(p.yksisuuntaisuus)?5.2:8.5;
+  for(const line of f.geometry.type==='LineString'?[f.geometry.coordinates]:f.geometry.type==='MultiLineString'?f.geometry.coordinates:[])lines.push({points:line.map(q=>local(q)),half});}
+ const paved=paveUncovered(lines,new SpatialIndex([...base.roads,...city.roads].map(r=>({rings:r.rings}))),insideSnapshot);
+ paved.forEach((rings,k)=>city.roads.push({id:`${id}-motorway-${k}`,rings,bbox:bounds(rings),name:'Länsiväylä',address:'',kind:'Ajorata (moottoriväylä)',material:'Asfalttibetoni',fromCentreline:true}));
+ if(paved.length)console.log(`${paved.length} motorway carriageway areas paved from the traffic lines`);}
 fs.writeFileSync(path.join(OUT,'city.pack'),gzipSync(Buffer.from(JSON.stringify(city)),{level:9}));
 
 // ---------- Textured LOD2 (3D Tiles 1.1 GLB → buildings3d packs/atlases) ----------
@@ -113,7 +123,7 @@ for(const p of city.pavement)add(p.rings,/Silta/.test(p.kind)&&p.material==='Puu
 for(const p of city.roads)add(p.rings,/Koroke/.test(p.kind)?'dddacd':/Nupu|Noppa|kivi/.test(p.material)?'aaa99e':'919d98',.07);
 for(const p of city.buildings)add(p.rings,'c9c6b9',.085);
 const surfaceIndex=[];
-for(const [key,values] of chunks){const file=`surfaces/${key}.bin`;fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push({file:`${URL_DIR}/${file}`});}
+for(const [key,values] of chunks){const file=`surfaces/${key}.bin`;fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push(surfaceRecord(`${URL_DIR}/${file}`,values));}
 fs.writeFileSync(path.join(OUT,'surface-index.json'),JSON.stringify(surfaceIndex));
 
 // ---------- Mobility (port of scripts/build-mobility.mjs; complement of its ±2350 m rule) ----------
@@ -121,8 +131,10 @@ const lines=raw('traffic-lines').features,signals=raw('traffic-lights').features
 function graph(walking){
  const nodes=[],edges=[],cells=new Map();
  const node=p=>{const x=Math.floor(p[0]),z=Math.floor(p[1]);for(let i=x-1;i<=x+1;i++)for(let j=z-1;j<=z+1;j++)for(const n of cells.get(`${i},${j}`)||[])if(Math.hypot(nodes[n][0]-p[0],nodes[n][1]-p[1])<.75)return n;const n=nodes.length;nodes.push(p);const k=`${x},${z}`;if(!cells.has(k))cells.set(k,[]);cells.get(k).push(n);return n;};
- for(const f of lines){const p=f.properties;if(/Alikulku|tunneli/.test(p.silta_alikulku))continue;
-  if(walking?!/Jalkakäytävä|jalkakäytävä|Suojatie|Puistotie|Kulkuväylä aukiolla/.test(p.alatyyppi):p.paatyyppi!=='Katu')continue;
+ // Underpasses are skipped, except motorway ones: in the flat game they carry Länsiväylä at street level.
+ for(const f of lines){const p=f.properties;if(/Alikulku|tunneli/.test(p.silta_alikulku)&&(walking||p.alatyyppi!=='Moottoriväylä'))continue;
+  // Junction links (Väylälinkki: ramps and connectors between carriageways) keep motorway interchanges connected.
+  if(walking?!/Jalkakäytävä|jalkakäytävä|Suojatie|Puistotie|Kulkuväylä aukiolla/.test(p.alatyyppi):p.paatyyppi!=='Katu'&&p.alatyyppi!=='Väylälinkki')continue;
   for(const line of f.geometry.type==='LineString'?[f.geometry.coordinates]:f.geometry.type==='MultiLineString'?f.geometry.coordinates:[]){
    const points=line.map(q=>local(q));if(points.every(q=>Math.abs(q[0])<=2350&&Math.abs(q[1])<=2350))continue;
    const a=node(points[0]),b=node(points.at(-1));if(a===b)continue;
