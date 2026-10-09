@@ -18,8 +18,10 @@ export async function loadExtension(e,json,unpack){
   const [city,buildings,surfaces,mobility]=await Promise.all([
    unpack(dataUrl(`${e.dir}/city.pack`)).then(b=>JSON.parse(new TextDecoder().decode(b))),
    json(dataUrl(`${e.dir}/buildings3d-index.json`)),json(dataUrl(`${e.dir}/surface-index.json`)),json(dataUrl(`${e.dir}/mobility.json`))]);
-  // Water from OpenStreetMap (ODbL) ships in its own file, apart from the municipal data.
-  if(e.osmWater)city.water.push(...(await json(dataUrl(`${e.dir}/${e.osmWater}`))).water);
+  // Water and land cover from OpenStreetMap (ODbL) ship in their own files, apart from the municipal data.
+  const [water,land]=await Promise.all([e.osmWater&&json(dataUrl(`${e.dir}/${e.osmWater}`)),e.osmLandcover&&json(dataUrl(`${e.dir}/${e.osmLandcover}`))]);
+  if(water)city.water.push(...water.water);
+  if(land){city.parks.push(...land.parks);city.trees.push(...land.trees);}
   return {...e,city,buildings,surfaces,mobility};
 }
 // Compatibility for import/build tools. Runtime startup uses the catalog alone.

@@ -1,4 +1,4 @@
-// Sea and pond polygons from OpenStreetMap (© OpenStreetMap contributors, ODbL) inside a box.
+// Sea and pond polygons, and land cover areas, from OpenStreetMap (© OpenStreetMap contributors, ODbL) inside a box.
 // Coastline ways have land on their left (geographic orientation). Points here are [x, n] with n
 // pointing north (n = −z of the game frame), so the usual counter-clockwise rules hold.
 import polygonClipping from 'polygon-clipping';
@@ -72,4 +72,22 @@ export function osmWater(reply,toLocal,box){
  const clip=[[[g[0],g[1]],[g[2],g[1]],[g[2],g[3]],[g[0],g[3]],[g[0],g[1]]]];
  if(ponds.length)water=polygonClipping.union(water,...ponds.map(p=>polygonClipping.intersection(p,clip)).filter(p=>p.length));
  return water.map(poly=>poly.map(r=>r.map(([x,n])=>[x,-n])));
+}
+// Land cover areas (landuse / leisure / natural) → [{id, kind, tag, rings}] in the game frame, kinds named like the
+// municipal park registers (Nurmi, Niitty, Metsä, Pensas, Avokallio, Kenttä) so they draw and behave the same.
+// Ordered from the most specific cover to the broadest: where areas overlap, the earlier one wins.
+export const OSM_LAND=[['natural=bare_rock','Avokallio'],['leisure=pitch','Kenttä'],['leisure=playground','Leikkipaikka'],['natural=scrub','Pensas'],
+ ['natural=wood','Metsä'],['landuse=forest','Metsä'],['landuse=meadow','Niitty'],['natural=grassland','Niitty'],['natural=heath','Niitty'],['landuse=grass','Nurmi'],
+ ['landuse=village_green','Nurmi'],['landuse=allotments','Kasvimaa'],['leisure=garden','Nurmi'],['landuse=cemetery','Nurmi'],['leisure=golf_course','Nurmi'],
+ ['landuse=recreation_ground','Nurmi'],['leisure=common','Nurmi'],['leisure=park','Nurmi']];
+export function osmLandcover(reply,toLocal){
+ const geo=g=>g.map(p=>toLocal([p.lon,p.lat])),closed=r=>r.length>3&&same(r[0],r.at(-1)),out=[];
+ for(const e of reply.elements||[]){const rank=OSM_LAND.findIndex(([t])=>{const [k,v]=t.split('=');return e.tags?.[k]===v;});if(rank<0)continue;
+  let polys=[];
+  if(e.type==='way'&&e.geometry&&closed(e.geometry.map(p=>[p.lon,p.lat])))polys=[[geo(e.geometry)]];
+  if(e.type==='relation'){const ring=role=>joinWays((e.members||[]).filter(m=>m.role===role&&m.geometry).map(m=>geo(m.geometry))).filter(closed);
+   const outer=ring('outer'),inner=ring('inner');if(outer.length)polys=inner.length?polygonClipping.difference(outer.map(r=>[r]),...inner.map(r=>[r])):outer.map(r=>[r]);}
+  for(const rings of polys)out.push({id:`osm-${e.type}-${e.id}`,kind:OSM_LAND[rank][1],tag:OSM_LAND[rank][0],rank,rings});
+ }
+ return out.sort((a,b)=>a.rank-b.rank);
 }

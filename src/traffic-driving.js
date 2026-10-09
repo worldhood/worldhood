@@ -19,3 +19,10 @@ export function cornerSpeedLimit(edge,s,cruise,nextEdges=[]){
  for(const next of nextEdges)if(next?.points.length>1)consider(angleBetween(endHeading,heading(next.points[0],next.points[1])),edge.length-s);
  return limit;
 }
+// Mapped speed limits (edge.speed, km/h): drivers keep their own pace relative to the limit (cruise is set for 50 km/h).
+export const edgeCruise=(edge,cruise)=>edge?.speed?Math.min(edge.speed/3.6,cruise*edge.speed/50):cruise;
+// …and ease off before a lower limit begins (next: the edge after this one, remaining metres to it).
+export const approachCruise=(cruise,next,base,remaining)=>next?.speed?Math.min(cruise,Math.sqrt(edgeCruise(next,base)**2+7*Math.max(0,remaining-2))):cruise;
+export const edgeTopSpeed=(edge,top)=>edge?.speed?Math.max(top,edge.speed/3.6):top;
+// Multi-lane carriageways (edge.laneOffsets): each car keeps to one lane of its own.
+export const carLane=(edge,id)=>edge.laneOffsets?.length?edge.laneOffsets[id%edge.laneOffsets.length]:edge.lane;

@@ -24,6 +24,7 @@
     "extension:build": "node scripts/build-extension.mjs",
     "espoo:fetch": "node scripts/fetch-espoo.mjs",
     "espoo:build": "node scripts/build-espoo.mjs",
+    "espoo:ground": "node scripts/espoo-ground.mjs",
     "facades:photos": "node scripts/facade-photos.mjs",
     "facades:ship": "node scripts/facades.mjs",
     "facades:compare": "node scripts/facade-compare.mjs",

@@ -140,6 +140,23 @@ export function parseDistricts(xml){
  return [...xml.matchAll(/<GIS:Kaupunginosat>([\s\S]*?)<\/GIS:Kaupunginosat>/g)].map(m=>({name:/NIMI_FI>([^<]*)/.exec(m[1])?.[1]||'',
   rings:[...m[1].matchAll(/<gml:(?:exterior|interior)>([\s\S]*?)<\/gml:(?:exterior|interior)>/g)].map(r=>[...r[1].matchAll(/<gml:pos[^>]*>([^<]+)</g)].map(q=>numbers(q[1]).slice(0,2)))})).filter(d=>d.rings[0]?.length>2);
 }
+// Circular arc through a, b, c ([E,N]) as points every `step` metres (a straight line when they are collinear).
+export function arcPoints(a,b,c,step=1.5){
+ const d=2*(a[0]*(b[1]-c[1])+b[0]*(c[1]-a[1])+c[0]*(a[1]-b[1]));if(Math.abs(d)<1e-9)return [a,c];
+ const q=p=>p[0]*p[0]+p[1]*p[1],ux=(q(a)*(b[1]-c[1])+q(b)*(c[1]-a[1])+q(c)*(a[1]-b[1]))/d,uy=(q(a)*(c[0]-b[0])+q(b)*(a[0]-c[0])+q(c)*(b[0]-a[0]))/d,r=Math.hypot(a[0]-ux,a[1]-uy);
+ const ang=p=>Math.atan2(p[1]-uy,p[0]-ux),t0=ang(a),sweep=t=>((t-t0)%(2*Math.PI)+2*Math.PI)%(2*Math.PI);
+ let total=sweep(ang(c));if(sweep(ang(b))>total)total-=2*Math.PI; // b lies on the arc: pick the turning direction that passes it
+ const n=Math.max(2,Math.ceil(Math.abs(total)*r/step)),out=[];for(let i=0;i<=n;i++){const t=t0+total*i/n;out.push(i===n?[c[0],c[1]]:[ux+r*Math.cos(t),uy+r*Math.sin(t)]);}
+ return out;
+}
+// GIS:InfPark (the park register: lawns, meadows, woods, plantings, park paving) → [{id, kind, use, name, polygons [[ring [[E,N]]]]}].
+// Rings are curves of line strings and circular arcs.
+export function parseParks(xml){
+ const ring=s=>{const out=[];for(const m of s.matchAll(/<gml:(LineStringSegment|Arc)>([\s\S]*?)<\/gml:\1>/g)){let p=[...m[2].matchAll(/<gml:pos[^>]*>([^<]+)</g)].map(q=>numbers(q[1]).slice(0,2));if(m[1]==='Arc'&&p.length===3)p=arcPoints(...p);for(const q of p)if(!out.length||Math.hypot(q[0]-out.at(-1)[0],q[1]-out.at(-1)[1])>.01)out.push(q);}return out;};
+ return [...xml.matchAll(/<GIS:InfPark>([\s\S]*?)<\/GIS:InfPark>/g)].map(m=>{const g=k=>new RegExp(`<GIS:${k}>([^<]*)<`).exec(m[1])?.[1]||'';
+  const polygons=[...m[1].matchAll(/<gml:PolygonPatch>([\s\S]*?)<\/gml:PolygonPatch>/g)].map(p=>[...p[1].matchAll(/<gml:(?:exterior|interior)>([\s\S]*?)<\/gml:(?:exterior|interior)>/g)].map(r=>ring(r[1])).filter(r=>r.length>2)).filter(p=>p.length);
+  return {id:g('ID'),kind:g('PAVINGMATERIALTEXT').replace(/^0$/,''),use:g('PARTCLASSTEXT'),name:g('NAME'),polygons};}).filter(p=>p.kind&&p.polygons.length);
+}
 // Splits polylines where another line's end touches their interior (T-junctions), so a graph built
 // from shared end nodes stays connected.
 export function splitAtJunctions(lines,tolerance=.75){

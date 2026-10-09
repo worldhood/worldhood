@@ -3,8 +3,9 @@
 //  - CityGML 2.0 LOD2 buildings with their photo textures (WFS bldg:building_lod2, CC BY 4.0),
 //  - street areas (tran:road_lod2), street centrelines (GIS:Keskilinjat), trees (kanta:Lehtipuu,
 //    kanta:Havupuu) from the same WFS, all in ETRS-GK25 (EPSG:3879) with N2000 heights,
-//  - traffic lights from Digiroad (Väylävirasto, CC BY 4.0),
-//  - sea and pond outlines from OpenStreetMap (ODbL; kept in their own file).
+//  - park register areas (GIS:InfPark: lawns, meadows, woods, plantings) from the same WFS,
+//  - traffic lights, speed limits and lane counts from Digiroad (Väylävirasto, CC BY 4.0),
+//  - sea and pond outlines and land cover (parks, grass, woods) from OpenStreetMap (ODbL; kept in their own files).
 // Raw files go to data/raw/extensions/<id>/ (ignored by git); every download is cached.
 import fs from 'node:fs';
 import path from 'node:path';
@@ -17,7 +18,7 @@ import {DIGIROAD} from './digiroad-signs.mjs';
 
 const id=process.argv[2]&&!process.argv[2].startsWith('-')?process.argv[2]:'espoo',refresh=process.argv.includes('--refresh'),RAW=path.join('data/raw/extensions',id);
 export const ESPOO_WFS='https://kartat.espoo.fi/teklaogcweb/wfs.ashx';
-export const ESPOO_LAYERS={buildings:'bldg:building_lod2',streets:'tran:road_lod2',centrelines:'GIS:Keskilinjat',broadleaf:'kanta:Lehtipuu',conifer:'kanta:Havupuu'};
+export const ESPOO_LAYERS={buildings:'bldg:building_lod2',streets:'tran:road_lod2',centrelines:'GIS:Keskilinjat',broadleaf:'kanta:Lehtipuu',conifer:'kanta:Havupuu',parks:'GIS:InfPark'};
 const CELL=400,UA='worldhood/0.1 (local build; Espoo extension)';
 const {context}=extensionRegions(readRoute(id)),b=multiBounds(context),[E0,N0]=ORIGIN_GK25;
 // Grid cells (GK25, metres) that touch the area.
@@ -55,9 +56,9 @@ for(const c of cells)for(const bld of parseBuildings(fs.readFileSync(path.join(R
 console.log(`Downloading ${textures.size} façade and roof photos…`);
 download([...textures].map(([url,file])=>({url,file})),16);
 
-// Traffic lights (Digiroad) for the area's bounding box.
+// Traffic lights, speed limits and lane counts (Digiroad) for the area's bounding box.
 const ll=[wgs84(b[0]-100,b[3]+100),wgs84(b[2]+100,b[1]-100)],bbox=[Math.min(ll[0][0],ll[1][0]),Math.min(ll[0][1],ll[1][1]),Math.max(ll[0][0],ll[1][0]),Math.max(ll[0][1],ll[1][1])];
-fetchWfs({url:DIGIROAD.url,layer:DIGIROAD.layers.lights,bbox,file:path.join(RAW,'digiroad-lights.json'),refresh});
+for(const k of ['lights','speed','lanes'])fetchWfs({url:DIGIROAD.url,layer:DIGIROAD.layers[k],bbox,file:path.join(RAW,`digiroad-${k}.json`),refresh});
 
 // Sea and ponds: OpenStreetMap coastline and water outlines around the area (a wider box, so the
 // shoreline continues to the horizon).
@@ -67,8 +68,15 @@ if(!fs.existsSync(osm)||refresh){
  const q=`[out:json][timeout:180];(way["natural"="coastline"](${s},${west},${n},${east});way["natural"="water"](${s},${west},${n},${east});relation["natural"="water"](${s},${west},${n},${east}););out geom;`;
  execFileSync('curl',['-f','-sS','--retry','3','--max-time','240','-A',UA,'--data-urlencode',`data=${q}`,'https://overpass-api.de/api/interpreter','-o',osm],{stdio:'inherit'});
 }
+// Land cover the park register leaves out (campus lawns, private woods, sports fields): OpenStreetMap areas.
+const osmLand=path.join(RAW,'osm-landcover.json');
+if(!fs.existsSync(osmLand)||refresh){
+ const w=[wgs84(b[0]-100,b[3]+100),wgs84(b[2]+100,b[1]-100)],box=`${Math.min(w[0][1],w[1][1])},${Math.min(w[0][0],w[1][0])},${Math.max(w[0][1],w[1][1])},${Math.max(w[0][0],w[1][0])}`;
+ const q=`[out:json][timeout:180];(${['landuse~"^(grass|forest|meadow|recreation_ground|village_green|cemetery|allotments)$"','leisure~"^(park|garden|pitch|golf_course|playground|common)$"','natural~"^(wood|scrub|grassland|heath|bare_rock)$"'].flatMap(t=>[`way[${t}](${box});`,`relation[${t}](${box});`]).join('')});out geom;`;
+ execFileSync('curl',['-f','-sS','--retry','3','--max-time','240','-A',UA,'--data-urlencode',`data=${q}`,'https://overpass-api.de/api/interpreter','-o',osmLand],{stdio:'inherit'});
+}
 // Espoo's district polygons (land and sea): Espoo's water is the OSM water inside them, Helsinki's stays Helsinki's.
 const districts=path.join(RAW,'districts.gml');
 if(!fs.existsSync(districts)||refresh)execFileSync('curl',['-f','-sS','--retry','3','--max-time','300','-A',UA,'-o',districts,`${ESPOO_WFS}?service=WFS&version=1.1.0&request=GetFeature&typeName=GIS:Kaupunginosat&bbox=${Math.floor(E0+b[0]-1200)},${Math.floor(N0-b[3]-1200)},${Math.ceil(E0+b[2]+1200)},${Math.ceil(N0-b[1]+1200)}`],{stdio:'inherit'});
-fs.writeFileSync(path.join(RAW,'fetch-report.json'),JSON.stringify({fetchedAt:new Date().toISOString().slice(0,10),wfs:ESPOO_WFS,layers:ESPOO_LAYERS,cell:CELL,cells:cells.length,textures:textures.size,digiroad:DIGIROAD.layers.lights,osm:'Overpass API: natural=coastline, natural=water',districts:'GIS:Kaupunginosat'},null,1));
+fs.writeFileSync(path.join(RAW,'fetch-report.json'),JSON.stringify({fetchedAt:new Date().toISOString().slice(0,10),wfs:ESPOO_WFS,layers:ESPOO_LAYERS,cell:CELL,cells:cells.length,textures:textures.size,digiroad:[DIGIROAD.layers.lights,DIGIROAD.layers.speed,DIGIROAD.layers.lanes].join(', '),osm:'Overpass API: natural=coastline, natural=water; landuse, leisure and natural areas',districts:'GIS:Kaupunginosat'},null,1));
 fs.rmSync(path.join(RAW,'curl-batch.txt'),{force:true});

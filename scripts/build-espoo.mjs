@@ -7,7 +7,8 @@ import {surfaceRecord} from '../src/surface-streaming.js';
 //    per-surface photos packed into ≤1024 px JPEG atlases per 250 m tile (scripts/espoo-atlas.py),
 //  - city.pack: footprints, street areas (tran:road_lod2), trees; osm-water.json: sea and ponds,
 //  - mobility.json: centreline graph (one-way from Kulkusuunta), Digiroad signals, joined to the
-//    neighbouring Helsinki area's graph at the city border.
+//    neighbouring Helsinki area's graph at the city border,
+//  - then scripts/espoo-ground.mjs: park register and OSM land cover, Digiroad speed limits and lanes.
 import fs from 'node:fs';
 import path from 'node:path';
 import {gzipSync,gunzipSync} from 'node:zlib';
@@ -21,6 +22,7 @@ import {parseBuildings,parseStreets,parseCentrelines,parseTrees,parseDistricts,t
 import {osmWater} from './osm-water.mjs';
 import {projector} from './official-wfs.mjs';
 import {placeStarts} from './place-starts.mjs';
+import {espooGround} from './espoo-ground.mjs';
 
 const id=process.argv[2]||'espoo',ext=readExtension(id),route=readRoute(id),RAW=path.join('data/raw/extensions',id),OUT=path.join('public/data/extensions',id),URL_DIR=`extensions/${id}`;
 const fetchReport=JSON.parse(fs.readFileSync(path.join(RAW,'fetch-report.json')));
@@ -173,5 +175,6 @@ const entry={id,title:ext.title,status:ext.status,dir:URL_DIR,mapBounds:cb.map(M
  limitations:ext.limitations};
 registry.extensions=[...registry.extensions.filter(e=>e.id!==id),entry];
 fs.writeFileSync(indexFile,JSON.stringify(registry));
-console.log(JSON.stringify({counts:entry.counts,seam,atlasMetresPerPixel:entry.atlasMetresPerPixel,starts:starts.map(s=>`${s.name}: ${s.street} (${s.x},${s.z})`)},null,1));
+const ground=espooGround(id);
+console.log(JSON.stringify({ground,counts:entry.counts,seam,atlasMetresPerPixel:entry.atlasMetresPerPixel,starts:starts.map(s=>`${s.name}: ${s.street} (${s.x},${s.z})`)},null,1));
 placeStarts([id]); // into a traffic lane, clear of kerbs

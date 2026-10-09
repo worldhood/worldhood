@@ -1,7 +1,7 @@
 // Pure simulation: routes come from Helsinki's measured mobility network.
 import {crashImpulse,knockCar,stepKnocked,playerSpeedAfter,REST_RECYCLE_AFTER} from './crash-physics.js';
 import {vehicleFitsRoad,safeVehicleSegment,trafficFootprintsOverlap} from './road-safety.js';
-import {cornerSpeedLimit} from './traffic-driving.js';
+import {cornerSpeedLimit,edgeCruise,approachCruise,edgeTopSpeed,carLane} from './traffic-driving.js';
 import {sweptContact} from './contact-geometry.js';
 import {annotateJunctions,annotateCrossings,annotateTramRelations,annotateTramSignals,signalGreen as phaseGreen,tramThreat,boxesOverlap,carBox,oncomingPasses,CAR_HALF_LENGTH} from './lane-model.js';
 import {mergeGraph} from './graph-extension.js';
@@ -105,6 +105,7 @@ export class Mobility {
   // Move to the outer right-hand lane only when a mapped road surface exists
   // there. Shared narrow streets remain shared; crossing rails cause no detour.
   let target=a.edge.lane;
+  if(!a.walking&&a.edge.laneOffsets){const own=carLane(a.edge,a.id),q=routePoint(a.edge,a.s,own,nextDir,prevDir);if(vehicleFitsRoad(q,this.world)){target=own;p=q;}}
   // A car is either clear of a parallel track (by a tram's half width plus its own) or on it, sharing the lane
   // with trams; straddling the edge of a tram's path would hold up both. Keep to the right where the road allows.
   const rails=this.world.railAvoidance;
@@ -152,7 +153,7 @@ export class Mobility {
    if(distance<12||(!a.walking&&this.visibilityTest?.(p)&&!(a.corridorOnly&&distance>300)))continue;
    if(!a.walking){const dx=p.x-player.x,dz=p.z-player.z,along=-dx*Math.sin(player.heading||0)-dz*Math.cos(player.heading||0),side=Math.abs(dx*Math.cos(player.heading||0)-dz*Math.sin(player.heading||0));if(along>-24&&along<(this.time<3?95:45)&&side<4.5)continue;} // a clear first 95 m when the drive starts
    if(!a.walking&&this.cars.some(b=>b!==a&&b.edge&&Math.hypot(p.x-b.x,p.z-b.z)<8))continue;
-   Object.assign(a,p);a.offset=undefined;a.prevDir=undefined;a.speed=a.cruise;a.waiting=0;a.passing=null;a.unjam=null;a.gridlock=0;a.hold=null;a.holdBy=null;a.deadlocked=false;a.hiddenFor=0;a.panicUntil=0;a.running=false;a.stuck=0;a.progressPoint={x:p.x,z:p.z};return;
+   Object.assign(a,p);a.offset=undefined;a.prevDir=undefined;a.speed=edgeCruise(a.edge,a.cruise);a.waiting=0;a.passing=null;a.unjam=null;a.gridlock=0;a.hold=null;a.holdBy=null;a.deadlocked=false;a.hiddenFor=0;a.panicUntil=0;a.running=false;a.stuck=0;a.progressPoint={x:p.x,z:p.z};return;
   }
   a.edge=null;a.speed=0;
  }
@@ -352,7 +353,7 @@ export class Mobility {
     if(a.edge.crossing&&a.s<.35&&!running&&!this.world.roads.at(a.x,a.z)&&!this.crossingClear(a.edge,player))desired=0;
    }else{
     const plan=this.plan(a);let hold=null,holdBy=null;
-    desired=cornerSpeedLimit(a.edge,a.s,desired,plan.length?[plan[0]]:[]);
+    desired=cornerSpeedLimit(a.edge,a.s,approachCruise(edgeCruise(a.edge,desired),plan[0],desired,remaining),plan.length?[plan[0]]:[]);
     if(a.edge.roundabout)desired=Math.min(desired,6);
     // Yield to circulating traffic before entering, never to an imaginary signal in the middle of the roundabout.
     if(!a.edge.roundabout&&remaining<10&&this.roads.outgoing[a.edge.to].some(e=>e.roundabout)){
@@ -376,7 +377,7 @@ export class Mobility {
     a.hold=hold;a.holdBy=holdBy;a.atSignal=hold==='signal';
    }
    a.speed+=Math.max(-7*dt,Math.min((running?8:a.walking?2:2.2)*dt,desired-a.speed));
-   if(!a.walking)a.speed=Math.min(TRAFFIC_MAX_SPEED,a.speed);
+   if(!a.walking)a.speed=Math.min(edgeTopSpeed(a.edge,TRAFFIC_MAX_SPEED),a.speed);
    const oldS=a.s,oldEdge=a.edge,oldPrev=a.prevDir;a.s+=a.speed*dt;
    if(a.s>=a.edge.length){const next=a.walking?this.nextEdge(a):a.plan.length?a.plan.shift():this.pickNext(a.edge);if(!a.walking)a.prevDir=edgeEndDirection(a.edge);if(!next){a.s=oldS;this.retire(a,player,!a.walking&&Math.hypot(a.x-player.x,a.z-player.z)>40);continue;}if(a.walking&&next.crossing&&!this.world.roads.at(a.x,a.z)&&!this.crossingClear(next,player)){a.s=oldS;a.speed=0;continue;}a.s-=a.edge.length;a.edge=next;}
    const p=this.position(a);

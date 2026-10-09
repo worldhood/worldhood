@@ -18,7 +18,7 @@ import {finnishCode,finnishSign,signFace,signFamily} from '../src/sign-faces.js'
 export const DIGIROAD={url:'https://avoinapi.vaylapilvi.fi/vaylatiedot/digiroad/wfs',licence:'CC BY 4.0',
  attribution:'Traffic signs, signals and stops from Digiroad, Finnish Transport Infrastructure Agency (Väylävirasto), CC BY 4.0',
  layers:{signs:'digiroad:dr_liikennemerkit',lights:'digiroad:dr_liikennevalo',stops:'digiroad:dr_pysakki',links:'digiroad:dr_tielinkki_tielinkin_tyyppi',
-  speed:'digiroad:dr_nopeusrajoitus',vehicles:'digiroad:dr_ajoneuvokoht_rajoitus',buslanes:'digiroad:dr_joukkoliikennekaista'}};
+  speed:'digiroad:dr_nopeusrajoitus',vehicles:'digiroad:dr_ajoneuvokoht_rajoitus',buslanes:'digiroad:dr_joukkoliikennekaista',lanes:'digiroad:dr_kaistojen_lukumaara'}};
 export const isFinnish=entry=>/Finland|Suomi/i.test(entry?.country||'');
 
 // ---------- Geometry helpers (local frame: x east, z south; yaw: the face looks along (sin yaw, cos yaw)) ----------

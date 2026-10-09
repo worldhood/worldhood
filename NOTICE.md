@@ -15,9 +15,10 @@ that the notices match the locked runtime packages and bundled fonts.
 | Source code, scripts, tests, docs | MIT | `src/`, `scripts/`, `tests/`, `docs/` |
 | Original assets made for this project (procedural models, `senate-pavilions` model and source) | MIT | `public/models/senate-pavilions.glb`, `assets/source/` |
 | City of Helsinki map, 3D and imagery data | CC BY 4.0 | most of `public/data/` |
-| City of Espoo 3D city model (CityGML LOD2 with 2024 photo textures), street areas, centrelines, trees and districts | CC BY 4.0, © Espoon kaupunki | `public/data/extensions/espoo/` (except `osm-water.json`) |
-| Traffic lights in the Espoo area from Digiroad (Väylävirasto) | CC BY 4.0 | `public/data/extensions/espoo/mobility.json` |
+| City of Espoo 3D city model (CityGML LOD2 with 2024 photo textures), street areas, centrelines, trees, park register areas and districts | CC BY 4.0, © Espoon kaupunki | `public/data/extensions/espoo/` (except `osm-water.json`, `osm-landcover.json` and `surfaces/osm-*`) |
+| Traffic lights, speed limits and lane counts in the Espoo area from Digiroad (Väylävirasto) | CC BY 4.0 | `public/data/extensions/espoo/mobility.json` |
 | Sea and pond outlines in the Espoo area from OpenStreetMap | ODbL 1.0, © OpenStreetMap contributors | `public/data/extensions/espoo/osm-water.json` |
+| Land cover (lawns, woods, scrub, pitches) in the Espoo area outside the park register, from OpenStreetMap | ODbL 1.0, © OpenStreetMap contributors | `public/data/extensions/espoo/osm-landcover.json` and its surfaces `public/data/extensions/espoo/surfaces/osm-*` |
 | City of Espoo 3D city model, photo textures, streets, centrelines, trees and district boundaries | CC BY 4.0 | municipal data in `public/data/extensions/espoo/` |
 | OpenStreetMap coastlines and water in the Espoo extension | ODbL 1.0, © OpenStreetMap contributors | `public/data/extensions/espoo/osm-water.json` and derived water surfaces |
 | HSL transit data | CC BY 4.0 | `public/data/trams.json`, `buses.json`, `bus-corridors.json` |
@@ -51,21 +52,25 @@ city's data under its licence, and update this file and the in-game Sources pane
 - **City of Espoo, city model data, fetched 9 October 2026:** © City of Espoo
   (Espoon kaupunki), [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
   The Espoo extension uses the open aboveground CityGML city model and its façade/roof photographs,
-  street areas, centrelines, registered trees and district boundaries. Building bases are levelled,
+  street areas, centrelines, registered trees, park register areas and district boundaries. Building bases are levelled,
   photo textures are repacked into atlases, and geometry is cropped for the game. See
   [Espoo's data and attribution terms](https://www.espoo.fi/en/open-data-of-the-geographic-information-unit)
   and the per-extension provenance in `public/data/extensions/index.json`.
-  Its traffic lights come from Digiroad (CC BY 4.0); its coastline and water polygons are derived
-  from © OpenStreetMap contributors ([ODbL 1.0](https://www.openstreetmap.org/copyright)), with
-  source geometry retained in `public/data/extensions/espoo/osm-water.json`.
+  Its traffic lights, speed limits and lane counts come from Digiroad (CC BY 4.0); its coastline and
+  water polygons and the land cover outside the park register are derived from © OpenStreetMap
+  contributors ([ODbL 1.0](https://www.openstreetmap.org/copyright)), with source geometry retained in
+  `public/data/extensions/espoo/osm-water.json` and `osm-landcover.json`.
 - **City of Espoo open data** (area `espoo`: Keilaniemi, Otaniemi, Tapiola): the 3D city model
   (CityGML 2.0 LOD2 with 2024 oblique-aerial façade and orthophoto roof textures, WFS layer
   `bldg:building_lod2`), street areas (`tran:road_lod2`), street centrelines (`GIS:Keskilinjat`),
-  trees (`kanta:Lehtipuu`, `kanta:Havupuu`) and districts (`GIS:Kaupunginosat`) from
+  trees (`kanta:Lehtipuu`, `kanta:Havupuu`), park register areas (`GIS:InfPark`) and districts (`GIS:Kaupunginosat`) from
   kartat.espoo.fi/teklaogcweb/wfs.ashx. © Espoon kaupunki, licensed
-  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Traffic lights in the area: Digiroad
-  © Väylävirasto, CC BY 4.0. Sea and ponds: © OpenStreetMap contributors,
-  [ODbL](https://opendatacommons.org/licenses/odbl/), kept in their own file (`osm-water.json`).
+  [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Traffic lights, speed limits
+  (`dr_nopeusrajoitus`) and lane counts (`dr_kaistojen_lukumaara`) in the area: Digiroad
+  © Väylävirasto, CC BY 4.0. Sea and ponds, and land cover outside the park register
+  (landuse, leisure and natural areas): © OpenStreetMap contributors,
+  [ODbL](https://opendatacommons.org/licenses/odbl/), kept in their own files (`osm-water.json`,
+  `osm-landcover.json`, `surfaces/osm-*`). Forest trees inside mapped woods are inferred, not surveyed.
 - **HSL public transport data** (GTFS routes and stops for trams and buses): © HSL, licensed
   [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). See `public/models/tram-sources.json`
   and `public/models/bus-sources.json`.
