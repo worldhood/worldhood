@@ -4,7 +4,7 @@
 | --- | --- |
 | **GitHub Issues** | The to-do list: bugs, the [wishlist](IDEAS.md), area and city claims |
 | **GitHub Discussions** | Questions, design ideas, show-and-tell; searchable and permanent |
-| **Discord** | Live chat, sharing drives and screenshots, city channels, build-alongs |
+| **[Discord](https://discord.gg/7qxz5fv2X)** | Live chat, sharing drives and screenshots, city channels, build-alongs |
 
 Decisions are recorded on GitHub (issues, pull requests, discussions), not only in chat.
 
