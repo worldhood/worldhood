@@ -46,6 +46,7 @@ export function canExitBuildings(from,to,buildings){
  return contact&&Math.hypot(to.x-from.x,to.z-from.z)>1e-9;
 }
 export function driveStep(car,keys,dt,world) {
+ const collisionBuildings=world.collisionBuildings||world.buildings;
  const powered=(car.battery??1)>0,distanceBefore=car.distance;
  const throttle=(keys.has('KeyW')||keys.has('ArrowUp'))&&(powered||car.speed<-.5);
  const reverse=(keys.has('KeyS')||keys.has('ArrowDown'))&&(powered||car.speed>.5);
@@ -77,7 +78,8 @@ export function driveStep(car,keys,dt,world) {
    const nx=car.x-Math.sin(car.heading)*travel/steps,nz=car.z-Math.cos(car.heading)*travel/steps;
    if(!insidePlayable(nx,nz,3)){collision='boundary';break;}
    const samples=carSamples(car,nx,nz);
-   if(samples.some(([x,z])=>world.buildings.at(x,z))&&!canExitBuildings({...car,heading:i?car.heading:oldHeading},{...car,x:nx,z:nz},world.buildings)){collision='building';break;}
+   const from={...car,heading:i?car.heading:oldHeading},next={...car,x:nx,z:nz};
+   if(world.objects?.blocksStep(from,next)||samples.some(([x,z])=>collisionBuildings.at(x,z))&&!canExitBuildings(from,next,collisionBuildings)){collision='building';break;}
    if(samples.some(([x,z])=>!world.roads.at(x,z)&&!world.pavement.at(x,z)&&(world.water.some(w=>pointInPolygon(x,z,w.rings))||lakeAt(x,z)!==null))){collision='water';break;}
    car.distance+=Math.hypot(nx-car.x,nz-car.z);car.x=nx;car.z=nz;
  }

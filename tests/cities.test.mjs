@@ -1,5 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import path from 'node:path';
 import {selectCity,pickStart,slug,startUrl,dataUrl,useCity,CITIES} from '../src/cities.js';
 
 const starts=[{name:'Olympia Terminal'},{name:'Töölö (National Opera)'},{name:'Seurasaari bridge'},{name:'Senate Square'}];
@@ -20,4 +22,12 @@ test('?city= defaults to Helsinki and rejects cities not in the build',()=>{
 test('the address bar keeps city and start shareable; data stays under the city root',()=>{
  assert.equal(startUrl(new URL('http://x/?foo=1'),CITIES.helsinki,starts[2]),'/?foo=1&city=helsinki&start=seurasaari-bridge');
  useCity(CITIES.helsinki);assert.equal(dataUrl('city.pack'),'/data/city.pack');
+});
+test('every shipped city includes a JSON extension catalog even when it has no regions',()=>{
+ const registry=JSON.parse(readFileSync('public/cities/index.json','utf8'));
+ for(const city of [CITIES.helsinki,...registry.cities]){
+  const file=path.join('public',city.dataRoot,'extensions/index.json');
+  const catalog=JSON.parse(readFileSync(file,'utf8'));
+  assert.ok(Array.isArray(catalog.extensions),`${city.id} needs an extension catalog; missing files can return the host's HTML fallback`);
+ }
 });

@@ -77,6 +77,7 @@ export function createKauppatoriFingerpost({canvasFactory=()=>globalThis.documen
   const signs=createBreakableSigns('Kauppatori fingerpost'),post=signs.post({id:'kauppatori-fingerpost',x:KAUPPATORI_FINGERPOST_REFERENCE.x,z:KAUPPATORI_FINGERPOST_REFERENCE.z,pivot:[0,0,0],yaw:Math.PI/2,height:4.9,radius:.055});
   for(const [gs,m]of [[backs,metal],[faces,ink]]){const mesh=new THREE.Mesh(mergeGeometries(gs),m);mesh.castShadow=true;root.add(mesh);signs.attach(mesh,post);gs.forEach(g=>g.dispose());}
   root.add(signs.finish());root.breakable=signs;
-  root.userData={...KAUPPATORI_FINGERPOST_REFERENCE,armCount:9,collision:false,destinationKind:'walking/cycling, not motor-vehicle overhead directions'};
+  root.worldObjects=signs.bodies;
+  root.userData={...KAUPPATORI_FINGERPOST_REFERENCE,armCount:9,collision:'breakable',destinationKind:'walking/cycling, not motor-vehicle overhead directions'};
   return root;
 }

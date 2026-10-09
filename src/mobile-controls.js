@@ -7,7 +7,7 @@ const menuIcon='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 1
 export function createMobileControls({keys,canPlay=()=>true,onMenuChange=()=>{},actions={},notify=()=>{},doc=document,win=window}){
  const controls=doc.getElementById('touch-controls'),aux=doc.getElementById('touch-aux');
  const input=createTouchInput(keys),captures=new Map(),listeners=new win.AbortController();
- let state={started:false,paused:false,mapOpen:false,busted:false,mode:'car',speed:0},steering='thumb',afterClose=null,neutral=null,motionSeen=false,motionTimer=null,disposed=false;
+ let state={started:false,paused:false,mapOpen:false,busted:false,mode:'car',speed:0},steering='thumb',afterClose=null,backdropPointer=null,neutral=null,motionSeen=false,motionTimer=null,disposed=false;
  const on=(target,type,handler,options={})=>target.addEventListener(type,handler,{...options,signal:listeners.signal});
  const touch=()=>doc.body.classList.contains('touch'),allowed=()=>touch()&&state.started&&!state.paused&&!state.mapOpen&&!state.busted&&!menu.open&&canPlay();
  controls.innerHTML=`<div class="mobile-steering"><div id="touch-steer" class="mobile-steer" role="slider" tabindex="0" aria-label="Steer. Drag left or right; release to straighten." aria-valuemin="-100" aria-valuemax="100" aria-valuenow="0" aria-orientation="horizontal"><span class="mobile-steer-track"></span><span class="mobile-steer-arrow left">${arrow('left')}</span><span class="mobile-steer-arrow right">${arrow('right')}</span><span class="mobile-steer-thumb"><i></i><i></i><i></i></span><span class="mobile-steer-label">Steer</span></div><div class="mobile-steer-buttons" hidden><button type="button" data-key="ArrowLeft" aria-label="Steer left">${arrow('left')}</button><button type="button" data-key="ArrowRight" aria-label="Steer right">${arrow('right')}</button></div><span class="mobile-tilt-hint" hidden>Tilt to steer</span></div><div class="mobile-pedals"><button id="touch-brake" class="mobile-pedal" type="button" data-key="ArrowDown" aria-label="Brake, then reverse">${arrow('down')}<span>Brake<small>Reverse</small></span></button><button id="touch-go" class="mobile-pedal mobile-go" type="button" data-key="ArrowUp" aria-label="Accelerate">${arrow('up')}<span>Go</span></button></div>`;
@@ -60,7 +60,7 @@ export function createMobileControls({keys,canPlay=()=>true,onMenuChange=()=>{},
  }
  function openMenu(){
   if(!touch()||!state.started||state.busted||state.paused||state.mapOpen||disposed)return;
-  release();refreshMenu();menu.showModal();menuButton.setAttribute('aria-expanded','true');onMenuChange(true);
+  release();backdropPointer=null;refreshMenu();menu.showModal();menuButton.setAttribute('aria-expanded','true');onMenuChange(true);
  }
  function closeMenu(next=null){afterClose=next;release();if(menu.open)menu.close();else{afterClose=null;next?.();}}
  on(menuButton,'click',openMenu);
@@ -69,7 +69,11 @@ export function createMobileControls({keys,canPlay=()=>true,onMenuChange=()=>{},
   menuButton.setAttribute('aria-expanded','false');onMenuChange(false);
   const next=afterClose;afterClose=null;next?.();if(!next)doc.getElementById('world')?.focus();
  });
- on(menu,'click',e=>{if(e.target===menu){const r=menu.getBoundingClientRect();if(e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom)closeMenu();}});
+ const outsideMenu=e=>{const r=menu.getBoundingClientRect();return e.clientX<r.left||e.clientX>r.right||e.clientY<r.top||e.clientY>r.bottom;};
+ // A finger already holding Go may be lifted after the modal opens. Its
+ // retargeted click did not begin on this backdrop and must not dismiss it.
+ on(menu,'pointerdown',e=>{backdropPointer=e.target===menu&&outsideMenu(e)?e.pointerId:null;});
+ on(menu,'click',e=>{if(e.target===menu&&backdropPointer===e.pointerId&&outsideMenu(e))closeMenu();backdropPointer=null;});
  for(const button of menu.querySelectorAll('[data-action]'))on(button,'click',()=>{
   const name=button.dataset.action,action=actions[name];if(!action)return;
   if(['camera','weather','sound'].includes(name)){action();refreshMenu();}

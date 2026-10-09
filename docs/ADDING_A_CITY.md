@@ -29,6 +29,7 @@ A city needs the same files Helsinki has under `public/data`:
 | `surface-index.json` + chunks | Pre-coloured ground surfaces |
 | `mobility.json` | Road and walking graph, signals |
 | `trams.json`, `bus-corridors.json` | May be empty lists |
+| `extensions/index.json` | `{"schemaVersion":1,"extensions":[]}` when the city has no extra regions; always ship the file because static hosts may return HTML for missing paths |
 
 Data sources:
 - **Official open data first.** Many cities publish footprints, street areas and 3D models,
@@ -40,15 +41,12 @@ Data sources:
 
 ## Step 3: separate Helsinki's hand-built scenery
 
-`src/main.js` currently builds Helsinki landmarks unconditionally: the Cathedral, Kauppatori,
-the harbour, the station, and Helsinki-specific signs and street life. A second city needs those
-behind a per-city scenery hook, e.g. `src/cities/helsinki.js` exporting `createScenery(data)`.
-Generic systems (physics, traffic, pedestrians, police, weather) don't change.
-
-This refactor is the main open task for multi-city support. Coordinate it in an issue before
-starting.
+`src/main.js` uses the city's `scenery` setting to select Helsinki's landmarks and street details
+or the generic scenery builder. Add place-specific models through that boundary. Shared systems
+such as walking, riding, traffic, conversations, police and weather work across cities; keep their
+rules in the shared engine. See [GAMEPLAY.md](GAMEPLAY.md).
 
 ## Step 4: review
 
-Use the same area workflow ([EXTENDING.md](EXTENDING.md)): starts, `knownFor`, reference
-notes and a Jev review per checkpoint.
+Use the same area workflow ([EXTENDING.md](EXTENDING.md)): starts, `knownFor`, permitted reference
+notes and a visual review of each checkpoint. Optional review tools can help, but are not required.

@@ -1,11 +1,13 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {bicycleGeometry,cityBikeGeometry,scooterGeometry} from './parked-micromobility.js';
 
 // These anchors are shared by the visible bicycle and the player's foot IK.
 export const PLAYER_BIKE={hipY:1.01,hipZ:.23,crankY:.33,crankZ:.05,crankR:.17,crankPerMetre:1.15,pedalX:.14,pedalTop:.0175,barX:.24,barY:1.05,barZ:-.48};
+export const PLAYER_CITY_BIKE={...PLAYER_BIKE,hipY:1.02,hipZ:.2,crankY:.36,crankZ:.08,barY:1,barZ:-.47,wheelHalfBase:.56};
 export const PLAYER_SCOOTER={hipY:.90,footX:.025,frontZ:-.09,backZ:.155,groundY:.324,barX:.22,barY:.946,barZ:-.455};
 
-export function addBicycleMotion(root){
+export function addBicycleMotion(root,anchors=PLAYER_BIKE){
  const metal=new THREE.MeshStandardMaterial({color:'#939c98',roughness:.4,metalness:.5}),dark=new THREE.MeshStandardMaterial({color:'#202a27',roughness:.8});
  const wheels=[],wheelMaterial=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.65,metalness:.25});
  const tint=(geometry,hex)=>{
@@ -17,17 +19,33 @@ export function addBicycleMotion(root){
  const parts=[tint(new THREE.TorusGeometry(.32,.032,6,32).rotateY(Math.PI/2),'#202724'),tint(new THREE.TorusGeometry(.295,.008,4,32).rotateY(Math.PI/2),'#9ca7a1'),tint(new THREE.CylinderGeometry(.04,.04,.09,8).rotateZ(Math.PI/2),'#aab3ad')];
  for(let i=0;i<8;i++)parts.push(tint(new THREE.CylinderGeometry(.004,.004,.59,3).rotateX(i*Math.PI/8),'#9ca7a1'));
  const wheelGeometry=mergeGeometries(parts);parts.forEach(g=>g.dispose());
- for(const z of [-.58,.58]){const mesh=new THREE.Mesh(wheelGeometry,wheelMaterial);mesh.position.set(0,.33,z);mesh.castShadow=true;root.add(mesh);wheels.push(mesh);}
- const cranks=[],pedals=[],crankGeometry=new THREE.CylinderGeometry(.013,.013,PLAYER_BIKE.crankR,7),pedalGeometry=new THREE.BoxGeometry(.13,.035,.10);
+ const halfBase=anchors.wheelHalfBase??.58;
+ for(const z of [-halfBase,halfBase]){const mesh=new THREE.Mesh(wheelGeometry,wheelMaterial);mesh.position.set(0,.33,z);mesh.castShadow=true;root.add(mesh);wheels.push(mesh);}
+ const cranks=[],pedals=[],crankGeometry=new THREE.CylinderGeometry(.013,.013,anchors.crankR,7),pedalGeometry=new THREE.BoxGeometry(.13,.035,.10);
  for(let side=0;side<2;side++){
-  const sign=side?1:-1,crank=new THREE.Group();crank.position.set(sign*PLAYER_BIKE.pedalX,PLAYER_BIKE.crankY,PLAYER_BIKE.crankZ);root.add(crank);
-  const arm=new THREE.Mesh(crankGeometry,metal);arm.position.y=PLAYER_BIKE.crankR/2;arm.castShadow=true;crank.add(arm);
-  const pedal=new THREE.Mesh(pedalGeometry,dark);pedal.position.y=PLAYER_BIKE.crankR;pedal.castShadow=true;crank.add(pedal);cranks.push(crank);pedals.push(pedal);
+  const sign=side?1:-1,crank=new THREE.Group();crank.position.set(sign*anchors.pedalX,anchors.crankY,anchors.crankZ);root.add(crank);
+  const arm=new THREE.Mesh(crankGeometry,metal);arm.position.y=anchors.crankR/2;arm.castShadow=true;crank.add(arm);
+  const pedal=new THREE.Mesh(pedalGeometry,dark);pedal.position.y=anchors.crankR;pedal.castShadow=true;crank.add(pedal);cranks.push(crank);pedals.push(pedal);
  }
- const axle=new THREE.Mesh(new THREE.CylinderGeometry(.027,.027,PLAYER_BIKE.pedalX*2,8).rotateZ(Math.PI/2),metal);axle.position.set(0,PLAYER_BIKE.crankY,PLAYER_BIKE.crankZ);root.add(axle);
+ const axle=new THREE.Mesh(new THREE.CylinderGeometry(.027,.027,anchors.pedalX*2,8).rotateZ(Math.PI/2),metal);axle.position.set(0,anchors.crankY,anchors.crankZ);root.add(axle);
  return {wheels,cranks,pedals,update(distance=0){
-  const phase=distance*PLAYER_BIKE.crankPerMetre;
+  const phase=distance*anchors.crankPerMetre;
   for(const wheel of wheels)wheel.rotation.x=-distance/.352;
   for(let side=0;side<2;side++){const angle=phase+(side?Math.PI:0);cranks[side].rotation.x=angle;pedals[side].rotation.x=-angle;}
  }};
+}
+
+// The same city-bike frame, rental accent and attached parts remain visible
+// after a parked or NPC ride is taken over. Only owned rides need these meshes.
+export function createRideVehicle(visual={},mode='bike'){
+ const kind=visual.kind||(mode==='scooter'?'scooter':'bicycle'),color=visual.color??visual.accent??(mode==='scooter'?'#399d91':'#edb844');
+ const geometry=kind==='scooter'?scooterGeometry():kind==='citybike'?cityBikeGeometry({animated:true}):bicycleGeometry({animated:true});
+ const paint=geometry.getAttribute('paint'),colors=geometry.getAttribute('color'),tint=new THREE.Color(color);
+ for(let i=0;i<paint.count;i++)if(paint.getX(i)>0)colors.setXYZ(i,tint.r,tint.g,tint.b);
+ const root=new THREE.Group();root.name=`Player ${kind}`;root.rotation.order='YXZ';root.userData={kind,color};
+ const frame=new THREE.Mesh(geometry,new THREE.MeshStandardMaterial({vertexColors:true,roughness:.55,metalness:.25}));frame.castShadow=true;root.add(frame);
+ for(const part of visual.parts||[]){const mesh=new THREE.Mesh(part.geometry.clone(),part.material.clone());mesh.castShadow=true;root.add(mesh);}
+ const anchors=kind==='citybike'?PLAYER_CITY_BIKE:PLAYER_BIKE,motion=mode==='bike'?addBicycleMotion(root,anchors):null;
+ const geometries=new Set(),materials=new Set();root.traverse(o=>{if(o.geometry)geometries.add(o.geometry);if(o.material)materials.add(o.material);});
+ return {root,frame,anchors,motion,lift:visual.lift??.12,dispose(){for(const g of geometries)g.dispose();for(const m of materials)m.dispose();root.removeFromParent();}};
 }

@@ -14,12 +14,18 @@ export class Cyclists{
  constructor(data,count=8){
   this.path=prepareGraph({nodes:[HARBOUR_CYCLE_PATH[0],HARBOUR_CYCLE_PATH.at(-1)],edges:[{from:0,to:1,points:HARBOUR_CYCLE_PATH,lane:0}]}).edges[0];
   this.surfaces=new SpatialIndex(data.pavement.filter(p=>[41192,42153].includes(surfaceId(p))));
-  this.riders=Array.from({length:count},(_,id)=>({id,s:22+id*(this.path.length-44)/count,direction:id%2?1:-1,speed:0,cruise:3.7+id%3*.45,phase:id,wait:0}));
+  this.riders=Array.from({length:count},(_,id)=>({id,travelMode:'bike',halfWidth:.34,halfLength:.9,s:22+id*(this.path.length-44)/count,direction:id%2?1:-1,speed:0,cruise:3.7+id%3*.45,phase:id,wait:0}));
   this.step(0,{x:-1e6,z:-1e6});
+  this.rideSources=this.riders.map(actor=>({id:`cyclist-bike:${actor.id}`,mode:'bike',label:'Bicycle',actor,visual:{kind:'bicycle',color:'#caa72b',lift:.1},
+   canClaim:()=>!actor.playerTaken&&!actor.knockdown&&Number.isFinite(actor.x)&&Number.isFinite(actor.z)&&Math.abs(actor.speed)<=1.2,
+   claim(){if(!this.canClaim())return false;actor.playerTaken=true;actor.speed=0;return true;},
+   release(){if(!actor.playerTaken)return false;delete actor.playerTaken;actor.speed=0;return true;},
+  }));
  }
  point(r,s=r.s){const p=routePoint(this.path,s,.16*r.direction);if(r.direction<0)p.heading+=Math.PI;return p;}
  step(dt,player){
   for(const r of this.riders){
+   if(r.playerTaken){r.speed=0;continue;}
    if(r.knockdown){r.speed=0;continue;}
    if(r.wait>0){r.wait=Math.max(0,r.wait-dt);r.speed=0;continue;}
    const p=this.point(r),ahead=this.point(r,Math.max(0,Math.min(this.path.length,r.s+r.direction*4)));
@@ -31,7 +37,7 @@ export class Cyclists{
    if(r.s<=1||r.s>=this.path.length-1){r.direction*=-1;r.wait=1.2;}
   }
  }
- snapshot(){return this.riders.map(({id,x,z,heading,speed})=>({id,x,z,heading,speed,onCycleway:!!this.surfaces.at(x,z)}));}
+ snapshot(){return this.riders.filter(r=>!r.playerTaken).map(({id,x,z,heading,speed})=>({id,x,z,heading,speed,onCycleway:!!this.surfaces.at(x,z)}));}
 }
 
 export function createCyclistRenderer(scene,sim){
@@ -54,10 +60,10 @@ export function createCyclistRenderer(scene,sim){
  const looks=sim.riders.map(r=>personLook(9001+r.id*17,{height:1.72+r.id%4*.04,coat:0,skirt:false,bagType:r.id%3===0?'backpack':null,hairStyle:r.id%4===3?'short':'beanie',hat:['#e8e6df','#2a2d33','#c23b33','#3a5a6a'][r.id%4]}));
  const actors=sim.riders.map(()=>({x:0,z:0,heading:0,speed:0,pose:'cycle',groundY:.10,bike:{hipY:1.06,hipZ:.2,crankY:.36,crankZ:.08,crankR:.17,crank:0,barX:.25,barY:1.17,barZ:-.44}}));
  return {group,update(player){
-  sim.riders.forEach((r,i)=>{for(const {mesh,pose} of specs){const [x,y,z,rx]=pose(r),c=Math.cos(r.heading),s=Math.sin(r.heading);tmp.position.set(r.x+x*c+z*s,y+.10+groundAt(r.x,r.z),r.z-x*s+z*c);tmp.rotation.set(rx,r.heading,0,'YXZ');tmp.scale.setScalar(Math.hypot(r.x-player.x,r.z-player.z)<420?1:0);tmp.updateMatrix();mesh.setMatrixAt(i,tmp.matrix);if(r.knockdown)applyImpactPose(mesh,i,r);}});
+  sim.riders.forEach((r,i)=>{for(const {mesh,pose} of specs){const [x,y,z,rx]=pose(r),c=Math.cos(r.heading),s=Math.sin(r.heading);tmp.position.set(r.x+x*c+z*s,y+.10+groundAt(r.x,r.z),r.z-x*s+z*c);tmp.rotation.set(rx,r.heading,0,'YXZ');tmp.scale.setScalar(!r.playerTaken&&Math.hypot(r.x-player.x,r.z-player.z)<420?1:0);tmp.updateMatrix();mesh.setMatrixAt(i,tmp.matrix);if(r.knockdown&&!r.playerTaken)applyImpactPose(mesh,i,r);}});
   specs.forEach(({mesh})=>mesh.instanceMatrix.needsUpdate=true);
   riders.begin();
-  sim.riders.forEach((r,i)=>{if(Math.hypot(r.x-player.x,r.z-player.z)>=420)return;const a=actors[i];a.x=r.x;a.z=r.z;a.heading=r.heading;a.speed=r.speed;a.knockdown=r.knockdown;a.bike.crank=r.phase*.42;riders.draw(a,looks[i],a);});
+  sim.riders.forEach((r,i)=>{if(r.playerTaken||Math.hypot(r.x-player.x,r.z-player.z)>=420)return;const a=actors[i];a.x=r.x;a.z=r.z;a.heading=r.heading;a.speed=r.speed;a.knockdown=r.knockdown;a.bike.crank=r.phase*.42;riders.draw(a,looks[i],a);});
   riders.end();
  }};
 }

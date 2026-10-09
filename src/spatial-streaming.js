@@ -11,11 +11,12 @@ export function streamingAhead(p,seconds=12){
 export function createSpatialStreamer({load,keyOf=r=>r.id??r.file,boundsOf=r=>r.bbox,concurrency=3,retryDelay=1000,maxAttempts=3,onError=null,now=()=>performance.now(),setTimer=setTimeout,clearTimer=clearTimeout}={}){
  if(typeof load!=='function')throw Error('A spatial streamer needs a load function');
  if(!Number.isInteger(concurrency)||concurrency<1)throw Error('Streaming concurrency must be a positive integer');
- const jobs=new Map();let active=0,timer=null,disposed=false,view=null,range=0,ahead=null;
+ const jobs=new Map(),controller=new AbortController();let active=0,timer=null,disposed=false,view=null,range=0,ahead=null;
  const priority=job=>Math.min(distanceToBounds(boundsOf(job.record),view),ahead?distanceToBounds(boundsOf(job.record),ahead):Infinity);
  const wanted=job=>job.waiters.length>0||job.near;
  const urgent=job=>job.waiters.some(w=>!w.background);
  function wake(){
+  if(disposed)return;
   if(timer!==null){clearTimer(timer);timer=null;}
   if(active>=concurrency)return;
   const retry=[...jobs.values()].filter(j=>wanted(j)&&j.status==='error'&&j.waiters.length&&j.attempts<maxAttempts).map(j=>j.retryAt);
@@ -27,10 +28,12 @@ export function createSpatialStreamer({load,keyOf=r=>r.id??r.file,boundsOf=r=>r.
    const next=[...jobs.values()].filter(j=>wanted(j)&&(j.status==='idle'||j.status==='error'&&j.retryAt<=now())).sort((a,b)=>(urgent(a)?0:1)-(urgent(b)?0:1)||a.priority-b.priority||a.order-b.order)[0];
    if(!next)break;
    next.status='loading';next.attempts++;active++;
-   Promise.resolve().then(()=>load(next.record)).then(value=>{
+   Promise.resolve().then(()=>{if(disposed)throw controller.signal.reason;return load(next.record,{signal:controller.signal});}).then(value=>{
+    if(disposed)return;
     next.status='ready';next.value=value;next.error=null;
     for(const w of next.waiters.splice(0))w.resolve(value);
    }).catch(error=>{
+    if(disposed)return;
     next.status='error';next.error=error;next.retryAt=now()+Math.max(1,Math.min(30000,retryDelay*2**(next.attempts-1)));
     if(next.attempts>=maxAttempts)for(const w of next.waiters.splice(0))w.reject(error);
     onError?.(error,next.record);
@@ -52,7 +55,7 @@ export function createSpatialStreamer({load,keyOf=r=>r.id??r.file,boundsOf=r=>r.
   pump();
  }
  function requireKeys(keys,{background=false}={}){
-  if(disposed)return Promise.reject(Error('The streamer was disposed'));
+  if(disposed)return Promise.reject(controller.signal.reason);
   const requests=keys.map(key=>{const job=jobs.get(key);if(!job)throw Error(`Unknown streamed record: ${key}`);
    if(job.status==='ready')return Promise.resolve(job.value);
    if(job.status==='error'&&job.attempts>=maxAttempts){job.attempts=0;job.retryAt=now();}
@@ -65,7 +68,7 @@ export function createSpatialStreamer({load,keyOf=r=>r.id??r.file,boundsOf=r=>r.
   get(key){return jobs.get(key)?.value;},
   state(key){return jobs.get(key)?.status??null;},
   snapshot(){const counts={total:jobs.size,ready:0,loading:0,queued:0,failed:0};for(const j of jobs.values()){if(j.status==='ready')counts.ready++;else if(j.status==='loading')counts.loading++;else if(j.status==='error')counts.failed++;else if(wanted(j))counts.queued++;}return counts;},
-  dispose(){disposed=true;if(timer!==null)clearTimer(timer);timer=null;for(const j of jobs.values())for(const w of j.waiters.splice(0))w.reject(Error('The streamer was disposed'));},
+  dispose(){disposed=true;controller.abort(Error('The streamer was disposed'));if(timer!==null)clearTimer(timer);timer=null;for(const j of jobs.values()){j.near=false;if(j.status==='loading')j.status='cancelled';for(const w of j.waiters.splice(0))w.reject(controller.signal.reason);}},
  };
  return api;
 }

@@ -9,9 +9,22 @@ import {SpatialIndex,pointInPolygon} from '../src/geo.js';
 import {makeCar,carSamples,driveStep} from '../src/physics.js';
 import {drivingCameraPose} from '../src/driving-camera.js';
 import {trafficFootprintsOverlap} from '../src/road-safety.js';
+import {WorldObjects} from '../src/world-objects.js';
+import {TERMINAL_POSTS} from '../src/terminal-details.js';
 
 const city=JSON.parse(gunzipSync(readFileSync('public/data/city.pack')));
 const harbour=createHarbour(city);
+test('the complete terminal destination board and outer supports stop a car',()=>{
+ const p=TERMINAL_POSTS.find(p=>p.kind==='destination'),board=harbour.obstacles.find(p=>p.id==='terminal-destination-sign');
+ assert.ok(board,'rendered destination board has a solid footprint');
+ const objects=new WorldObjects([board]),world={buildings:new SpatialIndex([]),roads:{at:()=>({})},pavement:{at:()=>({})},water:[],objects};
+ for(const side of [-1.3,0,1.3]){
+  const car=makeCar(p.x+side*Math.cos(p.yaw)+8*Math.sin(p.yaw),p.z-side*Math.sin(p.yaw)+8*Math.cos(p.yaw),p.yaw);car.speed=18;
+  let collision=null;for(let i=0;i<120&&!collision;i++)collision=driveStep(car,new Set(['KeyW']),1/60,world).collision;
+  assert.equal(collision,'building',`board blocks the centre and outer supports (${side})`);
+  assert.equal(car.speed,0);assert.equal(objects.overlap(car),null,'car stops outside the board');
+ }
+});
 test('harbour parked fleet keeps claimable actor identity and removes exactly the taken vehicle',()=>{
  const source=harbour.enterableCars[0],fleet=harbour.group.getObjectByName('Instanced traffic fleet'),batch=fleet.children.find(m=>m.userData.type===source.visual.type&&!m.userData.lod),before=batch.count;
  assert.ok(harbour.enterableCars.length>=200);assert.ok(harbour.obstacles.includes(source.obstacle));assert.match(source.visual.paint,/^#[a-f0-9]{6}$/i);

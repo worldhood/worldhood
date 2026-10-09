@@ -28,7 +28,7 @@ test('every stall kind has 3–5 priced items with a held model and a use',()=>{
   assert.ok(kind.items.length>=3&&kind.items.length<=5,kind.id);
   for(const it of kind.items){
    assert.ok(Number.isInteger(it.price)&&it.price>0&&it.price<=WALLET_START,it.id);
-   assert.match(it.carry,/^(cup|bag|cone|bouquet|bowl|tray|parcel)$/);assert.match(it.use,/^(eat|drink|keep)$/);
+   assert.match(it.carry,/^(cup|bag|cone|icecream|bouquet|bowl|tray|parcel)$/);assert.match(it.use,/^(eat|drink|keep)$/);
    assert.ok(it.toast.includes(formatEuro(it.price)),`${it.id} toast names its price`);
   }
  }

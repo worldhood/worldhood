@@ -3,9 +3,9 @@ contact_links:
   - name: Chat on Discord
     url: https://discord.gg/tajQMEYxe9
     about: Live chat, share drives and screenshots, find people building your city.
-  - name: Questions and ideas discussion
-    url: https://github.com/worldhood/worldhood/discussions
-    about: Ask anything, share drives and screenshots, or discuss an idea before opening an issue.
+  - name: Existing questions and ideas
+    url: https://github.com/worldhood/worldhood/issues
+    about: Browse existing conversations, report a bug or suggest an idea.
   - name: Wishlist (things to build)
     url: https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3Aidea
     about: Pick an existing idea before proposing a new one.

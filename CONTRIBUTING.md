@@ -99,9 +99,11 @@ description and it re-runs by itself.
 - **No duplicates:** source feature IDs de-duplicate against areas already in the map. Never
   hand-edit another area's files.
 - **Credit sources:** add new sources to the area's provenance and, if new, to `NOTICE.md`.
-- **Street-level imagery:** look at Google Street View only in Google's own viewer, and write
-  observations in your own words. Never scrape, screenshot, store or feed it to tools. Use Mapillary
-  or your own photos for anything processed. See [EXTENDING.md](docs/EXTENDING.md#5-look-at-the-real-place-using-openstreetmap-and-street-level-imagery-wisely).
+- **Street-level imagery:** use your own on-site observations and photos, or references whose
+  licence and terms permit the intended notes, measurements, processing and redistribution.
+  Preserve attribution and applicable share-alike obligations. Do not derive project data from
+  Google Street View without permission covering that use; rewording observations does not
+  establish permission. See [EXTENDING.md](docs/EXTENDING.md#street-level-imagery).
 
 ## Area status
 

@@ -71,6 +71,18 @@ test('obstacles passed in (and furniture to avoid) move a row elsewhere or omit 
  assert.ok(!moved.clusters.length||moved.clusters[0].scooters.every(p=>avoid.every(a=>Math.hypot(a.x-p.x,a.z-p.z)>.9)));
 });
 
+test('nearby long dock rows retain their clearance across spatial cells',()=>{
+ const plaza={roads:[],buildings:[],pavement:[{kind:'Jalkakäytävä',rings:[[[-80,-80],[80,-80],[80,80],[-80,80]]]}]};
+ const routes={roads:{edges:[{points:[[-80,-40],[80,-40]]}]},walks:{edges:[]}};
+ const stations=['first','second'].map(id=>({id,name:id,x:15.8,z:15.8,capacity:48}));
+ const result=planParkedMicromobility(plaza,routes,null,{stations,spots:[]});
+ assert.deepEqual(result.omitted,[]);assert.equal(result.stations.length,2);
+ const [first,second]=result.stations,a=first.docks[0],b=first.docks.at(-1);
+ assert.equal(first.docks.length,48);assert.equal(second.docks.length,48);
+ assert.ok(Math.hypot(b.x-a.x,b.z-a.z)>32,'the first row spans several index cells');
+ for(const dock of second.docks)assert.ok(segmentDistance(dock.x,dock.z,[a.x,a.z],[b.x,b.z])>=2.9,'the next station stays outside the full row clearance');
+});
+
 test('geometry is cheap and the material mixes the operator colour through the paint mask',()=>{
  for(const [g,limit] of [[scooterGeometry(),400],[cityBikeGeometry(),1400]]){assert.ok(g.attributes.position.count/3<limit,`${g.attributes.position.count/3} triangles`);assert.ok(g.attributes.paint&&g.attributes.color&&g.attributes.normal);}
  const paint=[...scooterGeometry().attributes.paint.array];assert.ok(paint.includes(1)&&paint.includes(0));

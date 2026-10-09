@@ -27,6 +27,7 @@ function patchShader(shader,texture,refs){
 export function createBreakableSigns(name='Breakable signs',{register=true}={}){
  const group=new THREE.Group();group.name=name;
  const posts=[],attached=[],materials=new Map(),uniforms=[],pending=new Map();
+ group.worldObjects=posts;
  let texture=null,data=null,stumps=null,dirty=true,hits=0;
  const m4=new THREE.Matrix4(),t1=new THREE.Matrix4(),v1=new THREE.Vector3(),v2=new THREE.Vector3(),q1=new THREE.Quaternion(),q2=new THREE.Quaternion(),box=new THREE.Box3();
 
@@ -34,7 +35,7 @@ export function createBreakableSigns(name='Breakable signs',{register=true}={}){
  // (same as world unless the caller's group is offset). yaw is the plate's facing (+Z rotated by yaw).
  function post({id,x,z,y=0,pivot=[x,y,z],yaw=0,height=3.3,radius=.05,strength=1}){
   const i=posts.length,p=new THREE.Vector3(...pivot);
-  posts.push({id:id??i,index:i,x,z,pivot:p,yaw,height,radius,strength,com:new THREE.Vector3(0,height*.6,0),box:new THREE.Box3(new THREE.Vector3(p.x-radius,p.y,p.z-radius),new THREE.Vector3(p.x+radius,p.y+height,p.z+radius)),corners:null,
+  posts.push({id:id??i,index:i,x,z,collisionMode:'breakable',pivot:p,yaw,height,radius,strength,com:new THREE.Vector3(0,height*.6,0),box:new THREE.Box3(new THREE.Vector3(p.x-radius,p.y,p.z-radius),new THREE.Vector3(p.x+radius,p.y+height,p.z+radius)),corners:null,
    state:'upright',q:new THREE.Quaternion(),c:new THREE.Vector3(),v:new THREE.Vector3(),w:new THREE.Vector3(),axis:new THREE.Vector3(1,0,0),theta:0,rate:0,target:0,
    touching:false,knocked:false,settled:true,restTime:0,qRest:null,rand:randomFor(i+1)});
   restPose(posts[i]);dirty=true;return i;

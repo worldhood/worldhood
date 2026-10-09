@@ -127,31 +127,30 @@ Data sources in order of preference:
 
 ### Street-level imagery
 
-| Source | Can you look at it? | Can you save, trace or feed images to tools? |
-| --- | --- | --- |
-| **Mapillary** (CC BY-SA 4.0) | Yes | Yes, with attribution and share-alike |
-| **Your own photos** | Yes | Yes, since you hold the rights (add them under an open licence) |
-| **Google Street View** | Yes, in Google's own viewer | **No.** Google's terms forbid downloading, scraping, caching, and creating content or map data from it. That includes "scraper" services and screenshots fed to models. |
+| Source | Project use |
+| --- | --- |
+| **Your own photos and on-site observations** | Use material you have the rights to contribute; publish contributed photos under an explicit open licence. |
+| **Mapillary imagery** | Check the image licence and service terms; retain image IDs, photographer credit and applicable share-alike obligations. The imagery licence does not establish the licence of extracted Mapillary map features; see [NOTICE.md](../NOTICE.md). |
+| **Other openly licensed photos** | Check each photo's licence and the provider's terms for the intended use, including processing, measurement and redistribution. |
+| **Google Street View** | Viewing it on Google's service does not grant permission to create project assets or map data from it. Do not use it for this project's measurements, tracing, extracted features, screenshots or model input without permission covering that use. |
 
-How to use Google Street View safely:
-- **Look, don't take.** Open it from the links the tool prints, look at the place, then write what
-  you saw *in your own words*. Notes are facts ("three lanes northbound, two tram tracks,
-  green-framed shelter on the east side"), not copies.
-- **Nothing from Google goes into the repo or a model.** No screenshots, panorama IDs, extracted
-  colours or traced outlines.
-- **Prefer open imagery** whenever a tool needs to process images: Mapillary or your own photos.
+Use your own observations or appropriately licensed references for `reference-notes.json` and
+asset construction. Rewriting an observation in your own words does not establish permission to
+derive project data from a restricted source. Google's
+[Geo Guidelines](https://about.google/brand-resource-center/products-and-services/geo-guidelines/)
+restrict creating data from Street View imagery, as well as screenshots and extraction tools.
 
-**Notes from open photos (fastest):** download current open photos of a place, look at them, and
-write what they show as short checkable facts in `reference-notes.json`, crediting each photo ID and
-photographer (Mapillary is CC BY-SA 4.0):
+**Notes from permitted photos:** download photos whose licence and terms cover your use, then
+write short, checkable observations in `reference-notes.json`. Record each photo's source, ID,
+photographer and licence:
 
 ```sh
 npm run photos:fetch -- <city> <place>   # Wikimedia Commons, Mapillary, Panoramax → data/raw/photos/ (never committed)
 npm run facades:photos -- <city>          # street-level photos matched to the buildings along a street
 ```
 
-Where open coverage is missing, upload your own phone or 360° drive to Mapillary, or write notes by
-hand.
+Where permitted coverage is missing, take your own photos or make on-site observations. You can
+also contribute your own phone or 360° photos to Mapillary under its contribution terms.
 
 **Manual notes:** generate the links and a notes file:
 
@@ -160,12 +159,13 @@ npm run area:links -- <id>
 ```
 
 For each checkpoint this prints a Street View link and a Mapillary link at the same spot and
-heading as the game. It also creates `extensions/<id>/reference-notes.json`:
+heading as the game. Those links do not grant reuse permission. Fill the generated
+`extensions/<id>/reference-notes.json` using your own on-site observations or permitted references:
 
 ```json
 {
  "Parliament House": {
-  "source": "Own observation in Google Street View viewer (Aug 2024 imagery); Mapillary image 123…",
+  "source": "Own on-site observations and own photos, taken 2026-10-09",
   "observedOn": "2026-10-09",
   "observations": [
    "Grey granite façade with 14 tall columns facing Mannerheimintie",

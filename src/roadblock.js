@@ -41,7 +41,7 @@ export function createRoadblock(scene,{world,police,carModel,playerLook=null,gra
  let pursuit=false,phase='idle',attempts=0,nextAttempt=0,pending=null,warningAt=null,lastReason=null;
  group.visible=false;
  function clearStrip(){
-  for(const mesh of [...stripGroup.children]){stripGroup.remove(mesh);mesh.geometry?.dispose();mesh.material?.dispose();}
+  for(const mesh of [...stripGroup.children]){stripGroup.remove(mesh);mesh.dispose?.();mesh.geometry?.dispose();mesh.material?.dispose();}
  }
  // Yellow/black segments and metal spikes follow the actual ground height.
  function buildStrip(){

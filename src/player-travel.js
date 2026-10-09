@@ -32,21 +32,36 @@ function bodyContains(body,x,z,margin=.3){
  const c=Math.cos(body.heading||0),s=Math.sin(body.heading||0),dx=x-body.x,dz=z-body.z,{hw,hl}=bodySize(body);
  return Math.abs(dx*c-dz*s)<hw+margin&&Math.abs(dx*s+dz*c)<hl+margin;
 }
-export function travelCollision(p,mode,world,obstacles=[]){
+export function travelCollision(p,mode,world,obstacles=[],ignore=[],from=null){
  const spec=TRAVEL_MODES[mode],w=spec.halfWidth,l=spec.halfLength;
+ const buildings=world.collisionBuildings||world.buildings;
  for(const [sx,sz] of [[0,0],[-w,-l],[w,-l],[-w,l],[w,l],[0,-l],[0,l]]){
   const q=offset(p,sx,sz);
   if(!insidePlayable(q.x,q.z,.2))return 'boundary';
-  if(world.buildings.at(q.x,q.z))return 'building';
+  const building=ignore.length&&buildings.near?buildings.near(q.x,q.z).find(b=>!b.disabled&&!ignore.includes(b)&&pointInPolygon(q.x,q.z,b.rings)):buildings.at(q.x,q.z);
+  if(building&&!ignore.includes(building))return 'building';
   if(!world.roads.at(q.x,q.z)&&!world.pavement?.at(q.x,q.z)&&world.water?.some(b=>pointInPolygon(q.x,q.z,b.rings)))return 'water';
  }
- if(obstacles.some(b=>b!==p&&b.edge!==null&&bodyContains(b,p.x,p.z,spec.halfWidth)))return 'vehicle';
+ const dimensions={halfWidth:w,halfLength:l,ignore};
+ if(from&&world.objects?.blocksStep?world.objects.blocksStep(from,p,dimensions):world.objects?.overlap(p,dimensions))return 'building';
+ if(obstacles.some(b=>b!==p&&!b.disabled&&!b.playerTaken&&b.edge!==null&&!ignore.includes(b)&&bodyContains(b,p.x,p.z,spec.halfWidth)))return 'vehicle';
  return null;
 }
-export function clearTravelPath(from,to,world,obstacles=[]){
+export function clearTravelPath(from,to,world,obstacles=[],ignore=[]){
  const n=Math.max(1,Math.ceil(gap(from,to)/.25));
- for(let i=1;i<=n;i++)if(travelCollision({...from,x:from.x+(to.x-from.x)*i/n,z:from.z+(to.z-from.z)*i/n},'walk',world,obstacles))return false;
+ let previous=from;
+ for(let i=1;i<=n;i++){const next={...from,x:from.x+(to.x-from.x)*i/n,z:from.z+(to.z-from.z)*i/n};if(travelCollision(next,'walk',world,obstacles,ignore,previous))return false;previous=next;}
  return true;
+}
+// A dock can surround the front wheel. Roll the ride a short way onto clear
+// ground before mounting, without removing the dock or crossing a solid wall.
+export function mountPosition(ride,mode,world,obstacles=[],ignore=[]){
+ if(!travelCollision(ride,mode,world,obstacles,ignore))return {x:ride.x,z:ride.z,heading:ride.heading};
+ for(const [x,z] of [[0,.3],[0,.6],[0,.9],[0,1.2],[-.6,0],[.6,0],[-1.1,0],[1.1,0],[0,-.6],[0,-1.1]]){
+  const p=offset(ride,x,z);
+  if(!travelCollision(p,mode,world,obstacles,ignore)&&clearTravelPath(ride,p,world,obstacles,ignore))return {...p,heading:p.heading+(z>0?Math.PI:0)};
+ }
+ return null;
 }
 export function exitPosition(p,mode,world,obstacles=[]){
  const car=mode==='car',side=car?1.7:.9,end=car?3:1.5;
@@ -77,7 +92,7 @@ export function starterRides(car,world){
 }
 
 export class PlayerTravel{
- constructor(car,world,{cars=()=>[],obstacles=()=>[]}={}){this.carSources=cars;this.obstacles=obstacles;this.reset(car,world);}
+ constructor(car,world,{cars=()=>[],rides=()=>[],obstacles=()=>[]}={}){this.carSources=cars;this.rideSources=rides;this.obstacles=obstacles;this.reset(car,world);}
  reset(car,world){
   for(const source of this.claimedSources||[])source.release?.();
   this.claimedSources=[];this.world=world;this.car=car;this.homeCar=car;car.travelMode='car';car.id='car';this.cars=[car];this.actor=car;this.mode='car';this.rides=starterRides(car,world);this.riding=null;this.transition=null;this.sprint=false;
@@ -85,15 +100,16 @@ export class PlayerTravel{
  parked(){return [...this.cars.filter(c=>c!==this.actor),...this.rides.filter(r=>r!==this.riding)];}
  parkedBodies(){return this.parked().map(p=>({...p,hw:p.halfWidth??.98,hl:p.halfLength??2.36,ref:{...p,parked:true}}));}
  choices(obstacles=this.obstacles()){
-  const sources=this.carSources().filter(s=>!s.actor.playerTaken&&s.actor.edge!==null&&gap(this.actor,s.actor)<14),parked=this.parked();
-  const entries=[...this.cars.map(actor=>({id:actor.id,mode:'car',actor,label:actor.label||'Car'})),...this.rides.map(actor=>({id:actor.id,mode:actor.mode,actor,label:TRAVEL_MODES[actor.mode].label})),...sources.map(source=>({id:source.id,mode:'car',actor:source.actor,label:source.label||'Car',source}))];
+  const sources=[...this.carSources().map(s=>({source:s,mode:'car'})),...this.rideSources().filter(s=>s.mode==='bike'||s.mode==='scooter').map(source=>({source,mode:source.mode}))].filter(({source:s})=>s.actor&&!s.actor.playerTaken&&s.actor.edge!==null&&gap(this.actor,s.actor)<14),parked=this.parked();
+  const entries=[...this.cars.map(actor=>({id:actor.id,mode:'car',actor,label:actor.label||'Car'})),...this.rides.map(actor=>({id:actor.id,mode:actor.mode,actor,label:actor.label||TRAVEL_MODES[actor.mode].label})),...sources.map(({source,mode})=>({id:source.id,mode,actor:source.actor,label:source.label||(mode==='car'?'Car':TRAVEL_MODES[mode].label),source}))];
   return entries.map(r=>{
    const distance=gap(this.actor,r.actor),near=r.mode==='car'?bodyContains(r.actor,this.actor.x,this.actor.z,1.4):distance<3;
-   // The target car's own collider is ignored only for reaching its door;
+   // The target vehicle's own collider is ignored only for reaching it;
    // real buildings and intervening vehicles still prevent entry.
-   const buildings=r.source?.obstacle?{at:(x,z)=>this.world.buildings.near(x,z).find(b=>!b.disabled&&b!==r.source.obstacle&&pointInPolygon(x,z,b.rings))}:this.world.buildings;
-   const path=near&&clearTravelPath(this.actor,r.actor,{...this.world,buildings},[...parked,...obstacles].filter(b=>b!==r.actor));
-   return {...r,distance,available:this.mode==='walk'&&near&&Math.abs(r.actor.speed||0)<=1.2&&path};
+   const ignore=r.source?.obstacle?[r.source.obstacle]:[],bodies=[...parked,...obstacles].filter(b=>b!==r.actor),stopped=Math.abs(r.actor.speed||0)<=1.2;
+   const path=this.mode==='walk'&&near&&stopped&&r.source?.canClaim?.()!==false&&clearTravelPath(this.actor,r.actor,this.world,bodies,ignore);
+   const mount=path&&r.mode!=='car'?mountPosition(r.actor,r.mode,this.world,bodies,ignore):null;
+   return {...r,distance,mount,available:!!path&&(r.mode==='car'||!!mount)};
   });
  }
  nearest(obstacles=this.obstacles()){return this.choices(obstacles).filter(c=>c.available).sort((a,b)=>a.distance-b.distance)[0]||null;}
@@ -110,11 +126,13 @@ export class PlayerTravel{
   if(!choice)return {ok:false,message:'Move beside a stopped car, bicycle or scooter.'};
   let target=choice.actor;
   if(choice.source){
-   const taken=choice.source.claim?.();if(taken===false)return {ok:false,message:'Wait for the car to stop.'};
-   target={...makeCar(target.x,target.z,target.heading),id:choice.id,label:choice.label,travelMode:'car',visual:choice.source.visual};
-   this.cars.push(target);this.claimedSources.push(choice.source);
+   const taken=choice.source.claim?.();if(taken===false)return {ok:false,message:'Wait for the ride to stop.'};
+   target=choice.mode==='car'?{...makeCar(target.x,target.z,target.heading),travelMode:'car'}:{...makeActor(choice.mount,choice.mode),mode:choice.mode,parked:false};
+   Object.assign(target,{id:choice.id,label:choice.label,visual:choice.source.visual});
+   (choice.mode==='car'?this.cars:this.rides).push(target);this.claimedSources.push(choice.source);
+  }else if(choice.mount){
+   Object.assign(target,choice.mount);
   }
-  if(choice.mode!=='car'&&travelCollision(target,choice.mode,this.world,obstacles))return {ok:false,message:'Wait for the path to clear.'};
   const from={...this.actor};target.distance=this.actor.distance;target.speed=0;target.steer=0;this.actor=target;this.mode=choice.mode;if(choice.mode==='car')this.car=target;this.startTransition(from);
   this.riding=choice.mode==='car'?null:target;if(this.riding){this.riding.parked=false;delete this.riding.fallen;}
   return {ok:true,message:choice.label};
@@ -167,7 +185,7 @@ export class PlayerTravel{
   const travel=p.speed*dt,n=Math.max(1,Math.ceil(Math.abs(travel)/.15),Math.ceil(Math.abs(turn)/.08));let collision=null;
   for(let i=0;i<n;i++){
    const heading=p.heading+turn/n,q={...p,heading,x:p.x-Math.sin(heading)*travel/n,z:p.z-Math.cos(heading)*travel/n};
-   collision=travelCollision(q,this.mode,this.world,[...this.parked(),...obstacles]);
+   collision=travelCollision(q,this.mode,this.world,[...this.parked(),...obstacles],[],p);
    if(collision){p.speed=0;break;}
    p.distance+=gap(p,q);Object.assign(p,{x:q.x,z:q.z,heading:q.heading});
   }

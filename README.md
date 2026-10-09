@@ -36,7 +36,8 @@ Use Node.js 22 or newer. Open the URL Vite prints in a modern browser with WebGL
 | F | Get out of the car / get off a ride |
 | Enter | Enter a nearby stopped car / mount a bicycle or scooter |
 | Shift (hold) | Run while on foot |
-| G | Greet a nearby person / end a conversation |
+| G | Talk to a nearby person or market seller / end a conversation |
+| E (near a stall) | Open its menu, or use the item in your hand |
 | R | Back to your starting point |
 | M | City map and starting points |
 | C | Drive / Follow / High camera |
@@ -48,6 +49,10 @@ Use Node.js 22 or newer. Open the URL Vite prints in a modern browser with WebGL
 On a phone, slide the steering control and hold **Go**; **Brake** slows down, then reverses.
 **Menu** contains the map, camera, weather, sound and steering choices. Small context buttons
 let you get out, run, use a nearby ride or greet someone.
+
+Conversations offer follow-up choices and remember the current visit. At market stalls, ask the
+seller about their goods or open the menu. Enable sound for installed browser voices; captions
+work even when a voice is unavailable. These are fictional game characters with authored dialogue.
 
 ```sh
 npm test          # unit tests
@@ -171,7 +176,7 @@ This is a community project, and contributions of every size are welcome.
   video (before/after if you can); drag and drop it into the description. Docs-only changes
   don't need one. See [Show your change](CONTRIBUTING.md#show-your-change).
 - **Talk:** [Discord](https://discord.gg/tajQMEYxe9) for live chat and sharing drives, and
-  [Discussions](https://github.com/worldhood/worldhood/discussions) for questions and ideas that should stay searchable.
+  [GitHub issues](https://github.com/worldhood/worldhood/issues) for questions and ideas that should stay searchable.
 
 Guides:
 - [docs/RECOGNISABILITY.md](docs/RECOGNISABILITY.md): what makes a city recognisable, learned from Helsinki.

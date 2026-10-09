@@ -20,6 +20,7 @@ export const BIRD_KINDS={
  sparrow:{scale:.22,speed:6,flap:11,amp:.9,walk:.3,view:70,ground:.06,shy:3},
 };
 export const SPECIES=Object.keys(BIRD_KINDS);
+export const GULL_ENCOUNTER={range:55,limit:12,leash:90,speed:8,spacing:1.1,stagger:.17};
 // Body, head, wing, wing tip, beak, legs, tail.
 const PALETTES={
  gull:['#f1f1ec','#f4f4ef','#a7b0b8','#1c1c1f','#e3bd35','#d6a196','#f1f1ec'],
@@ -171,12 +172,133 @@ export function createBirdLife(plan,{seed=11}={}){
   b.outer=amp*.55*Math.sin(b.phase-.7)+b.glide*(b.kind==='gull'?-.32:-.05);
   if(b.kind==='sparrow'&&b.glide>.5)b.fold=.75; // bounding flight: wings tucked between bursts
  }
- let time=0;
+ let time=0,encounter=null;
+ const returning=new Map();
+ const validTarget=t=>t&&t.id!==undefined&&Number.isFinite(t.x)&&Number.isFinite(t.y)&&Number.isFinite(t.z)&&['gather','chase','dropped'].includes(t.phase);
+ const homeOf=b=>({state:b.state,spot:b.spot&&{...b.spot},after:b.after,tx:b.tx,ty:b.ty,tz:b.tz,R:b.R,alt:b.alt,dir:b.dir,timer:b.timer,lured:b.lured});
+ function releaseBird(record){
+  const b=record.bird;delete b.encounterId;delete b.encounterPhase;b.state='fly';b.walkTo=null;b.peck=0;
+  returning.set(b,record);record.returnAge=0;
+ }
+ function clearEncounter(){
+  if(!encounter)return;
+  for(const record of encounter.birds)releaseBird(record);
+  encounter=null;
+ }
+ function setEncounter(target){
+  if(!validTarget(target)){clearEncounter();return;}
+  if(encounter?.id===target.id){encounter.target=target;return;}
+  clearEncounter();
+  const count=Math.min(GULL_ENCOUNTER.limit,Math.max(0,Math.floor(target.maxBirds??GULL_ENCOUNTER.limit)));
+  const candidates=birds.filter(b=>b.kind==='gull'&&Number.isFinite(b.x)&&Number.isFinite(b.y)&&Number.isFinite(b.z)&&Math.hypot(b.x-target.x,b.y-target.y,b.z-target.z)<=GULL_ENCOUNTER.range)
+   .sort((a,b)=>Math.hypot(a.x-target.x,a.y-target.y,a.z-target.z)-Math.hypot(b.x-target.x,b.y-target.y,b.z-target.z)||a.id-b.id).slice(0,count);
+  encounter={id:target.id,target,age:0,phase:target.phase,phaseAge:0,slots:candidates.length,birds:candidates.map((bird,rank)=>{
+   const old=returning.get(bird),record={bird,home:old?.home||homeOf(bird),rank,blocked:0};returning.delete(bird);
+   bird.encounterId=target.id;bird.encounterPhase='waiting';bird.lured=false;return record;
+  })};
+ }
+ // Reject a blocked movement before committing it. A gull first climbs out
+ // over a canopy, then tries a tangential detour around taller obstructions.
+ // The callback sees ground-relative heights, just like the rendered birds.
+ function flightClear(record,from,to,safeFlight){
+  // Wing tips may cross during a swoop; bodies must not occupy the same spot.
+  const vx=to.x-from.x,vy=to.y-from.y,vz=to.z-from.z,L=vx*vx+vy*vy+vz*vz;
+  for(const other of encounter?.birds||[]){if(other===record||other.bird.encounterPhase==='waiting')continue;
+   const b=other.bird,dx=b.x-from.x,dy=b.y-from.y,dz=b.z-from.z,start=Math.hypot(dx,dy,dz),u=L?Math.min(1,Math.max(0,(dx*vx+dy*vy+dz*vz)/L)):0;
+   if(start<.38){if(Math.hypot(b.x-to.x,b.y-to.y,b.z-to.z)<start-1e-5)return false;}
+   else if(Math.hypot(dx-vx*u,dy-vy*u,dz-vz*u)<.38)return false;
+  }
+  return !safeFlight||safeFlight(from,to)!==false;
+ }
+ function safeFly(record,target,speed,dt,safeFlight,turn=4,minY=0){
+  const b=record.bird,from={x:b.x,y:b.y,z:b.z};
+  const distance=fly(b,target.x,target.y,target.z,speed,dt,turn);
+  if(b.y<minY){b.y=minY;b.vy=Math.max(0,b.vy);}
+  if(flightClear(record,from,b,safeFlight)){record.blocked=0;return distance;}
+  b.x=from.x;b.y=from.y;b.z=from.z;record.blocked+=dt;
+  const dx=target.x-b.x,dz=target.z-b.z,d=Math.hypot(dx,dz)||1,side=record.rank%2?1:-1;
+  const climb={x:b.x,y:b.y+Math.min(3.2*dt,Math.max(0,Math.max(6,target.y+3)-b.y)),z:b.z};
+  const left={x:b.x-dz/d*side*speed*.65*dt,y:b.y,z:b.z+dx/d*side*speed*.65*dt};
+  const right={x:b.x+dz/d*side*speed*.65*dt,y:b.y,z:b.z-dx/d*side*speed*.65*dt};
+  const alternatives=record.blocked<1.5?[climb,left,right]:[left,right,climb];
+  b.vx=b.vy=b.vz=0;
+  for(const next of alternatives){
+   if(Math.hypot(next.x-b.x,next.y-b.y,next.z-b.z)<1e-8||!flightClear(record,from,next,safeFlight))continue;
+   b.x=next.x;b.y=next.y;b.z=next.z;b.vx=(b.x-from.x)/Math.max(dt,1e-6);b.vy=(b.y-from.y)/Math.max(dt,1e-6);b.vz=(b.z-from.z)/Math.max(dt,1e-6);break;
+  }
+  return distance;
+ }
+ function separated(record,target,spacing=GULL_ENCOUNTER.spacing){
+  const b=record.bird;let x=target.x,y=target.y,z=target.z;
+  for(const other of encounter.birds){if(other===record||other.bird.encounterPhase==='waiting')continue;
+   const q=other.bird,dx=b.x-q.x,dy=b.y-q.y,dz=b.z-q.z,d=Math.hypot(dx,dy,dz);
+   if(d>=spacing)continue;
+   const a=record.rank*2.4,push=(spacing-d)*2.4;
+   x+=(d>1e-4?dx/d:Math.cos(a))*push;y+=(d>1e-4?dy/d:0)*push;z+=(d>1e-4?dz/d:Math.sin(a))*push;
+  }
+  return {x,y,z};
+ }
+ function encounterStep(record,dt,safeFlight){
+  const b=record.bird,t=encounter.target,rank=record.rank,count=encounter.slots;
+  if(encounter.age<rank*GULL_ENCOUNTER.stagger){update(b,dt);return;}
+  const dx=b.x-t.x,dz=b.z-t.z;
+  if(Math.hypot(dx,dz)>GULL_ENCOUNTER.leash){releaseBird(record);return;}
+  if(t.phase==='dropped'){
+   // Two spaced rings leave room for folded wings and readable pecking.
+   const inner=Math.min(5,count),ring=rank<inner?0:1,index=ring?rank-inner:rank,n=ring?count-inner:inner;
+   const angle=index/Math.max(1,n)*TAU+ring*.37,radius=ring?1.35:.63;
+   const spot={x:t.x+Math.cos(angle)*radius,y:t.y+FEET*b.scale,z:t.z+Math.sin(angle)*radius};
+   const d=Math.hypot(b.x-spot.x,b.z-spot.z),h=Math.abs(b.y-spot.y);
+   if(b.encounterPhase==='feeding'&&d<.22&&h<.1){
+    b.state='ground';b.vx=b.vy=b.vz=0;b.pitch=b.bank=0;wings(b,dt,'ground');
+    const settle=1-Math.exp(-dt*10),next={x:b.x+(spot.x-b.x)*settle,y:b.y+(spot.y-b.y)*settle,z:b.z+(spot.z-b.z)*settle};
+    if(flightClear(record,b,next,safeFlight)){b.x=next.x;b.y=next.y;b.z=next.z;}
+    b.heading+=wrap(Math.atan2(b.x-t.x,b.z-t.z)-b.heading)*Math.min(1,dt*7);
+    b.peck+=((Math.sin(time*5+rank*1.7)>.05?.95:0)-b.peck)*(1-Math.exp(-dt*13));return;
+   }
+   b.encounterPhase='drop';b.state='fly';b.peck*=Math.exp(-dt*8);
+   const destination={...spot,y:d<1.8?spot.y:Math.max(spot.y+2,Math.min(8,d*.32))};
+   safeFly(record,separated(record,destination,.72),Math.min(GULL_ENCOUNTER.speed,Math.max(1.2,d*2)),dt,safeFlight,6,spot.y);wings(b,dt,d<3?'land':'fly');
+   if(Math.hypot(b.x-spot.x,b.y-spot.y,b.z-spot.z)<.12)b.encounterPhase='feeding';
+   return;
+  }
+  b.state='fly';b.peck*=Math.exp(-dt*8);
+  const angle=encounter.age*.62+rank*TAU/Math.max(1,count),radius=3.4+rank%4*.55;
+  let target={x:t.x+Math.cos(angle)*radius,y:Math.max(3.5,t.y+2.5)+rank%3*.7,z:t.z+Math.sin(angle)*radius};
+  b.encounterPhase=t.phase;
+  if(t.phase==='chase'){
+   const period=Math.max(4.2,count*1.15),pass=((encounter.phaseAge-rank*1.15)%period+period)%period;
+   if(pass<2.7){
+    // Each bird approaches, crosses the hand and climbs away. Other birds
+    // keep their orbit lanes, rather than all steering to the same point.
+    const approach=rank*2.399963,along=pass<1.35?Math.max(0,3.5*(1-pass/1.35)):-Math.min(3.5,(pass-1.35)*2.7);
+    const rise=pass<1.35?2.4*(1-pass/1.35)**2:Math.min(3,(pass-1.35)*2.6);
+    target={x:t.x+Math.cos(approach)*along,y:t.y+.12+rise,z:t.z+Math.sin(approach)*along};
+    b.encounterPhase='swoop';
+   }
+  }
+  safeFly(record,separated(record,target),GULL_ENCOUNTER.speed,dt,safeFlight,4.8);wings(b,dt,b.encounterPhase==='swoop'?'land':'fly');
+ }
+ function returnStep(record,dt,safeFlight){
+  const b=record.bird,h=record.home;record.returnAge+=dt;
+  const resting=(h.state==='ground'||h.state==='perch')&&h.spot;
+  const target=resting?h.spot:{x:b.flock.x+Math.cos(b.theta)*h.R,y:h.alt,z:b.flock.z+Math.sin(b.theta)*h.R};
+  const d=Math.hypot(target.x-b.x,target.z-b.z),destination={...target,y:resting&&d>3?Math.max(target.y+2,Math.min(10,d*.15)):target.y};
+  safeFly(record,destination,BIRD_KINDS[b.kind].speed,dt,safeFlight,resting&&d<3?6:2.5);wings(b,dt,resting&&d<3?'land':'fly');
+  if(Math.hypot(target.x-b.x,target.y-b.y,target.z-b.z)<.16){
+   Object.assign(b,{R:h.R,alt:h.alt,dir:h.dir,timer:Math.max(3,h.timer),lured:h.lured,spot:h.spot,after:h.after,tx:h.tx,ty:h.ty,tz:h.tz});
+   b.state=resting?h.state:'soar';b.theta=Math.atan2(b.z-b.flock.z,b.x-b.flock.x);b.walkTo=null;b.peck=0;
+   if(resting){b.spot={...h.spot,x:b.x,z:b.z,y:b.y};b.vx=b.vy=b.vz=0;b.pitch=b.bank=0;}
+   returning.delete(b);
+  }
+ }
  // `lure` ({x,z}): someone holding food. Nearby gulls get bold, walk up and drop in for a closer look.
- function step(dt,{viewer=null,threats=[],people=[],range=600,lure=null}={}){
-  dt=Math.min(.1,Math.max(0,dt));time+=dt;
+ function step(dt,{viewer=null,threats=[],people=[],range=600,lure=null,encounter:target=null,safeFlight=null}={}){
+  dt=Math.min(.1,Math.max(0,Number.isFinite(dt)?dt:0));time+=dt;
+  setEncounter(target);
+  if(encounter){encounter.age+=dt;if(encounter.phase!==encounter.target.phase){encounter.phase=encounter.target.phase;encounter.phaseAge=0;}else encounter.phaseAge+=dt;}
   for(const f of plan.flocks){
-   f.active=!viewer||Math.hypot(f.x-viewer.x,f.z-viewer.z)<range+f.radius;if(!f.active)continue;
+   f.active=!viewer||Math.hypot(f.x-viewer.x,f.z-viewer.z)<range+f.radius||f.birds.some(b=>b.encounterId!==undefined||returning.has(b)&&Math.hypot(b.x-viewer.x,b.z-viewer.z)<BIRD_KINDS[b.kind].view);if(!f.active)continue;
    // Threats: the car (quick or close) and walkers near the ground birds, checked a few times a second.
    f.scan-=dt;
    if(f.scan<=0){f.scan=.2;
@@ -184,18 +306,20 @@ export function createBirdLife(plan,{seed=11}={}){
     if(bold)tempt(f,lure);else if(f.lured){f.lured=false;for(const b of f.birds)b.lured=false;}
     for(const t of threats){const fast=Math.abs(t.speed||0)>1.2,reach=fast?shy*2:bold?1.2:shy*.8;
      if(Math.hypot(t.x-f.x,t.z-f.z)>reach+f.radius+40)continue;
-     for(const b of f.birds)if((b.state==='ground'||b.state==='perch'&&b.spot.y<2.5)&&Math.hypot(b.x-t.x,b.z-t.z)<reach)scatter(f,b,t);}
+     for(const b of f.birds)if(b.encounterId===undefined&&!returning.has(b)&&(b.state==='ground'||b.state==='perch'&&b.spot.y<2.5)&&Math.hypot(b.x-t.x,b.z-t.z)<reach)scatter(f,b,t);}
     if(f.kind!=='sparrow')for(const list of people)for(const p of list){if(p.knocked||Math.abs(p.x-f.x)>f.radius+30||Math.abs(p.z-f.z)>f.radius+30)continue;
-     for(const b of f.birds)if(b.state==='ground'&&Math.hypot(b.x-p.x,b.z-p.z)<(f.kind==='gull'?1.5:1.9)){
+     for(const b of f.birds)if(b.encounterId===undefined&&!returning.has(b)&&b.state==='ground'&&Math.hypot(b.x-p.x,b.z-p.z)<(f.kind==='gull'?1.5:1.9)){
       // A walker mostly makes them hop aside; sometimes the whole flock goes up.
       if(random()<(f.kind==='pigeon'?.25:.4))scatter(f,b,p);else{b.walkTo={x:b.x+(b.x-p.x)*1.2,z:b.z+(b.z-p.z)*1.2};b.hop=.25;}}}
    }
-   for(const b of f.birds)update(b,dt);
+   for(const b of f.birds){const record=encounter?.birds.find(r=>r.bird===b);if(record)encounterStep(record,dt,safeFlight);else if(returning.has(b))returnStep(returning.get(b),dt,safeFlight);else update(b,dt);}
   }
+  if(encounter)encounter.birds=encounter.birds.filter(r=>r.bird.encounterId===encounter.id);
  }
  function tempt(f,lure){
-  f.lured=true;let near=0;for(const b of f.birds)if(b.lured&&(b.state==='ground'||b.state==='fly'))near++;
+  f.lured=true;let near=0;for(const b of f.birds)if(b.encounterId===undefined&&!returning.has(b)&&b.lured&&(b.state==='ground'||b.state==='fly'))near++;
   for(const b of f.birds){
+   if(b.encounterId!==undefined||returning.has(b))continue;
    if(b.state!=='ground')continue;const d=Math.hypot(b.x-lure.x,b.z-lure.z);
    if(d>16||d<2.4&&b.lured)continue;if(!b.lured&&near>=5)continue;
    // Stop just out of reach, on the side the bird came from.
@@ -203,11 +327,11 @@ export function createBirdLife(plan,{seed=11}={}){
    if(!b.lured)near++;b.lured=true;b.walkTo={x,z};b.spot={...b.spot,x,z};b.hop=d>6?.6:0;b.timer=Math.max(b.timer,10);
   }
   // Now and then one of the circling gulls drops in.
-  if(near<5&&random()<.12){const b=f.birds.find(o=>o.state==='soar'&&!o.lured);if(b){const a=random()*TAU;b.lured=true;land(b,{x:lure.x+Math.cos(a)*2.6,z:lure.z+Math.sin(a)*2.6});}}
+  if(near<5&&random()<.12){const b=f.birds.find(o=>o.encounterId===undefined&&!returning.has(o)&&o.state==='soar'&&!o.lured);if(b){const a=random()*TAU;b.lured=true;land(b,{x:lure.x+Math.cos(a)*2.6,z:lure.z+Math.sin(a)*2.6});}}
  }
  function scatter(f,b,from){
   // Panic spreads: neighbours within a few metres follow within a quarter second.
-  for(const o of f.birds)if((o.state==='ground'||o.state==='perch')&&Math.hypot(o.x-b.x,o.z-b.z)<(f.kind==='pigeon'?9:5))takeOff(o,from,o===b?0:random()*.25);
+  for(const o of f.birds)if(o.encounterId===undefined&&!returning.has(o)&&(o.state==='ground'||o.state==='perch')&&Math.hypot(o.x-b.x,o.z-b.z)<(f.kind==='pigeon'?9:5))takeOff(o,from,o===b?0:random()*.25);
   f.calm=time+6+random()*6;
  }
  function update(b,dt){
@@ -264,10 +388,10 @@ export function createBirdLife(plan,{seed=11}={}){
  }
  function snapshot(){
   const kinds={},states={};for(const b of birds){kinds[b.kind]=(kinds[b.kind]||0)+1;states[b.state]=(states[b.state]||0)+1;}
-  return {birds:birds.length,flocks:plan.flocks.length,kinds,states,active:plan.flocks.filter(f=>f.active).length,
+  return {birds:birds.length,flocks:plan.flocks.length,kinds,states,active:plan.flocks.filter(f=>f.active).length,encounter:encounter?{id:encounter.id,phase:encounter.phase,selected:encounter.birds.length,engaged:encounter.birds.filter(r=>r.bird.encounterPhase!=='waiting').length}:null,returning:returning.size,
    flockList:plan.flocks.map(f=>({id:f.id,kind:f.kind,x:+f.x.toFixed(1),z:+f.z.toFixed(1),count:f.count,name:f.name}))};
  }
- return {birds,plan,step,snapshot,takeOff,get time(){return time;}};
+ return {birds,plan,step,snapshot,takeOff,clearEncounter,get encounterActive(){return !!encounter?.birds.length;},get time(){return time;}};
 }
 
 // ---------------- rendering ----------------
@@ -356,17 +480,22 @@ export function createBirdRenderer(life,{capacity=life.birds.length}={}){
 // Occasional gull calls when gulls are near and sound is on: a short falling
 // "kyow" from a filtered sawtooth, two or three in a row, quieter with distance.
 export function createGullCalls(){
- let next=3,clock=0;
+ let next=3,clock=0,encounterWasActive=false;
+ const live=new Set(),stop=()=>{for(const {o,f,g} of live){try{o.stop();}catch{/* Already ended. */}o.disconnect();f.disconnect();g.disconnect();}live.clear();};
  return {update(context,enabled,life,listener,dt){
-  if(!context||!enabled||!listener)return;clock+=dt;if(clock<next)return;
+  if(!context||!enabled||!listener){stop();return;}
+  const active=life.encounterActive;
+  if(active!==encounterWasActive){next=clock+(active?.2:3);encounterWasActive=active;}
+  clock+=dt;if(clock<next)return;
   let near=Infinity;for(const b of life.birds)if(b.kind==='gull'&&b.flock.active)near=Math.min(near,Math.hypot(b.x-listener.x,b.y-1.5,b.z-listener.z));
-  next=clock+3+Math.random()*7;if(near>90)return;
-  const volume=.05*Math.min(1,18/Math.max(18,near)),t0=context.currentTime,calls=2+Math.floor(Math.random()*2);
+  next=clock+(active?1.4+Math.random()*.5:3+Math.random()*7);if(near>90)return;
+  const volume=(active?.06:.05)*Math.min(1,18/Math.max(18,near)),t0=context.currentTime,calls=2+Math.floor(Math.random()*2);
   for(let c=0;c<calls;c++){const t=t0+c*(.28+Math.random()*.08),o=context.createOscillator(),f=context.createBiquadFilter(),g=context.createGain();
    o.type='sawtooth';const base=1050+Math.random()*250;o.frequency.setValueAtTime(base*.8,t);o.frequency.linearRampToValueAtTime(base*1.25,t+.05);o.frequency.exponentialRampToValueAtTime(base*.55,t+.24);
    f.type='bandpass';f.frequency.value=1700;f.Q.value=2.2;g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(volume,t+.025);g.gain.exponentialRampToValueAtTime(.0005,t+.26);
+   const nodes={o,f,g};live.add(nodes);o.onended=()=>{o.disconnect();f.disconnect();g.disconnect();live.delete(nodes);};
    o.connect(f);f.connect(g);g.connect(context.destination);o.start(t);o.stop(t+.3);}
- }};
+ },reset(){stop();next=3;clock=0;encounterWasActive=false;}};
 }
 
 // The whole bird layer for a loaded city: plan from data, simulate, draw, call.
@@ -375,7 +504,8 @@ export function createBirds(data,options={}){
  const group=new THREE.Group();group.name='City birds';group.add(renderer.mesh);
  let last=0;
  return {group,life,plan,renderer,
-  update(dt,{viewer,threats,people,lure}={}){const t0=performance.now();life.step(dt,{viewer,threats,people,lure});renderer.update(viewer);last=performance.now()-t0;},
+  update(dt,{viewer,threats,people,lure,encounter,safeFlight}={}){const t0=performance.now();life.step(dt,{viewer,threats,people,lure,encounter,safeFlight});renderer.update(viewer);last=performance.now()-t0;},
+  clearEncounter(){life.clearEncounter();calls.reset();},
   audio(context,enabled,listener,dt){calls.update(context,enabled,life,listener,dt);},
   // Run the flocks forward (inspection and screenshots while the game is paused).
   advance(seconds,viewer){for(let t=0;t<seconds;t+=1/30)life.step(1/30,{viewer});renderer.update(viewer);},

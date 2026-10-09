@@ -38,6 +38,7 @@ export function createKnockables(items,parts,{radius=.3,height=1.1}={}){
   function step(dt,car,world){
     let slowdown=0;
     for(const b of bodies){
+      if(b.playerTaken||b.disabled)continue;
       // Upright bollards are only struck when the car is actually moving into them; fallen ones get nudged along.
       if(car&&b.y<.6&&Math.abs(car.speed)>.6){
         const contact=carContact(car,b.x,b.z,radius);
@@ -72,6 +73,7 @@ export function createKnockables(items,parts,{radius=.3,height=1.1}={}){
 
   function update(){
     for(const [i,b]of bodies.entries()){
+      if(b.playerTaken||b.disabled){matrix.makeScale(0,0,0);for(const m of meshes)m.setMatrixAt(i,matrix);continue;}
       qYaw.setFromAxisAngle(up,b.yaw);qTilt.setFromAxisAngle(b.axis,b.tilt).multiply(qYaw);
       // Lying bollards rest on their side, lifted by half the board thickness so they do not sink into the road.
       pos.set(b.x,b.y+Math.abs(Math.sin(b.tilt))*.05+groundAt(b.x,b.z),b.z);matrix.compose(pos,qTilt,one);
@@ -81,5 +83,5 @@ export function createKnockables(items,parts,{radius=.3,height=1.1}={}){
   }
 
   update();
-  return {group,bodies,step,update,resetAll(){bodies.forEach(reset);update();},snapshot:()=>({count:bodies.length,knocked:bodies.filter(b=>b.knocked).length,hits})};
+  return {group,bodies,step,update,resetBody(body){if(!bodies.includes(body))return false;reset(body);update();return true;},resetAll(){for(const b of bodies)if(!b.playerTaken)reset(b);update();},snapshot:()=>({count:bodies.length,knocked:bodies.filter(b=>b.knocked&&!b.playerTaken).length,hits})};
 }

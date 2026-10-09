@@ -3,7 +3,7 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {SpatialIndex,segmentDistance,bounds,pointInPolygon} from './geo.js';
 import {createKnockables} from './knockables.js';
 import {crossingChains} from './crossing-markings.js';
-import {scooterGeometry,micromobilityMaterial,OPERATORS,createLooseMicromobility} from './parked-micromobility.js';
+import {OPERATORS,createLooseMicromobility} from './parked-micromobility.js';
 import {createParkedCarSource,instancedCarVisibility} from './parked-car-sources.js';
 
 // Street-level detail along the demo route: granite kerbstones, asphalt wheel
@@ -124,7 +124,7 @@ function binTemplate(){
 }
 export function combineKnockables(list){
  const all=list.filter(Boolean);
- return {group:null,bodies:all.flatMap(k=>k.bodies),step(dt,car,world){for(const k of all)k.step(dt,car,world);},update(){for(const k of all)k.update();},resetAll(){for(const k of all)k.resetAll();},
+ return {group:null,bodies:all.flatMap(k=>k.bodies),rideSources:all.flatMap(k=>k.rideSources||[]),step(dt,car,world){for(const k of all)k.step(dt,car,world);},update(){for(const k of all)k.update();},resetAll(){for(const k of all)k.resetAll();},
   snapshot(){const s=all.map(k=>k.snapshot());return {count:s.reduce((n,x)=>n+x.count,0),knocked:s.reduce((n,x)=>n+x.knocked,0),hits:s.reduce((n,x)=>n+x.hits,0)};}};
 }
 
@@ -283,13 +283,13 @@ export function createStreetFurniture(city,mobility,trams,options={}){
  if(plan.bins.length){const k=createKnockables(plan.bins.map(b=>({id:b.id,x:b.x,z:b.z,yaw:b.yaw})),[{geometry:binTemplate(),material:knockableMaterial}],{radius:.26});k.group.name='Litter bins';k.group.children.forEach(m=>{m.castShadow=false;});group.add(k.group);sets.push(k);}
  if(plan.scooters.length){
   // Same stand-up scooter as the clusters in parked-micromobility.js; the stem takes a per-instance operator colour (plain Voi/Tier/Bolt shades, no branding).
-  const k=createKnockables(plan.scooters.map(s=>({id:s.id,x:s.x,z:s.z,yaw:s.yaw})),[{geometry:scooterGeometry(),material:micromobilityMaterial()}],{radius:.3});k.group.name='Parked e-scooters';
-  const colour=new THREE.Color();k.group.children.forEach(m=>{m.castShadow=false;plan.scooters.forEach((s,i)=>m.setColorAt(i,colour.set(OPERATORS[Math.floor(hash(Math.round(s.x),Math.round(s.z)+5)*OPERATORS.length)].accent)));m.instanceColor.needsUpdate=true;});group.add(k.group);sets.push(k);
+  const items=plan.scooters.map(s=>({...s,...OPERATORS[Math.floor(hash(Math.round(s.x),Math.round(s.z)+5)*OPERATORS.length)]}));
+  const k=createLooseMicromobility(items.map(s=>({...s,color:s.accent,operator:s.name})),{kind:'scooter',name:'Street e-scooters'});group.add(k.group);sets.push(k);
  }
  // Bikes leaning on the racks fly off when hit; the bolted hoops stay put.
  if(plan.bicycles.length){const k=createLooseMicromobility(plan.bicycles,{kind:'bicycle',name:'Rack bicycles',lift:.05});group.add(k.group);sets.push(k);}
  const knockables=sets.length?combineKnockables(sets):null;
  group.userData={tracks:plan.tracks.length,manholes:plan.manholes.length,drains:plan.drains.length,bins:plan.bins.length,scooters:plan.scooters.length,racks:plan.racks.length,bicycles:plan.bicycles.length,parkedCars:plan.cars.length,parkingPolygons:plan.parkingPolygons.length,routeEdges:plan.routeEdges,
   reference:'Municipal polygons (Ajorata, Pysäköintialue, pavement), HSL rail shapes and the traffic graph; furniture positions interpreted, not surveyed'};
- return {group,obstacles,knockables,plan,enterableCars};
+ return {group,obstacles,knockables,plan,enterableCars,rideSources:knockables?.rideSources||[]};
 }

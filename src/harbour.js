@@ -4,17 +4,18 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {CYCLE_SURFACES,PLATFORM_SURFACES,PLATFORM_RAILS,HARBOUR_RAIL,FERRY,HARBOUR_REFERENCE,surfaceId,inHarbour} from './harbour-layout.js';
 import {pointInPolygon,bounds} from './geo.js';
 import polygonClipping from 'polygon-clipping';
-import {createHarbourSigns,SIGN_SUPPORTS} from './harbour-signs.js';
+import {createHarbourSigns} from './harbour-signs.js';
 import {cutLowerYard} from './port-yard.js';
 import {createTerminalDetails} from './terminal-details.js';
 import {createOlympiaFrontage} from './terminal-frontage.js';
 import {createBreakableSigns} from './breakable-signs.js';
+import {objectBehavior,solidBox} from './world-objects.js';
 
 // Static geometry is batched by material and 160 m cell. Fine details do not
 // become thousands of draw calls, and distant street furniture can be culled.
 export function createHarbour(data){
  const group=new THREE.Group();group.name='Photo-guided Olympia to Eteläranta streets';
- const batches=new Map(),obstacles=[],counts={platforms:0,cycleways:0,railingBays:0,lamps:0,trailers:0};
+ const batches=new Map(),obstacles=[],worldObjects=[],counts={platforms:0,cycleways:0,railingBays:0,lamps:0,trailers:0};
  const palette={asphalt:'#424847',footway:'#636965',cycle:'#805953',granite:'#aaa89f',paving:'#97978d',setts:'#777a71',metal:'#8faaa8',dark:'#3d4a4a',white:'#e8e9e2',blue:'#145d9e',glass:'#294b5b',rubber:'#27302f',boat:'#e7a052',rock:'#797d73',brick:'#a58a66',yellow:'#d8b73e'};
  const materials=Object.fromEntries(Object.entries(palette).map(([k,color])=>[k,new THREE.MeshStandardMaterial({color,roughness:['glass','blue'].includes(k)?.38:.88,metalness:k==='metal'?.55:k==='glass'?.35:0})]));
  materials.rock.flatShading=true;
@@ -50,7 +51,7 @@ export function createHarbour(data){
  }
  cutLowerYard(materials.asphalt);
  // Tram-stop flag poles are breakable (breakable-signs.js): while postIndex is set, geometry goes to that post.
- const stopSigns=createBreakableSigns('Harbour tram-stop poles');let postIndex=null;
+ const stopSigns=createBreakableSigns('Harbour stop and crossing posts');let postIndex=null;
  function add(g,mat){if(postIndex!==null){stopSigns.add(g,materials[mat],postIndex);return;}if(g.index)g=g.toNonIndexed();g.deleteAttribute('uv');g.computeBoundingBox();const c=g.boundingBox.getCenter(new THREE.Vector3());const key=`${mat}:${Math.floor(c.x/160)}:${Math.floor(c.z/160)}`;if(!batches.has(key))batches.set(key,{mat,parts:[]});batches.get(key).parts.push(g);}
  function box(w,h,d,mat,x,y,z,yaw=0){const g=new THREE.BoxGeometry(w,h,d);g.rotateY(yaw);g.translate(x,y,z);add(g,mat);}
  function beam(a,b,r=.035,mat='metal'){const av=new THREE.Vector3(...a),bv=new THREE.Vector3(...b),delta=bv.clone().sub(av);if(delta.length()<.001)return;const g=new THREE.CylinderGeometry(r,r,delta.length(),6);g.applyQuaternion(new THREE.Quaternion().setFromUnitVectors(new THREE.Vector3(0,1,0),delta.normalize()));g.translate(...av.add(bv).multiplyScalar(.5).toArray());add(g,mat);}
@@ -115,15 +116,18 @@ export function createHarbour(data){
   beam([x,8.4,z],[lx,8.4,lz],.013,'dark');beam([lx,0,lz],[lx,8.6,lz],.048);
   const mx=(x+lx)/2,mz=(z+lz)/2;beam([mx,8.4,mz],[mx,7.5,mz],.02,'dark');
   const shade=new THREE.SphereGeometry(.24,12,6,0,Math.PI*2,0,Math.PI/2);shade.translate(mx,7.36,mz);add(shade,'metal');box(.36,.035,.36,'white',mx,7.36,mz);counts.lamps++;
+  obstacles.push(solidBox({id:`harbour-lattice-${x}-${z}`,name:'Harbour lattice support',x,z,width:.39,depth:.07}),solidBox({id:`harbour-wire-post-${lx}-${lz}`,name:'Harbour suspension support',x:lx,z:lz,width:.096,depth:.096}));
+  worldObjects.push(objectBehavior({id:`harbour-suspension-${x}-${z}`,minY:7.1},'overhead'));
  }
  // Start crossing matches the mapped raised crossing: not an arbitrary zebra
  // across both rails. Yield triangles are on the approach, away from the island.
  for(let i=0;i<5;i++)box(.47,.012,3.1,'white',222.15+i*.83,.103,966.1,.035);
  for(let i=0;i<4;i++)polygon([[[221.6+i*1.08,976],[222.3+i*1.08,976],[221.95+i*1.08,976.9]]],'white',.104);
  for(const [x,z] of [[220.3,962.6],[227.1,962.5]]){
+  postIndex=stopSigns.post({id:`harbour-crossing-${x}`,x,z,height:3.25,radius:.035});
   beam([x,0,z],[x,3.25,z],.035);box(.56,.56,.055,'blue',x,2.94,z);
   // White triangular pedestrian-crossing pictogram (original vector geometry).
-  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x-.23,2.72,z+.031,x+.23,2.72,z+.031,x,3.17,z+.031],3));g.computeVertexNormals();add(g,'white');
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute([x-.23,2.72,z+.031,x+.23,2.72,z+.031,x,3.17,z+.031],3));g.computeVertexNormals();add(g,'white');postIndex=null;
  }
  // Apron props are illustrative positions on actual land, not container stacks.
  for(const [x,z] of [[242,808],[253,827],[262,843],[241,832],[223,791],[213,778]]){
@@ -188,8 +192,9 @@ export function createHarbour(data){
  }
  group.add(stopSigns.finish());group.breakable=stopSigns;
  const signs=createHarbourSigns();group.add(signs);
- for(const p of SIGN_SUPPORTS)barrier([p.x-.065,p.z],[p.x+.065,p.z],.065);
+ obstacles.push(...signs.obstacles);
  const terminalDetails=createTerminalDetails(data);group.add(terminalDetails.group);obstacles.push(...terminalDetails.obstacles);
+ group.worldObjects=worldObjects;
  group.userData={...counts,frontage:frontage.group.userData,terminalDetails:terminalDetails.group.userData,overheadSigns:signs.userData,ferry:{...FERRY},reference:HARBOUR_REFERENCE,batches:group.children.length};
  return {group,obstacles,knockables:terminalDetails.knockables,enterableCars:terminalDetails.enterableCars}; // knockables: docked terminal city bikes
 }
