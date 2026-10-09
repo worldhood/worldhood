@@ -38,6 +38,28 @@
     ]
    },
    {
+    "id": "lansivayla-salmisaari",
+    "label": "Länsiväylä from Ruoholahti past Salmisaari to the Lauttasaari bridge",
+    "via": [
+     [
+      24.92069,
+      60.16587
+     ],
+     [
+      24.91078,
+      60.16667
+     ],
+     [
+      24.90357,
+      60.16707
+     ],
+     [
+      24.89908,
+      60.16271
+     ]
+    ]
+   },
+   {
     "id": "lauttasaarentie",
     "label": "Lauttasaari bridge → Lauttasaarentie → Lauttasaari centre",
     "via": [

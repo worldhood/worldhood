@@ -24,13 +24,15 @@ if(def.island){
  const place=places.find(p=>p.geojson?.type==='Polygon');if(!place)throw Error('Island outline unavailable');
  island={name:place.display_name.split(',')[0],ring:simplifyRing(place.geojson.coordinates[0].map(local),2)};
 }
+// Named circles widen the crop around district centres (e.g. a campus or a town centre).
+const areas=(def.areas||[]).map(a=>{const c=local(a.center),ring=[];for(let k=0;k<=32;k++){const t=k%32/32*Math.PI*2;ring.push([+(c[0]+Math.cos(t)*a.radiusMetres).toFixed(2),+(c[1]+Math.sin(t)*a.radiusMetres).toFixed(2)]);}return {name:a.name,ring};});
 const segments=centrelines.flatMap(c=>c.points.slice(1).map((b,i)=>({a:c.points[i],b,line:c.id})));
 function nearest(q){let best={d:Infinity};for(const {a,b,line} of segments){const dx=b[0]-a[0],dz=b[1]-a[1],l=dx*dx+dz*dz,t=l?Math.max(0,Math.min(1,((q[0]-a[0])*dx+(q[1]-a[1])*dz)/l)):0,p=[+(a[0]+dx*t).toFixed(2),+(a[1]+dz*t).toFixed(2)],d=Math.hypot(p[0]-q[0],p[1]-q[1]);if(d<best.d)best={d,p,line,heading:[dx,dz]};}return best;}
 const checkpoints=def.anchors.map(([name,ll])=>{const q=local(ll),best=nearest(q);
  // Landmarks set well back from the road stay at their own position.
  if(best.d>120||island&&name.includes('Open-Air'))return {name,position:[q[0],0,q[1]],onRoute:false,nearestRouteMetres:+best.d.toFixed(1)};
  return {name,position:[best.p[0],0,best.p[1]],onRoute:true,line:best.line,snapMetres:+best.d.toFixed(1)};});
-const route={schemaVersion:1,name:ext.title,sourceAxes:'metres: X east, Y up, Z south; origin = src/geo.js ORIGIN (ETRS-GK25)',buffers:def.buffers,centrelines,island,checkpoints,steps,
+const route={schemaVersion:1,name:ext.title,sourceAxes:'metres: X east, Y up, Z south; origin = src/geo.js ORIGIN (ETRS-GK25)',buffers:def.buffers,centrelines,island,areas,checkpoints,steps,
  provenance:{routing:{service:'OSRM demo server on OpenStreetMap data',licence:'ODbL — © OpenStreetMap contributors',use:'Centreline only defines which municipal data to crop'},island:def.island?{service:'Nominatim',licence:'ODbL — © OpenStreetMap contributors',use:'Outline only extends the crop'}:undefined},
  limitations:ext.limitations};
 fs.writeFileSync(path.join(extensionDir(id),'route.json'),JSON.stringify(route,null,1));

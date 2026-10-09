@@ -1,0 +1,187 @@
+{
+ "schemaVersion": 1,
+ "id": "espoo",
+ "title": "Länsiväylä → Keilaniemi → Otaniemi → Tapiola (Espoo)",
+ "maintainers": [],
+ "status": "playable-draft",
+ "description": "Espoo's side of the corridor: Länsiväylä from the Helsinki border over Hanasaari to Keilaniemi, Otaniemi and the Aalto University campus, and Tapiola centre, on the City of Espoo's photo-textured 3D city model.",
+ "source": "espoo",
+ "definition": {
+  "legs": [
+   {
+    "id": "lansivayla-espoo",
+    "label": "Koivusaari → Hanasaari → Keilaniemi → Länsiväylä → Tapiola",
+    "via": [
+     [
+      24.85676,
+      60.16321
+     ],
+     [
+      24.838,
+      60.1685
+     ],
+     [
+      24.8285,
+      60.1745
+     ],
+     [
+      24.81,
+      60.169
+     ],
+     [
+      24.805,
+      60.1755
+     ]
+    ]
+   },
+   {
+    "id": "otaniemi",
+    "label": "Keilaniemi → Otaniementie → Otaniemi → Tapiolantie → Tapiola",
+    "via": [
+     [
+      24.8285,
+      60.1765
+     ],
+     [
+      24.8262,
+      60.1844
+     ],
+     [
+      24.815,
+      60.179
+     ],
+     [
+      24.805,
+      60.1755
+     ]
+    ]
+   }
+  ],
+  "buffers": {
+   "surfaceMetres": 300,
+   "buildingMetres": 400,
+   "islandShoreMetres": 60
+  },
+  "areas": [
+   {
+    "name": "Otaniemi campus",
+    "center": [
+     24.8275,
+     60.1855
+    ],
+    "radiusMetres": 550
+   },
+   {
+    "name": "Tapiola centre",
+    "center": [
+     24.8055,
+     60.176
+    ],
+    "radiusMetres": 500
+   },
+   {
+    "name": "Keilaniemi",
+    "center": [
+     24.829,
+     60.176
+    ],
+    "radiusMetres": 400
+   }
+  ],
+  "anchors": [
+   [
+    "Hanasaari",
+    [
+     24.838,
+     60.1685
+    ]
+   ],
+   [
+    "Keilaniemi",
+    [
+     24.8285,
+     60.1765
+    ]
+   ],
+   [
+    "Otaniemi (Aalto University)",
+    [
+     24.8262,
+     60.1844
+    ]
+   ],
+   [
+    "Tapiola centre",
+    [
+     24.805,
+     60.1755
+    ]
+   ]
+  ],
+  "starts": [
+   {
+    "name": "Keilaniemi",
+    "district": "Keilaniemi",
+    "anchor": "Keilaniemi",
+    "line": "otaniemi"
+   },
+   {
+    "name": "Otaniemi (Aalto University)",
+    "district": "Otaniemi",
+    "anchor": "Otaniemi (Aalto University)",
+    "line": "otaniemi"
+   },
+   {
+    "name": "Tapiola centre",
+    "district": "Tapiola",
+    "anchor": "Tapiola centre",
+    "line": "otaniemi",
+    "reverse": true
+   }
+  ]
+ },
+ "limitations": [
+  "Ground is flat: Espoo's terrain heights are dropped and every building stands on the street level.",
+  "Länsiväylä's interchanges are flattened, so ramps and the motorway meet where in reality one passes over the other.",
+  "Buildings completed after the 2024 imagery have no photo textures and are drawn in their measured shape with plain colours."
+ ],
+ "knownFor": [
+  {
+   "name": "Keilaniemi towers",
+   "near": "Keilaniemi",
+   "description": "Office towers by the shore, including the Fortum and Kone headquarters",
+   "mustHave": true,
+   "at": [
+    [
+     24.8292,
+     60.1766
+    ]
+   ]
+  },
+  {
+   "name": "Aalto University main building",
+   "near": "Otaniemi (Aalto University)",
+   "description": "Alvar Aalto's red-brick main building with its amphitheatre-shaped lecture hall",
+   "mustHave": true,
+   "at": [
+    [
+     24.8283,
+     60.1855
+    ]
+   ]
+  },
+  {
+   "name": "Tapiola centre",
+   "near": "Tapiola centre",
+   "description": "Garden-city centre with the central tower, pool and the shopping centre",
+   "mustHave": true,
+   "at": [
+    [
+     24.8052,
+     60.1758
+    ]
+   ]
+  }
+ ],
+ "knownForSource": "Approximate positions from OpenStreetMap (ODbL), October 2026"
+}

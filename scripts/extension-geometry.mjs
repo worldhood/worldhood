@@ -8,6 +8,7 @@ import {ORIGIN,WORLD_EXTENT} from '../src/geo.js';
 
 export const GK25='+proj=tmerc +lat_0=0 +lon_0=25 +k=1 +x_0=25500000 +y_0=0 +ellps=GRS80 +units=m +no_defs';
 const origin=proj4('EPSG:4326',GK25,ORIGIN);
+export const ORIGIN_GK25=origin;
 export const local=([lon,lat])=>{const p=proj4('EPSG:4326',GK25,[lon,lat]);return [+(p[0]-origin[0]).toFixed(2),+(origin[1]-p[1]).toFixed(2)];};
 export const wgs84=(x,z)=>proj4(GK25,'EPSG:4326',[origin[0]+x,origin[1]-z]);
 export const extensionDir=id=>{if(!/^[a-z0-9-]+$/.test(id||''))throw Error('Usage: <extension id>, e.g. seurasaari');return path.join('extensions',id);};
@@ -45,6 +46,20 @@ export function bufferPolylines(lines,width,extra=[],segments=12){
 // surface: drivable/mapped band; context: wider band for buildings and skyline.
 export function extensionRegions(route){
  const lines=route.centrelines.map(c=>c.points),island=route.island?[[route.island.ring]]:[];
- const shore=island.length?bufferPolylines([route.island.ring],route.buffers.islandShoreMetres,island):[];
+ const shore=[...island.length?bufferPolylines([route.island.ring],route.buffers.islandShoreMetres,island):[],...(route.areas||[]).map(a=>[a.ring])];
  return {surface:bufferPolylines(lines,route.buffers.surfaceMetres,shore),context:bufferPolylines(lines,route.buffers.buildingMetres,shore)};
+}
+
+// Carriageway outlines along centrelines ({points, half: half-width}) wherever no mapped street area
+// covers them (covered.at(x,z)) and skip(point) is false: motorways and ramps missing from a street
+// register still get a drivable surface. One outline per uncovered run; quads if the clipper fails.
+export function paveUncovered(lines,covered,skip=()=>false,step=4){
+ const out=[],quads=(run,h)=>run.slice(1).map((b,i)=>{const a=run[i],l=Math.hypot(b[0]-a[0],b[1]-a[1])||1,nx=-(b[1]-a[1])/l*h,nz=(b[0]-a[0])/l*h;return [[[a[0]+nx,a[1]+nz],[b[0]+nx,b[1]+nz],[b[0]-nx,b[1]-nz],[a[0]-nx,a[1]-nz],[a[0]+nx,a[1]+nz]]];});
+ const pave=(run,h)=>{const r=run.map(q=>q.map(v=>Math.round(v*100)/100));try{out.push(...bufferPolylines([r],h,[],8));}catch{out.push(...quads(r,h));}};
+ for(const {points:pts,half} of lines){let run=[];
+  for(let i=1;i<pts.length;i++){const a=pts[i-1],b=pts[i],n=Math.max(1,Math.ceil(Math.hypot(b[0]-a[0],b[1]-a[1])/step));
+   for(let k=0;k<n;k++){const at=t=>[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t],q=at((k+.5)/n);
+    if(!covered.at(...q)&&!skip(q)){if(!run.length)run.push(at(k/n));run.push(at((k+1)/n));}else if(run.length){pave(run,half);run=[];}}}
+  if(run.length)pave(run,half);}
+ return out;
 }

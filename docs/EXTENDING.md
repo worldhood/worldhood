@@ -245,3 +245,42 @@ Include:
 
 Area status moves `draft` → `playable-draft` (drivable, tests pass) → `reviewed` (Jev sign-offs
 plus one human reviewer besides the maintainer).
+
+## 8. Beyond Helsinki: the Espoo area
+
+Helsinki's open data stops at the city border. The `espoo` area continues the map west from
+Länsiväylä (area `lansivayla`, Ruoholahti → Lauttasaari → Koivusaari) to Keilaniemi, Otaniemi and
+Tapiola on the City of Espoo's own open data. It uses the same runtime formats as the Helsinki areas,
+so the game merges it like any other area.
+
+```sh
+npm run extension:route -- espoo   # route crop; "areas" circles widen it around Otaniemi and Tapiola
+npm run espoo:fetch                # City of Espoo WFS, Digiroad, OpenStreetMap water (cached)
+npm run espoo:build                # needs python3 with Pillow for the texture atlases
+```
+
+| Layer | Source | Licence |
+| --- | --- | --- |
+| Buildings (LOD2 + 2024 photo textures) | Espoo WFS `bldg:building_lod2` (CityGML 2.0; per-surface JPEGs under `kartat.espoo.fi/azcm/data/textures/`) | CC BY 4.0, © Espoon kaupunki |
+| Street areas | Espoo WFS `tran:road_lod2` (triangulated street parts with their functional class) | CC BY 4.0, © Espoon kaupunki |
+| Drivable and walkable network | Espoo WFS `GIS:Keskilinjat` (centrelines; one-way from `Kulkusuunta`) | CC BY 4.0, © Espoon kaupunki |
+| Trees | Espoo WFS `kanta:Lehtipuu`, `kanta:Havupuu` | CC BY 4.0, © Espoon kaupunki |
+| Traffic lights | Digiroad `dr_liikennevalo` (Väylävirasto) | CC BY 4.0 |
+| Sea and ponds | OpenStreetMap coastline and water, clipped to Espoo's districts (`GIS:Kaupunginosat`); shipped separately as `osm-water.json` | ODbL 1.0 |
+
+How the build works (`scripts/build-espoo.mjs`, helpers in `scripts/espoo-citygml.mjs` and
+`scripts/osm-water.mjs`):
+
+- **Coordinates:** Espoo publishes ETRS-GK25 (EPSG:3879) with N2000 heights, the game's own grid,
+  so only a translation is needed: x = E − E0, z = N0 − N.
+- **Levelling:** the game's Helsinki is flat. Each building stands on its lowest ground-surface point;
+  Espoo's terrain heights are dropped.
+- **Textures:** every wall and roof has its own photo. Per 250 m tile they are resampled to an even
+  texel density (finer than 22 cm per pixel, never above the source resolution) and packed into
+  1024 px JPEG atlases.
+- **Border seam:** dead ends of the Espoo network move onto the nearest dead end of the Länsiväylä
+  area's network (within 25 m), so the runtime merge joins the two road graphs.
+- **Water:** Helsinki's sea polygons stay Helsinki's; Espoo's water is the OpenStreetMap sea inside
+  Espoo's districts, so the two never overlap.
+- **Hosting:** the area is about 300 files; `tests/hosting.test.mjs` keeps the site within its limits.
+

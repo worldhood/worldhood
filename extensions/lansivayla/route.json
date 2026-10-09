@@ -428,6 +428,345 @@
    ]
   },
   {
+   "id": "lansivayla-salmisaari",
+   "label": "Länsiväylä from Ruoholahti past Salmisaari to the Lauttasaari bridge",
+   "lengthMetres": 6617,
+   "points": [
+    [
+     -1731.3,
+     468.18
+    ],
+    [
+     -1724.63,
+     552.3
+    ],
+    [
+     -1730,
+     589.84
+    ],
+    [
+     -2033.73,
+     610.08
+    ],
+    [
+     -2051.67,
+     615.07
+    ],
+    [
+     -2164.51,
+     621.83
+    ],
+    [
+     -2182.5,
+     626.71
+    ],
+    [
+     -2463.69,
+     643.82
+    ],
+    [
+     -2466.97,
+     604.93
+    ],
+    [
+     -2472.73,
+     596.01
+    ],
+    [
+     -2472.44,
+     588.77
+    ],
+    [
+     -2465.93,
+     578.75
+    ],
+    [
+     -2447.7,
+     563.07
+    ],
+    [
+     -2435.93,
+     559.63
+    ],
+    [
+     -2396.19,
+     534.39
+    ],
+    [
+     -2373.69,
+     523.39
+    ],
+    [
+     -2259.81,
+     478.76
+    ],
+    [
+     -2253.14,
+     470.63
+    ],
+    [
+     -2263.61,
+     454.69
+    ],
+    [
+     -2295.5,
+     430.36
+    ],
+    [
+     -2335.06,
+     406.91
+    ],
+    [
+     -2399.26,
+     382.2
+    ],
+    [
+     -2490.27,
+     354.88
+    ],
+    [
+     -2532.4,
+     344.8
+    ],
+    [
+     -2645.13,
+     329.26
+    ],
+    [
+     -2683.77,
+     325.75
+    ],
+    [
+     -2754.66,
+     324.53
+    ],
+    [
+     -2864.22,
+     334.4
+    ],
+    [
+     -2949.57,
+     350.09
+    ],
+    [
+     -3572.56,
+     488.69
+    ],
+    [
+     -3653.59,
+     504.81
+    ],
+    [
+     -3888.6,
+     560.67
+    ],
+    [
+     -4023.31,
+     566
+    ],
+    [
+     -4127.45,
+     556.56
+    ],
+    [
+     -4155.6,
+     556.17
+    ],
+    [
+     -4166.32,
+     558.83
+    ],
+    [
+     -4179.33,
+     566.38
+    ],
+    [
+     -4193.9,
+     581.84
+    ],
+    [
+     -4200.36,
+     593.19
+    ],
+    [
+     -4207.52,
+     617.13
+    ],
+    [
+     -4234.82,
+     814.73
+    ],
+    [
+     -4256.75,
+     931.01
+    ],
+    [
+     -4271.04,
+     971.98
+    ],
+    [
+     -4280.5,
+     1014.19
+    ],
+    [
+     -4267.85,
+     1016.22
+    ],
+    [
+     -4258.49,
+     974.23
+    ],
+    [
+     -4256.75,
+     931.01
+    ],
+    [
+     -4244.11,
+     857.94
+    ],
+    [
+     -4235.52,
+     836.57
+    ],
+    [
+     -4211.22,
+     754.39
+    ],
+    [
+     -4201.46,
+     731.79
+    ],
+    [
+     -4183.52,
+     703.19
+    ],
+    [
+     -4157.99,
+     679.28
+    ],
+    [
+     -4130.42,
+     662.17
+    ],
+    [
+     -4052.23,
+     622.99
+    ],
+    [
+     -3948.4,
+     591.98
+    ],
+    [
+     -3831.75,
+     560.77
+    ],
+    [
+     -3617.51,
+     508.66
+    ],
+    [
+     -2947.98,
+     359.56
+    ],
+    [
+     -2862.23,
+     344.76
+    ],
+    [
+     -2786.05,
+     337.74
+    ],
+    [
+     -2720.48,
+     336.95
+    ],
+    [
+     -2646.1,
+     342.74
+    ],
+    [
+     -2610.36,
+     356.27
+    ],
+    [
+     -2553.81,
+     369.95
+    ],
+    [
+     -2516.74,
+     382.48
+    ],
+    [
+     -2441.45,
+     416.12
+    ],
+    [
+     -2403.73,
+     440.24
+    ],
+    [
+     -2386.76,
+     455.75
+    ],
+    [
+     -2370.85,
+     476.38
+    ],
+    [
+     -2359.84,
+     502.8
+    ],
+    [
+     -2386.5,
+     514.24
+    ],
+    [
+     -2412.34,
+     529.8
+    ],
+    [
+     -2469.1,
+     582.65
+    ],
+    [
+     -2472.44,
+     588.77
+    ],
+    [
+     -2474.69,
+     608.71
+    ],
+    [
+     -2475.13,
+     646.59
+    ],
+    [
+     -2536.46,
+     667
+    ],
+    [
+     -2596.47,
+     699.12
+    ],
+    [
+     -2696.87,
+     783.54
+    ],
+    [
+     -2720.32,
+     795.42
+    ],
+    [
+     -2794.2,
+     818.38
+    ],
+    [
+     -2939.91,
+     858.27
+    ]
+   ]
+  },
+  {
    "id": "lauttasaarentie",
    "label": "Lauttasaari bridge → Lauttasaarentie → Lauttasaari centre",
    "lengthMetres": 1611,
@@ -512,6 +851,7 @@
   }
  ],
  "island": null,
+ "areas": [],
  "checkpoints": [
   {
    "name": "Ruoholahti",
@@ -918,6 +1258,196 @@
    "at": [
     -6159.85,
     356.48
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Mechelininkatu",
+   "maneuver": "depart right",
+   "metres": 122,
+   "at": [
+    -1731.3,
+    468.18
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Porkkalankatu",
+   "maneuver": "turn right",
+   "metres": 436,
+   "at": [
+    -1730,
+    589.84
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Porkkalankatu",
+   "maneuver": "fork slight left",
+   "metres": 300,
+   "at": [
+    -2164.51,
+    621.83
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Salmisaarenkatu",
+   "maneuver": "turn right",
+   "metres": 317,
+   "at": [
+    -2463.69,
+    643.82
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "",
+   "maneuver": "on ramp straight",
+   "metres": 81,
+   "at": [
+    -2256.41,
+    465.17
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "",
+   "maneuver": "arrive right",
+   "metres": 0,
+   "at": [
+    -2319.8,
+    415.39
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "",
+   "maneuver": "depart right",
+   "metres": 278,
+   "at": [
+    -2319.8,
+    415.39
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Länsiväylä",
+   "maneuver": "merge slight left",
+   "metres": 1329,
+   "at": [
+    -2585.41,
+    338.15
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "",
+   "maneuver": "off ramp slight right",
+   "metres": 597,
+   "at": [
+    -3888.6,
+    560.67
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Lemissaarentie",
+   "maneuver": "new name straight",
+   "metres": 152,
+   "at": [
+    -4244.11,
+    857.94
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Lemissaarentie",
+   "maneuver": "continue uturn",
+   "metres": 182,
+   "at": [
+    -4278.93,
+    1005.83
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "",
+   "maneuver": "on ramp slight right",
+   "metres": 322,
+   "at": [
+    -4244.11,
+    857.94
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Länsiväylä",
+   "maneuver": "merge slight left",
+   "metres": 1385,
+   "at": [
+    -4052.23,
+    622.99
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Länsiväylä",
+   "maneuver": "arrive",
+   "metres": 0,
+   "at": [
+    -2700.33,
+    338.09
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Länsiväylä",
+   "maneuver": "depart",
+   "metres": 54,
+   "at": [
+    -2700.33,
+    338.09
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "",
+   "maneuver": "off ramp slight right",
+   "metres": 341,
+   "at": [
+    -2646.1,
+    342.74
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Salmisaarenkatu",
+   "maneuver": "turn right",
+   "metres": 202,
+   "at": [
+    -2359.84,
+    502.8
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Porkkalankatu",
+   "maneuver": "turn right",
+   "metres": 519,
+   "at": [
+    -2475.13,
+    646.59
+   ]
+  },
+  {
+   "leg": "lansivayla-salmisaari",
+   "street": "Lauttasaaren silta",
+   "maneuver": "arrive right",
+   "metres": 0,
+   "at": [
+    -2939.91,
+    858.27
    ]
   },
   {
