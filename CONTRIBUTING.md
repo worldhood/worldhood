@@ -31,6 +31,7 @@ New to open source? Work in your own fork and branch so you can experiment:
 4. **Make the change.** Keep it small and focused, then run `npm test` and `npm run build`.
 5. **Push and open a pull request** from your branch:
    - Fill in the template.
+   - Add a screenshot or a short gameplay clip if you changed the game (see below).
    - Write `Closes #<issue>` so the issue closes when it's merged.
 6. **Review:**
    - Automated checks run on every pull request.
@@ -41,6 +42,23 @@ New to open source? Work in your own fork and branch so you can experiment:
 Stuck? Ask on the relevant GitHub issue. Questions are welcome; nobody expects you to know
 the whole codebase. Coding agents are optional, and contributions made with them need the
 same review, source attribution and testing as other work.
+
+## Show your change
+
+It's a game, so we want to see it! Every pull request that changes the game (anything under
+`src/`, `public/`, `cities/`, `extensions/`, `scripts/` or `index.html`) needs **at least one
+screenshot or a short gameplay video** in its description. Before/after pictures of the same spot
+are the most helpful. Docs-only pull requests don't need one.
+
+- **Screenshot:** your browser's or OS's screenshot tool. In the game, **H** hides the HUD,
+  **V** is capture mode (full resolution, no camera shake) and **T** changes the weather.
+- **Video:** your OS screen recorder (macOS **Cmd+Shift+5**, Windows Game Bar **Win+Alt+R**, or
+  OBS anywhere). 10–30 seconds is plenty.
+- **Upload:** drag and drop the file into the pull request description; GitHub hosts it.
+- Add the `?city=&start=` link so reviewers can find the same place.
+
+A check called **pr-media** fails until the description has an image or video. Edit the
+description and it re-runs by itself.
 
 ## Kinds of contribution
 

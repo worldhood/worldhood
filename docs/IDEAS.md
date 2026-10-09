@@ -3,12 +3,13 @@
 **These are areas for further work.** Walking/running, nearby car entry, usable bicycles and scooters,
 and basic pedestrian conversations now have shared implementations; garages, missions and multiplayer remain future work.
 The linked GitHub issues may describe the original proposal and are labelled
-[`idea`](../../../issues?q=is%3Aissue+is%3Aopen+label%3Aidea) and `help wanted`. The issue is where
+[`idea`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3Aidea) and `help wanted`. The issue is where
 people claim the idea, discuss it, and link their pull request. Small ones are also
-[`good first issue`](../../../issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
+[`good first issue`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22).
 
 To take one: comment on its issue, build it following [GAMEPLAY.md](GAMEPLAY.md), and open a
-pull request with `Closes #<number>`. New ideas: open a **Gameplay or feature idea** issue.
+pull request with `Closes #<number>`. New ideas: open a **Gameplay or feature idea** issue. Known problems are
+labelled [`bug`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3Abug); fixing one is a great first contribution.
 
 Size: **S** = a weekend · **M** = a few weeks · **L** = a bigger project.
 Live status is on each issue: open, claimed (someone commented), or closed (built).
@@ -17,32 +18,32 @@ Live status is on each issue: open, claimed (someone commented), or closed (buil
 
 | Idea | Issue | Size | Start from |
 | --- | --- | --- | --- |
-| Changing weather over time | [#1](../../../issues/1) | M | `src/weather.js` |
-| Live weather from the real city | [#2](../../../issues/2) | M | `src/weather.js` + a free weather API |
-| Snow and winter | [#3](../../../issues/3) | M | `src/weather.js`, `src/sky.js` |
-| Wet roads that reflect | [#4](../../../issues/4) | S–M | `WEATHER_UNIFORMS` in `src/weather.js` |
-| City soundscape | [#5](../../../issues/5) | M | `src/audio-math.js` (maths ready) |
-| Seagulls in Helsinki | [#6](../../../issues/6) | S–M | `gullRatePerSecond` in `src/audio-math.js` |
-| Tram bells and stop announcements | [#7](../../../issues/7) | S | `src/tram-simulation.js` |
-| Car radio | [#8](../../../issues/8) | M | `getLocation()` in `src/main.js` |
-| Walking: expand the existing implementation | [#9](../../../issues/9) | L | `src/person-model.js`, walking network |
-| Things to do on foot | [#10](../../../issues/10) | M each | on-foot mode |
-| Change car / garage | [#11](../../../issues/11) | M | `src/vehicle-models.js` (7 body types) |
-| Drive a tram or bus on the real line | [#12](../../../issues/12) | L | `src/tram-simulation.js`, `src/bus-simulation.js` |
-| Bikes and scooters: expand the existing rides | [#13](../../../issues/13) | M | `src/parked-micromobility.js` |
-| Ferry to Suomenlinna | [#14](../../../issues/14) | L | harbour ferry in `src/harbour.js` |
-| EV charging stations | [#15](../../../issues/15) | S | `src/battery.js` + OSM `amenity=charging_station` |
-| Day and night with lights | [#16](../../../issues/16) | M | `src/sky.js`, OSM `highway=street_lamp` |
-| Hills from real elevation | [#17](../../../issues/17) | L | city builder + physics |
-| City events | [#18](../../../issues/18) | M | street life modules |
-| Animals | [#19](../../../issues/19) | S–M | `src/person-model.js` patterns |
-| Taxi and delivery missions | [#20](../../../issues/20) | M | start points + mobility graph |
-| Landmark photo hunt | [#21](../../../issues/21) | S | `knownFor` lists |
-| Drive together (multiplayer) | [#22](../../../issues/22) | L | needs a small relay server |
-| City-to-city road trips | [#23](../../../issues/23) | L | extensions / city registry |
-| Building colours and roof shapes | [#24](../../../issues/24) | M | `scripts/city-build.mjs` |
-| Local tram and bus liveries | [#25](../../../issues/25) | S each | `src/tram-model.js`, `src/bus-renderer.js` |
-| Faster first load (start area first) | — | M | `src/main.js` boot, tile streaming |
+| Changing weather over time | [#1](https://github.com/worldhood/worldhood/issues/1) | M | `src/weather.js` |
+| Live weather from the real city | [#2](https://github.com/worldhood/worldhood/issues/2) | M | `src/weather.js` + a free weather API |
+| Snow and winter | [#3](https://github.com/worldhood/worldhood/issues/3) | M | `src/weather.js`, `src/sky.js` |
+| Wet roads that reflect | [#4](https://github.com/worldhood/worldhood/issues/4) | S–M | `WEATHER_UNIFORMS` in `src/weather.js` |
+| City soundscape | [#5](https://github.com/worldhood/worldhood/issues/5) | M | `src/audio-math.js` (maths ready) |
+| Seagulls in Helsinki | [#6](https://github.com/worldhood/worldhood/issues/6) | S–M | `gullRatePerSecond` in `src/audio-math.js` |
+| Tram bells and stop announcements | [#7](https://github.com/worldhood/worldhood/issues/7) | S | `src/tram-simulation.js` |
+| Car radio | [#8](https://github.com/worldhood/worldhood/issues/8) | M | `getLocation()` in `src/main.js` |
+| Walking: expand the existing implementation | [#9](https://github.com/worldhood/worldhood/issues/9) (basic version built) | L | `src/person-model.js`, walking network |
+| Things to do on foot | [#10](https://github.com/worldhood/worldhood/issues/10) | M each | on-foot mode |
+| Change car / garage | [#11](https://github.com/worldhood/worldhood/issues/11) | M | `src/vehicle-models.js` (7 body types) |
+| Drive a tram or bus on the real line | [#12](https://github.com/worldhood/worldhood/issues/12) | L | `src/tram-simulation.js`, `src/bus-simulation.js` |
+| Bikes and scooters: expand the existing rides | [#13](https://github.com/worldhood/worldhood/issues/13) (basic version built) | M | `src/parked-micromobility.js` |
+| Ferry to Suomenlinna | [#14](https://github.com/worldhood/worldhood/issues/14) | L | harbour ferry in `src/harbour.js` |
+| EV charging stations | [#15](https://github.com/worldhood/worldhood/issues/15) | S | `src/battery.js` + OSM `amenity=charging_station` |
+| Day and night with lights | [#16](https://github.com/worldhood/worldhood/issues/16) | M | `src/sky.js`, OSM `highway=street_lamp` |
+| Hills from real elevation | [#17](https://github.com/worldhood/worldhood/issues/17) | L | city builder + physics |
+| City events | [#18](https://github.com/worldhood/worldhood/issues/18) | M | street life modules |
+| Animals | [#19](https://github.com/worldhood/worldhood/issues/19) | S–M | `src/person-model.js` patterns |
+| Taxi and delivery missions | [#20](https://github.com/worldhood/worldhood/issues/20) | M | start points + mobility graph |
+| Landmark photo hunt | [#21](https://github.com/worldhood/worldhood/issues/21) | S | `knownFor` lists |
+| Drive together (multiplayer) | [#22](https://github.com/worldhood/worldhood/issues/22) | L | needs a small relay server |
+| City-to-city road trips | [#23](https://github.com/worldhood/worldhood/issues/23) | L | extensions / city registry |
+| Building colours and roof shapes | [#24](https://github.com/worldhood/worldhood/issues/24) | M | `scripts/city-build.mjs` |
+| Local tram and bus liveries | [#25](https://github.com/worldhood/worldhood/issues/25) | S each | `src/tram-model.js`, `src/bus-renderer.js` |
+| Faster first load (start area first) | [#26](https://github.com/worldhood/worldhood/issues/26) | M | `src/main.js` boot, tile streaming |
 
 ## Weather
 

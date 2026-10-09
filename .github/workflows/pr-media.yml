@@ -1,0 +1,50 @@
+name: pr-media
+# Pull requests that change the game must show it: a screenshot or a gameplay video in the description.
+# Docs-only pull requests pass. Runs on pull_request (not pull_request_target), so forks get a
+# read-only token and no secrets.
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  pull-requests: read
+  contents: read
+
+jobs:
+  media:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check for screenshots or video
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner, repo: context.repo.repo, pull_number: pr.number, per_page: 100,
+            });
+            const game = /^(src|public|cities|extensions|scripts)\/|^index\.html$/;
+            const changed = files.flatMap(f => [f.filename, f.previous_filename].filter(Boolean)).filter(f => game.test(f));
+            if (!changed.length) {
+              core.info('No game files changed: no screenshot needed.');
+              return;
+            }
+            // Ignore HTML comments, so the template's own hints don't count.
+            const body = (pr.body || '').replace(/<!--[\s\S]*?-->/g, '');
+            const media = [
+              /!\[[^\]]*\]\([^)\s]+/,                                        // markdown image
+              /<img\s[^>]*src=/i,                                             // <img>
+              /<video[\s>]/i,                                                 // <video>
+              /https:\/\/github\.com\/user-attachments\/assets\/[\w-]+/i,     // drag-and-drop upload
+              /https:\/\/[^\s)"'<>]+\/user-images\.githubusercontent\.com\//i,
+              /https?:\/\/[^\s)"'<>]+\.(png|jpe?g|gif|webp|mp4|mov|webm)(\?[^\s)"'<>]*)?(?=[\s)"'<>]|$)/im,
+            ];
+            if (media.some(re => re.test(body))) {
+              core.info('Found a screenshot or video in the description. Thanks!');
+              return;
+            }
+            core.setFailed(
+              `This pull request changes the game (${changed.slice(0, 5).join(', ')}${changed.length > 5 ? ', …' : ''}) ` +
+              'but its description has no screenshot or gameplay video. Drag and drop an image or a short clip ' +
+              'into the description (before/after if you can), then save: this check re-runs automatically. ' +
+              'See CONTRIBUTING.md, "Show your change".'
+            );

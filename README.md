@@ -163,10 +163,13 @@ This is a community project, and contributions of every size are welcome.
 - **Start here:** [CONTRIBUTING.md](CONTRIBUTING.md) explains your first pull request step by step.
 - **Pick a task:**
   - the [wishlist](docs/IDEAS.md), where every idea is an open issue: changing weather, sound,
-    seagulls, walking, changing cars, driving trams;
+    seagulls, things to do on foot, changing cars, driving trams;
   - [`good first issue`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
     for small starters;
   - or build your city.
+- **Show it:** pull requests that change the game include a screenshot or a short gameplay
+  video (before/after if you can); drag and drop it into the description. Docs-only changes
+  don't need one. See [Show your change](CONTRIBUTING.md#show-your-change).
 - **Talk:** [Discord](https://discord.gg/tajQMEYxe9) for live chat and sharing drives, and
   [Discussions](https://github.com/worldhood/worldhood/discussions) for questions and ideas that should stay searchable.
 
