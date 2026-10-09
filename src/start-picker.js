@@ -68,6 +68,11 @@ export function createStartPicker({doc=document,starts,current,onChange}){
   get selected(){return selected;},
   // A start that could not load: show the one still in place.
   set(start){selected=start;render();},
-  busy(on){root.classList.toggle('switching',on);title.setAttribute('aria-busy',String(on));},
+  // While a picked place loads: the button says so and a progress line runs under the picker.
+  busy(on){
+   root.classList.toggle('switching',on);title.setAttribute('aria-busy',String(on));
+   const label=el('start-label');if(label){label.dataset.idle??=label.textContent;label.textContent=on?`Loading ${selected.name}…`:label.dataset.idle;}
+   if(on)status.textContent=`Loading ${selected.name}`;
+  },
  };
 }

@@ -35,6 +35,14 @@ body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#
 /* A long name wraps to two balanced lines (2 × 24 px + 3 px padding + border = the 56 px box), so it is never cut off. */
 #intro.has-picker.boot-screen #boot-title{flex:1;min-width:0;margin:0;line-height:24px;text-align:center;white-space:normal;text-wrap:balance;overflow-wrap:anywhere;transition:opacity .15s}
 #intro.switching #boot-title{opacity:.55}
+#intro .start-picker{position:relative;overflow:hidden}
+#intro.switching .start-picker::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,#d95e3b,transparent);background-size:40% 100%;background-repeat:no-repeat;animation:pick-load 1.1s ease-in-out infinite}
+#intro.switching .primary-btn{background-image:linear-gradient(110deg,transparent 30%,#ffffff33 50%,transparent 70%);background-size:220% 100%;animation:pick-shimmer 1.3s linear infinite}
+#intro.switching .primary-btn>span:last-child{opacity:.5}
+@keyframes pick-load{from{background-position:-40% 0}to{background-position:140% 0}}
+@keyframes pick-shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+@media (prefers-reduced-motion:reduce){#intro.switching .start-picker::after,#intro.switching .primary-btn{animation:pick-pulse 1.6s ease-in-out infinite}}
+@keyframes pick-pulse{50%{opacity:.6}}
 #intro .start-arrow{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:6px;background:none;color:var(--ink);touch-action:manipulation}
 #intro .start-arrow svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #intro .start-arrow:hover{background:var(--soft)}
