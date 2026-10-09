@@ -167,7 +167,7 @@ This is a community project, and contributions of every size are welcome.
   - [`good first issue`](https://github.com/worldhood/worldhood/issues?q=is%3Aissue+is%3Aopen+label%3A%22good+first+issue%22)
     for small starters;
   - or build your city.
-- **Talk:** [Discord](https://discord.gg/7qxz5fv2X) for live chat and sharing drives, and
+- **Talk:** [Discord](https://discord.gg/tajQMEYxe9) for live chat and sharing drives, and
   [Discussions](https://github.com/worldhood/worldhood/discussions) for questions and ideas that should stay searchable.
 
 Guides:
