@@ -54,7 +54,11 @@ export function createStartPicker({doc=document,starts,current,onChange}){
   status.textContent=`${selected.name}, starting point ${index+1} of ${starts.length}`;
   onChange(selected);
  }
- prev.addEventListener('click',()=>step(-1));next.addEventListener('click',()=>step(1));
+ // A mouse or touch click (detail>0) hands focus back to the page so “or press Enter” still
+ // starts the game. A keyboard press (Enter/Space, detail 0) keeps focus on the arrow, so
+ // pressing it again picks the next place, as a button should.
+ const arrow=(button,direction)=>button.addEventListener('click',e=>{if(e?.detail>0)button.blur?.();step(direction);});
+ arrow(prev,-1);arrow(next,1);
  let touch=null;
  root.addEventListener('touchstart',e=>{touch=e.touches.length===1&&!e.target.closest('a,summary,.boot-controls')?{x:e.touches[0].clientX,y:e.touches[0].clientY,t:e.timeStamp}:null;},{passive:true});
  root.addEventListener('touchend',e=>{

@@ -45,7 +45,7 @@ body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#
 @keyframes pick-pulse{50%{opacity:.6}}
 #intro .start-arrow{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:6px;background:none;color:var(--ink);touch-action:manipulation}
 #intro .start-arrow svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
-#intro .start-arrow:hover{background:var(--soft)}
+@media(hover:hover){#intro .start-arrow:hover{background:var(--soft)}} /* touch: no grey left behind after a tap */
 #intro .start-arrow:active{background:#30312e24}
 #intro .start-arrow:focus-visible{outline:2px solid var(--orange);outline-offset:0}
 #boot-title.slide-next{animation:start-in-next .22s ease-out}
@@ -59,7 +59,9 @@ body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#
 #intro .load-progress{display:block;height:3px;background:#30312e20;margin:var(--s-12) 0 var(--s-4);overflow:hidden}
 #intro #load-fill{width:0;background:var(--orange);transition:width .3s;height:100%}
 
-#intro .primary-btn{width:100%;min-height:56px;margin:0;padding:0 var(--s-16) 0 var(--s-24);border-radius:8px;font:700 var(--t-16)/24px var(--ui);letter-spacing:0}
+/* A deeper orange than the brand dot so the 16 px label reads at 4.5:1 or better. */
+#intro .primary-btn{width:100%;min-height:56px;margin:0;padding:0 var(--s-16) 0 var(--s-24);border-radius:8px;background-color:#bf4d2b;font:700 var(--t-16)/24px var(--ui);letter-spacing:0}
+#intro .primary-btn:hover{background-color:#a94324}
 #intro .primary-btn>span:last-child{font-size:var(--t-20);line-height:1}
 .boot-enter{display:block;margin-top:var(--s-8);font:400 var(--t-12)/16px var(--ui);color:var(--muted)}
 #intro kbd{display:inline-flex;align-items:center;min-width:0;padding:0 5px;margin:0 1px;font:500 var(--t-12)/16px var(--ui);letter-spacing:0;color:var(--ink);background:#fff9;border:1px solid #30312e26;border-bottom-width:2px;border-radius:4px;vertical-align:1px}
@@ -98,7 +100,7 @@ body.game-failed #intro{z-index:1000;pointer-events:auto}
  #intro.boot-screen{--pad:24px;left:16px;bottom:max(16px,env(safe-area-inset-bottom));width:358px;max-width:calc(100% - 32px);max-height:calc(100dvh - 32px);padding-bottom:var(--s-16)}
 }
 @media(pointer:coarse){
- .boot-footer a{display:inline-flex;align-items:center;min-height:32px}
+ .boot-footer a{display:inline-flex;align-items:center;min-height:44px}
  .boot-credit a{min-height:0}
 }
 @media(max-width:360px){#intro.boot-screen{--t-28:24px}#intro.boot-screen .boot-tagline{line-height:28px}}
@@ -112,10 +114,12 @@ body.game-failed #intro{z-index:1000;pointer-events:auto}
  #intro.boot-screen>.boot-brand{grid-column:1;grid-row:1;margin-bottom:var(--s-16)}
  #intro.boot-screen>.boot-tagline{grid-column:1;grid-row:2;margin:0;font-size:24px;line-height:28px}
  #intro.boot-screen>.boot-footer{grid-column:1;grid-row:3;align-self:end;margin-top:var(--s-16);border-top:0;padding-top:0}
+ /* The four links fit one row in the narrow column (44 px tall on touch) when spaced instead of dotted. */
+ #intro .boot-links{gap:0 var(--s-12)}
+ #intro .boot-links>span{display:none}
  #intro.boot-screen>.boot-main{grid-column:2;grid-row:1/-1;align-self:stretch;display:flex;flex-direction:column;min-width:0}
  #intro .boot-main>#boot-launch:not([hidden]){flex:1;display:flex;flex-direction:column}
  #intro .boot-main .boot-help{margin-top:auto;padding-top:var(--s-8)}
- #intro .boot-main .boot-help summary{min-height:32px}
  /* Loading: the heading and its progress read as one block. */
  #intro:not(.has-picker) #boot-title{margin-bottom:var(--s-12)}
  .boot-enter{display:none}

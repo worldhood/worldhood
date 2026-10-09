@@ -596,7 +596,6 @@ for(const dialog of document.querySelectorAll('dialog')){
 window.addEventListener('keydown',e=>{
  const pick=startPicker&&pickerStep(e.code,{ready:ready&&!gameIsStopped(),started,blocked:mapOpen||!!police?.busted});
  if(pick){e.preventDefault();if(!e.repeat)startPicker.step(pick);return;} // before the start ←/→ choose the place; afterwards they steer
- if(e.code==='Enter'&&!started&&ready&&e.target.closest?.('.start-arrow')){e.preventDefault();start();return;} // “or press Enter” holds after clicking an arrow too
  if(e.code!=='Escape'&&e.target.closest?.('button,a,summary,input,select,textarea,[contenteditable="true"]'))return;
  if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Space'].includes(e.code)&&!mapOpen)e.preventDefault();
  if(e.repeat)return;

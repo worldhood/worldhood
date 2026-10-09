@@ -53,6 +53,7 @@ class El{
   const set=new Set();this.classList={add:(...c)=>c.forEach(x=>set.add(x)),remove:(...c)=>c.forEach(x=>set.delete(x)),toggle:(c,on)=>on?set.add(c):set.delete(c),contains:c=>set.has(c)};}
  addEventListener(type,fn){this.listeners[type]=fn;}
  setAttribute(k,v){this.attrs[k]=v;}
+ blur(){this.blurred=(this.blurred||0)+1;}
 }
 function fakeDoc(){const els=new Map(['intro','boot-title','start-count','start-status','start-prev','start-next'].map(id=>[id,new El(id)]));return {els,getElementById:id=>els.get(id)};}
 
@@ -74,4 +75,24 @@ test('the card shows the name and position and announces each change',()=>{
 test('a city with one start shows no arrows',()=>{
  const doc=fakeDoc();createStartPicker({doc,starts:starts.slice(0,1),current:starts[0],onChange:()=>assert.fail()});
  assert.equal(doc.els.get('start-prev').hidden,true);assert.equal(doc.els.get('start-next').hidden,true);assert.equal(doc.els.get('start-count').hidden,true);
+});
+
+test('a mouse or touch click hands focus back, a keyboard press keeps it on the arrow',()=>{
+ const doc=fakeDoc(),picked=[];
+ createStartPicker({doc,starts,current:starts[0],onChange:s=>picked.push(s.name)});
+ const next=doc.els.get('start-next'),prev=doc.els.get('start-prev');
+ next.listeners.click({detail:0});
+ assert.equal(next.blurred,undefined,'Enter or Space on a focused arrow: focus stays, so Enter picks again rather than starting the game');
+ next.listeners.click({detail:0});
+ next.listeners.click({detail:1});
+ assert.equal(next.blurred,1,'a click returns focus to the page, so “or press Enter” starts the game');
+ prev.listeners.click({detail:2});assert.equal(prev.blurred,1);
+ assert.deepEqual(picked,['Market Square','Kamppi','Olympia Terminal','Kamppi'],'every press changes the start');
+});
+
+test('Enter on a focused arrow is left to the button, not taken over by the game keys',async()=>{
+ const {readFile}=await import('node:fs/promises');
+ const main=await readFile(new URL('../src/main.js',import.meta.url),'utf8');
+ assert.doesNotMatch(main,/closest\?\.\('\.start-arrow'\)/,'no Enter special case for the arrows');
+ assert.match(main,/e\.code!=='Escape'&&e\.target\.closest\?\.\('button,/,'keys on a focused button stay with the button');
 });
