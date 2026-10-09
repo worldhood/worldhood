@@ -80,9 +80,10 @@
     "file": "terrain.pack",
     "cell": 3,
     "base": 89,
-    "min": 77.1,
+    "min": 76.3,
     "max": 148.9,
     "bridges": 153,
+    "gradeSpikes": 4,
     "source": "Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com)."
    }
   }

@@ -2,11 +2,11 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
 import {encodeTerrain,decodeTerrain,setTerrain,groundAt,waterAt,lakeAt,groundPose,footprintBase,liftBuildings,hasTerrain} from '../src/terrain.js';
-import {drapeGeometry,settleObject,subdivideGeometry,createLakeGeometry} from '../src/terrain-mesh.js';
+import {drapeGeometry,settleObject,subdivideGeometry,createLakeGeometry,lakeSurface} from '../src/terrain-mesh.js';
 import {makeCar,driveStep} from '../src/physics.js';
 import {drivingCameraPose} from '../src/driving-camera.js';
 import {SpatialIndex} from '../src/geo.js';
-import {blur,levelWater,findLakes,stampBridges,bridgeChains,conditionRoads,readPng} from '../scripts/city-terrain.mjs';
+import {blur,levelWater,findLakes,stampBridges,bridgeChains,conditionRoads,readPng,limitProfile,gradeSpikes,roadLines,roadLayers,junctionMask,streetLevel,lakeBed} from '../scripts/city-terrain.mjs';
 
 // Synthetic fields: size×size samples, `cell` metres apart, centred on the origin.
 function field(fn,{size=81,cell=2,water=null,lake=null}={}){
@@ -148,5 +148,73 @@ test('car on a slope: wheels on the ground, nose up uphill, gravity slows the cl
  // Side slope: rolls, camera stays above the ground behind the car.
  setTerrain(field((x,z)=>.1*x,{size:201,cell:2}));const side=makeCar(0,0);assert.ok(side.roll>.09,'right side up');
  const cam=drivingCameraPose(side,0,150);assert.ok(cam.position[1]>groundAt(cam.position[0],cam.position[2])+1);assert.ok(cam.target[1]>side.y);
+ setTerrain(null);
+});
+
+const grid=(size,cell,fn)=>{const extent=(size-1)*cell/2,g=new Float32Array(size*size);for(let j=0;j<size;j++)for(let i=0;i<size;i++)g[j*size+i]=fn(i*cell-extent,j*cell-extent);return g;};
+const sample=(g,size,cell)=>{const extent=(size-1)*cell/2;setTerrain({size,cell,extent,base:0,ground:g,water:null,lake:null});return (x,z)=>groundAt(x,z);};
+
+test('a profile keeps its slopes but a spike becomes a ramp no steeper than allowed',()=>{
+ const h=[...Array(200)].map((_,i)=>i*2*.05+(i>=98&&i<102?6:0)),out=limitProfile(h,h.map(()=>.12),2);
+ for(let i=1;i<out.length;i++)assert.ok(Math.abs(out[i]-out[i-1])<=.24+1e-9,`step ${i}`);
+ for(const i of [0,40,140,199])assert.ok(Math.abs(out[i]-h[i])<1e-9,'slope away from the spike untouched');
+ assert.ok(out[100]-h[100]<-2.5&&out[100]>h[100]-6+2.5,'met halfway');
+});
+
+test('grade-separated crossing: neither road jumps; a footbridge never lifts the street below',()=>{
+ const size=201,cell=2,extent=200,bare=grid(size,cell,()=>0);
+ // A bridge (layer 1) runs north-south 6 m up on its embankment across a street (layer 0) on flat ground.
+ const ways=[{nodes:[1,2],tags:{highway:'secondary',bridge:'yes',layer:'1',name:'Silta'}},{nodes:[3,4],tags:{highway:'primary',name:'Katu'}},{nodes:[5,6],tags:{highway:'primary',tunnel:'yes'}},{nodes:[7,8],tags:{highway:'footway'}}];
+ const at={1:[0,-150],2:[0,150],3:[-150,0],4:[150,0],5:[0,0],6:[9,9],7:[0,-30],8:[0,30]},roads=roadLines(ways,id=>at[id]);
+ assert.deepEqual(roads.map(r=>[r.name,r.layer]),[['Silta',1],['Katu',0]],'tunnels and footways are not carriageways');
+ const low=roadLayers(roads,size,cell,extent),over=new Int8Array(size*size).fill(-128);
+ const decks=stampBridges(bare,size,cell,extent,[{points:[[0,-150],[0,150]],half:5,car:true,layer:1}],low,over);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(Math.abs(i*cell-extent)<5)decks[j*size+i]=6; // the embankment
+ const before=conditionRoads(bare,decks,size,cell,extent,roads,{bare,over});
+ assert.ok(gradeSpikes(sample(before,size,cell),roads).some(p=>p.grade>.3),'plain averaging makes a wall');
+ const junctions=junctionMask(over,low,size,cell),out=conditionRoads(bare,decks,size,cell,extent,roads,{bare,over,junctions,max:.12}),h=sample(out,size,cell);
+ assert.deepEqual(gradeSpikes(h,roads,{slack:.02}),[],'every carriageway within 12 %');
+ assert.ok(Math.abs(h(-140,0))<.2&&Math.abs(h(0,140)-6)<.2,'away from the junction both keep their levels');
+ // A footbridge over the street: its deck stops at the carriageway, which stays where it was.
+ const cut=grid(size,cell,(x,z)=>Math.abs(z)<20?3:9),fb=[{points:[[0,-20],[0,20]],half:2,car:false,layer:1}],q=(x,z)=>Math.round((z+extent)/cell)*size+Math.round((x+extent)/cell);
+ const foot=stampBridges(cut,size,cell,extent,fb,low);
+ assert.equal(foot[q(0,0)],3,'street under the footbridge untouched');assert.equal(foot[q(0,-14)],9,'the rest of the deck spans the cutting');
+ assert.equal(stampBridges(cut,size,cell,extent,fb)[q(0,0)],9,'(without layers the deck would bury the street)');
+ setTerrain(null);
+});
+
+test('a genuinely steep street keeps its grade away from junctions',()=>{
+ const size=201,cell=2,extent=200,bare=grid(size,cell,x=>.16*x),line=[{points:[[-150,0],[150,0]],layer:0,name:'Jyrkkä'}];
+ const out=conditionRoads(bare,bare,size,cell,extent,line,{bare,max:.12}),h=sample(out,size,cell);
+ assert.ok(Math.abs((h(20,0)-h(-20,0))/40-.16)<.01,'16 % stays 16 %');
+ assert.deepEqual(gradeSpikes(h,line,{level:streetLevel(bare,bare,null,size,cell,extent)}),[]);
+ setTerrain(null);
+});
+
+test('lake shores follow the bank smoothly instead of 3 m steps',()=>{
+ const size=61,cell=3,extent=90,lake=new Float32Array(size*size).fill(NaN);
+ const ground=grid(size,cell,(x,z)=>Math.max(0,Math.hypot(x,z)-40)*.08); // a round lake 40 m across, gently rising banks
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(Math.hypot(i*cell-extent,j*cell-extent)<36)lake[j*size+i]=0;
+ setTerrain({size,cell,extent,base:0,ground,water:null,lake});
+ const g=createLakeGeometry(),p=g.attributes.position,radii=[],shore=40+.75/.08;
+ for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),r=Math.hypot(x,z),off=v=>Math.abs(v/cell-Math.round(v/cell))>.01;if(off(x)||off(z))radii.push(r);assert.ok(r<shore+1.5);assert.ok(Math.abs(p.getY(i)+.05)<1e-6);}
+ // The shoreline is where the drawn ground (0.5 m below the field) rises 0.3 m above the water: r = 40 + 0.75/0.08.
+ assert.ok(radii.length>40,'shore vertices between the grid points');
+ for(const r of radii)assert.ok(Math.abs(r-shore)<1.5,`shore point at ${r.toFixed(2)} m, expected ${shore.toFixed(2)}`);
+ const w=lakeSurface();assert.ok(w.depth[30*size+30]>0&&w.depth[30*size+1]<0,'the map shows the lake, not the land');
+ // Shallows a few decimetres above the level (lidar noise on the water, reeds) sink below it; the bank stays.
+ const shallow=ground.map((v,k)=>v+(k%7===0&&!Number.isNaN(lake[k])?.3:0)),bed=lakeBed(shallow,lake,new Uint8Array(size*size),size);
+ for(let k=0;k<bed.length;k++){if(!Number.isNaN(lake[k]))assert.ok(bed[k]<=-.8+1e-6);if(ground[k]>1)assert.equal(bed[k],shallow[k]);}
+ setTerrain(null);
+});
+
+test('Tampere: no drivable street jumps at its interchanges (Rantatunneli, Sorinsilta, Lapintie)',async()=>{
+ const fs=await import('node:fs'),{gunzipSync}=await import('node:zlib');
+ setTerrain(decodeTerrain(gunzipSync(fs.readFileSync('public/cities/tampere/terrain.pack'))));
+ const roads=JSON.parse(fs.readFileSync('public/cities/tampere/mobility.json')).roads.edges.map(e=>({points:e.points,layer:0}));
+ const spikes=gradeSpikes(groundAt,roads,{max:.12,radius:1500});
+ assert.ok(spikes.every(p=>p.grade<=.22),`steepest ${JSON.stringify(spikes[0])}`);
+ assert.ok(spikes.length<=12,`${spikes.length} spots above 12 %`);
+ for(const [x,z] of [[757,-1062],[603,-1037],[624,-882],[684,308],[-227,757]])assert.ok(!spikes.some(p=>Math.hypot(p.x-x,p.z-z)<30),`interchange at ${x},${z}`);
  setTerrain(null);
 });

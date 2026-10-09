@@ -98,19 +98,49 @@ export function createTerrainGround(material,{cell=10,chunk=32,size=11000,depth=
  return group;
 }
 
-// Open water from the elevation model's `lake` layer: cells spread `spread` cells onto the shore (the
-// ground hides what lies above the level, which draws the shoreline) and merged into row runs per level.
-export function createLakeGeometry({spread=3,below=.05}={}){
+// Open water from the elevation model's `lake` layer. Each lake's level spreads up to `reach` cells onto the
+// shore; the water ends on the contour where the drawn ground (half a metre below the height field, see
+// createTerrainGround) rises `rise` above the surface, traced by marching squares between the grid points,
+// so the shoreline follows the bank instead of stepping in 3 m squares. → {n,level,depth} per grid point
+// (depth > 0 under water) or null.
+let lastLake=null;
+export function lakeSurface({reach=8,rise=.3,below=.05}={}){
  const f=terrain();if(!f?.lake)return null;
- const n=f.size,c=f.cell,lake=f.lake.slice();
- for(let pass=0;pass<spread;pass++){const next=lake.slice();
-  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i;if(!Number.isNaN(lake[k]))continue;
-   for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=n||jj>=n)continue;const v=lake[jj*n+ii];if(!Number.isNaN(v)){next[k]=v;break;}}}
-  lake.set(next);}
- const pos=[];
- for(let j=0;j<n;j++){let i=0;while(i<n){const v=lake[j*n+i];if(Number.isNaN(v)){i++;continue;}let e=i+1;while(e<n&&Math.abs(lake[j*n+e]-v)<.005)e++;
-  const x0=(i-.5)*c-f.extent,x1=(e-.5)*c-f.extent,z0=(j-.5)*c-f.extent,z1=(j+.5)*c-f.extent,y=v-below;
-  pos.push(x0,y,z0,x0,y,z1,x1,y,z0,x1,y,z0,x0,y,z1,x1,y,z1);i=e;}}
+ const key=`${reach},${rise},${below}`;if(lastLake?.f===f&&lastLake.key===key)return lastLake.w;
+ const n=f.size,level=f.lake.slice();
+ for(let pass=0;pass<reach;pass++){const next=level.slice();let grew=0;
+  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i;if(!Number.isNaN(level[k]))continue;
+   for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=n||jj>=n)continue;const v=level[jj*n+ii];if(!Number.isNaN(v)&&f.ground[jj*n+ii]<v+.5+rise){next[k]=v;grew++;break;}}}
+  level.set(next);if(!grew)break;}
+ const depth=new Float32Array(n*n);
+ for(let k=0;k<n*n;k++)depth[k]=Number.isNaN(level[k])?-1:level[k]-below+.5+rise-f.ground[k];
+ const w={n,level,depth};lastLake={f,key,w};return w;
+}
+export function createLakeGeometry(options={}){
+ const f=terrain(),w=lakeSurface(options);if(!w)return null;
+ const {n,level,depth}=w,c=f.cell,E=f.extent,below=options.below??.05,pos=[];
+ const X=i=>i*c-E,cut=(a,b)=>depth[a]/(depth[a]-depth[b]);
+ for(let j=0;j+1<n;j++){let i=0;
+  while(i+1<n){const a=j*n+i,corners=[a,a+n,a+n+1,a+1];
+   if(corners.every(k=>depth[k]>0)){let e=i+1;const v=level[a];// whole cells: one quad per run at one level
+    while(e+1<n&&[j*n+e,j*n+e+n,j*n+e+n+1,j*n+e+1].every(k=>depth[k]>0&&Math.abs(level[k]-v)<.005))e++;
+    const y=v-below;pos.push(X(i),y,X(j),X(i),y,X(j+1),X(e),y,X(j+1),X(i),y,X(j),X(e),y,X(j+1),X(e),y,X(j));i=e;continue;}
+   if(corners.some(k=>depth[k]>0)){// shore cell: the wet corners and the interpolated crossings, in order
+    const xz=[[X(i),X(j)],[X(i),X(j+1)],[X(i+1),X(j+1)],[X(i+1),X(j)]],poly=[];let sum=0,wet=0;
+    for(let q=0;q<4;q++){const k=corners[q],k2=corners[(q+1)%4],p=xz[q],p2=xz[(q+1)%4];
+     if(depth[k]>0){poly.push(p);sum+=level[k];wet++;}
+     if((depth[k]>0)!==(depth[k2]>0)){const t=cut(k,k2);poly.push([p[0]+(p2[0]-p[0])*t,p[1]+(p2[1]-p[1])*t]);}}
+    const y=sum/wet-below;for(let q=1;q+1<poly.length;q++)pos.push(poly[0][0],y,poly[0][1],poly[q][0],y,poly[q][1],poly[q+1][0],y,poly[q+1][1]);}
+   i++;}}
  if(!pos.length)return null;
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.computeVertexNormals();g.computeBoundingSphere();return g;
+}
+// Paints the lakes onto a map canvas whose context is already in world metres (the minimap).
+export function drawLakeMap(ctx,color){
+ const f=terrain(),w=lakeSurface();if(!w||typeof document==='undefined')return false;
+ const {n,depth}=w,canvas=document.createElement('canvas');canvas.width=canvas.height=n;
+ const x=canvas.getContext('2d'),img=x.createImageData(n,n),rgb=parseInt(color.slice(1),16);
+ for(let k=0;k<n*n;k++)if(depth[k]>0){img.data[k*4]=rgb>>16;img.data[k*4+1]=rgb>>8&255;img.data[k*4+2]=rgb&255;img.data[k*4+3]=255;}
+ x.putImageData(img,0,0);ctx.imageSmoothingEnabled=true;ctx.drawImage(canvas,-f.extent-f.cell/2,-f.extent-f.cell/2,n*f.cell,n*f.cell);
+ return true;
 }

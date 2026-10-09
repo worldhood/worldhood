@@ -2,6 +2,7 @@
 import {insidePlayable,pointInPolygon} from './geo.js';
 import {makeCar} from './physics.js';
 import {sweptContact} from './contact-geometry.js';
+import {slopeAt} from './terrain.js';
 
 export const TRAVEL_MODES=Object.freeze({
  walk:{label:'On foot',speed:2,run:4.8,acceleration:8,braking:12,halfWidth:.28,halfLength:.28},
@@ -12,6 +13,18 @@ export const CRASH_SPEED=2.2; // m/s: slower bumps just stop the ride
 // Impact kinds (impacts.js HITTER_MASS) of the player's own body, and the speeds below which people simply step aside.
 export const HIT_KIND={walk:'walker',bike:'bicycle',scooter:'scooter'},HIT_SPEED={walker:1,bicycle:1.2,scooter:1.2};
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+// Speed factor for a grade along the direction of travel (rise/run, uphill positive). Walking follows
+// Tobler's hiking rule (a gentle descent is easiest, steep either way is slow); bicycles slow hard uphill
+// and roll a little faster downhill; the scooter's motor holds better uphill and is limited downhill.
+export function slopeFactor(mode,grade){
+ const g=clamp(grade,-.4,.4);
+ if(mode==='walk')return clamp(Math.exp(-3.5*(Math.abs(g+.05)-.05)),.35,1.1);
+ if(mode==='bike')return g>0?Math.max(.3,1/(1+9*g)):Math.min(1.35,1-4*g);
+ if(mode==='scooter')return g>0?Math.max(.45,1/(1+4.5*g)):Math.min(1.15,1-2*g);
+ return 1;
+}
+const slope=[0,0];
+export function gradeAhead(p,direction=1){slopeAt(p.x,p.z,slope);return -(slope[0]*Math.sin(p.heading)+slope[1]*Math.cos(p.heading))*direction;}
 const gap=(a,b)=>Math.hypot(a.x-b.x,a.z-b.z);
 const offset=(p,x,z)=>({x:p.x+x*Math.cos(p.heading)+z*Math.sin(p.heading),z:p.z-x*Math.sin(p.heading)+z*Math.cos(p.heading),heading:p.heading});
 const bodySize=a=>({hw:a.halfWidth??a.hw??.98,hl:a.halfLength??a.hl??2.36});
@@ -146,7 +159,8 @@ export class PlayerTravel{
   const up=keys.has('KeyW')||keys.has('ArrowUp'),down=keys.has('KeyS')||keys.has('ArrowDown'),brake=keys.has('Space');
   const steer=(keys.has('KeyA')||keys.has('ArrowLeft')?1:0)-(keys.has('KeyD')||keys.has('ArrowRight')?1:0)||(keys.tilt||0);
   const sprint=walk&&(this.sprint||keys.has('ShiftLeft')||keys.has('ShiftRight'));
-  const target=brake?0:up===down?0:up?(sprint?spec.run:spec.speed):walk?-1.4:p.speed>.15?0:-1.3;
+  const base=brake?0:up===down?0:up?(sprint?spec.run:spec.speed):walk?-1.4:p.speed>.15?0:-1.3;
+  const target=base*slopeFactor(this.mode,gradeAhead(p,Math.sign(base)));
   const acceleration=target===0||target*p.speed<0||Math.abs(target)<Math.abs(p.speed)?spec.braking:spec.acceleration;
   p.speed+=clamp(target-p.speed,-acceleration*dt,acceleration*dt);p.steer+=(steer-p.steer)*(1-Math.exp(-dt*(walk?14:8)));
   const before={...p},turn=p.steer*(walk?2.8:1.6*clamp(Math.abs(p.speed)/2,.15,1))*dt*(p.speed<-.05?-1:1);

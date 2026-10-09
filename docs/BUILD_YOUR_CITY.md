@@ -165,9 +165,14 @@ can also run on its own after any rebuild:
   removed), bridges spanned as straight decks between their banks, every mapped water body levelled at its
   own surface (a river keeps its steps at the dams), and large flat water the map leaves out (lakes) found
   in the elevation model itself.
+- Interchanges are one height field too, so roads on different levels (OSM `bridge`, `layer`) are made to
+  agree: where a bridge crosses a street the two meet halfway with ramps no steeper than 12 %, and a foot or
+  cycle bridge never lifts the street below it. Streets that really are steeper keep their grade. The build
+  prints any carriageway still steeper than that (`road grade spikes`); fix the OSM tags or report them.
 - The game then puts everything on the ground: streets, kerbs, water, buildings (each on its lowest
   corner), trees, furniture, tram tracks and wires, traffic, people and the player's car, which climbs
-  and rolls with the slope and slows uphill.
+  and rolls with the slope and slows uphill. Walking, cycling and scooting slow down uphill too; bicycles
+  and scooters roll a little faster downhill. Lakes show on the minimap.
 
 Check: drive the steepest street you know, look at the main bridge from the water, and see that lakes
 sit at their own levels. Put `"terrain": false` in `cities/<id>/city.json` to keep a city flat.

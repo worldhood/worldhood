@@ -2,7 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {SpatialIndex,setPlayableRadius} from '../src/geo.js';
 import {makeCar} from '../src/physics.js';
-import {PlayerTravel,travelCollision,TRAVEL_MODES,exitPosition} from '../src/player-travel.js';
+import {PlayerTravel,travelCollision,TRAVEL_MODES,exitPosition,slopeFactor} from '../src/player-travel.js';
+import {setTerrain} from '../src/terrain.js';
 import {trafficFootprintsOverlap,sweptContact} from '../src/contact-geometry.js';
 import {carBox} from '../src/lane-model.js';
 import {busOverlaps} from '../src/bus-simulation.js';
@@ -110,4 +111,22 @@ test('a bike or scooter that hits something at speed falls over and the rider ge
  let crashed=null;for(let i=0;i<120&&!crashed;i++)crashed=travel.step(new Set(['KeyW']),1/60).crashed;
  assert.ok(crashed>=CRASH_SPEED,'hit the wall at speed');assert.equal(travel.mode,'walk');assert.ok(travel.actor.knockdown);assert.ok(ride.fallen,'ride tipped over');
  for(let i=0;i<60*5;i++)travel.step(new Set(['KeyW']),1/60);assert.ok(!travel.actor.knockdown,'rider gets up');
+});
+
+test('walking, cycling and scooting feel the slope: slower uphill, a little faster downhill, capped',()=>{
+ const size=201,cell=2,extent=200,ground=new Float32Array(size*size);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)ground[j*size+i]=-.08*(j*cell-extent); // rises towards -z, ahead at heading 0
+ const run=(mode,heading,hill)=>{setTerrain(hill?{size,cell,extent,base:0,ground,water:null,lake:null}:null);
+  const travel=new PlayerTravel(makeCar(60,60),world());travel.interact();if(mode!=='walk')mount(travel,mode);
+  Object.assign(travel.actor,{x:0,z:heading?-40:40,heading,speed:0});for(let i=0;i<240;i++)travel.step(press('KeyW'),1/60);
+  setTerrain(null);return travel.actor.speed;};
+ for(const mode of ['walk','bike','scooter']){
+  const flat=run(mode,0,false),up=run(mode,0,true),down=run(mode,Math.PI,true);
+  assert.ok(Math.abs(flat-TRAVEL_MODES[mode].speed)<.05,`${mode} flat ${flat}`);
+  assert.ok(up<flat*.85,`${mode} uphill ${up.toFixed(2)} < flat ${flat.toFixed(2)}`);
+  if(mode==='walk')assert.ok(down<=flat*1.1+1e-6,`walking downhill stays near walking pace: ${down.toFixed(2)}`);
+  else assert.ok(down>flat*1.05&&down<=flat*1.35+1e-6,`${mode} downhill ${down.toFixed(2)} vs ${flat.toFixed(2)}`);
+ }
+ assert.equal(slopeFactor('walk',0),1);assert.ok(slopeFactor('walk',-.05)>1&&slopeFactor('walk',-.25)<.6,'a gentle descent is easiest, a steep one is careful');assert.ok(slopeFactor('bike',-1)<=1.35&&slopeFactor('scooter',-1)<=1.15&&slopeFactor('bike',1)>=.3,'capped');
+ assert.equal(slopeFactor('car',.2),1);
 });
