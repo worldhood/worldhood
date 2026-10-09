@@ -1,10 +1,12 @@
 import './market-shop.css';
+import {marketActionPrompt} from './market-shop.js';
 
 // Stall prompt ("E · Buy"), the stall card with its menu and wallet, and the
 // "E · Eat" prompt while something is in hand. Buttons work for mouse, touch and keyboard.
 export function createMarketShopUI({action,buy,close,focusWorld=()=>{},doc=document}){
  const root=doc.createElement('section');root.id='market-shop';root.hidden=true;root.setAttribute('aria-label','Market stall');
  const prompt=doc.createElement('button');prompt.id='market-prompt';prompt.type='button';
+ const encounterCue=doc.createElement('p');encounterCue.id='market-encounter-cue';encounterCue.hidden=true;prompt.setAttribute('aria-describedby',encounterCue.id);
  const card=doc.createElement('div');card.id='market-card';card.hidden=true;card.setAttribute('role','dialog');card.setAttribute('aria-modal','false');
  const head=doc.createElement('header'),awning=doc.createElement('div');awning.className='market-awning';awning.setAttribute('aria-hidden','true');
  const titles=doc.createElement('div'),local=doc.createElement('span'),title=doc.createElement('h3');local.className='market-local';title.id='market-card-title';card.setAttribute('aria-labelledby',title.id);
@@ -14,7 +16,7 @@ export function createMarketShopUI({action,buy,close,focusWorld=()=>{},doc=docum
  const list=doc.createElement('ul');list.className='market-items';
  const foot=doc.createElement('p');foot.className='market-foot';
  const flash=doc.createElement('span');flash.className='market-flash';flash.setAttribute('aria-hidden','true');
- card.append(awning,head,wallet,list,foot,flash);root.append(card,prompt);
+ card.append(awning,head,wallet,list,foot,flash);root.append(card,prompt,encounterCue);
  // Short confirmations ("Strawberries, €5. Mm.") get their own bubble: the general toast is hidden in the clean desktop view.
  const note=doc.createElement('p');note.id='market-note';note.setAttribute('role','status');note.setAttribute('aria-live','polite');note.hidden=true;
  doc.querySelector('#app').append(root,note);let noteTimer=0;
@@ -24,13 +26,13 @@ export function createMarketShopUI({action,buy,close,focusWorld=()=>{},doc=docum
  let key='',lastFlash='';
  return {root,note,
   say(text,{seconds=2.8}={}){if(!text)return;note.textContent=text;note.hidden=false;note.classList.remove('in');void note.offsetWidth;note.classList.add('in');clearTimeout(noteTimer);noteTimer=setTimeout(()=>{note.hidden=true;},seconds*1000);},
-  update(state,{hidden=false}={}){
+  update(state,{hidden=false,encounter=null}={}){
    const coarse=doc.body.classList.contains('touch');
-   const hand=state?.hand,intent=state?.intent,keyName=coarse?'':'E · ';
-   const promptText=!state?'':intent==='buy'?`${keyName}Buy at the ${state.nearby.title.toLowerCase()}`:intent==='use'?`${keyName}${hand.use==='drink'?'Drink':'Eat'} the ${hand.name.toLowerCase()}`:intent==='stow'?`${keyName}Put the ${hand.name.toLowerCase()} away`:'';
+   const {intent,text:promptText,cue}=marketActionPrompt(state,{coarse,encounter});
    root.hidden=hidden||!state||!(state.open||promptText);
    if(root.hidden)return;
    prompt.hidden=!promptText;if(promptText&&prompt.textContent!==promptText)prompt.textContent=promptText;
+   encounterCue.hidden=!cue;encounterCue.textContent=cue;
    prompt.dataset.kind=intent||'';
    card.hidden=!state.open;if(!state.open)flash.classList.remove('go');
    if(state.open){

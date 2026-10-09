@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {objectBehavior,solidBox} from './world-objects.js';
 
 // Observed in August 2024 street-level photography looking north. These are three circular mandatory-turn signs,
 // NOT motorway direction boards. Locations/heights are photo-guided estimates
@@ -41,6 +42,8 @@ export function createHarbourSigns(){
   }
  }
  for(const [m,gs] of parts){const mesh=new THREE.Mesh(mergeGeometries(gs),materials[m]);mesh.castShadow=true;group.add(mesh);gs.forEach(g=>g.dispose());}
+ group.obstacles=SIGN_SUPPORTS.map((p,i)=>solidBox({id:`harbour-suspended-sign-support-${i}`,name:'Harbour suspended-sign support',x:p.x,z:p.z,width:.13,depth:.13}));
+ group.worldObjects=[...group.obstacles,...OVERHEAD_TURN_SIGNS.map((s,i)=>objectBehavior({id:`harbour-suspended-sign-${i}`,x:s.x,z:s.z,minY:s.y-.39},'overhead'))];
  group.userData={count:3,turns:OVERHEAD_TURN_SIGNS.map(s=>s.turn),capture:'2024-08',accuracy:'Photo-guided; sign identity/order observed, height and anchors estimated'};
  return group;
 }

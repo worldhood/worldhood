@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {objectBehavior,solidBox} from './world-objects.js';
 
 // Read from 2024 street-level reference photography.
 // Camera position is NOT the sign position. This placement is constrained by the
@@ -67,6 +68,9 @@ export function createLaivasillankatuSigns({canvasFactory=()=>globalThis.documen
     }
   }
   for(const [name,gs] of batches){const mesh=new THREE.Mesh(mergeGeometries(gs),materials[name]);mesh.castShadow=true;group.add(mesh);gs.forEach(g=>g.dispose());}
-  group.userData={...LAIVASILLANKATU_SIGN_REFERENCE,count:4,turns:LAIVASILLANKATU_SIGN_FACES.map(s=>s.turn),collision:false};
+  // The mast is physical; the suspended faces and cables leave the road open.
+  group.obstacles=[solidBox({id:'laivasillankatu-sign-mast',name:'Laivasillankatu sign lattice mast',x:position.x+14.5*Math.cos(position.angle),z:position.z-14.5*Math.sin(position.angle),width:.32,depth:.32,yaw:position.angle})];
+  group.worldObjects=[...group.obstacles,...LAIVASILLANKATU_SIGN_FACES.map((s,i)=>objectBehavior({id:`laivasillankatu-suspended-sign-${i}`,minY:s.y-(s.tramPlate?.81:.42)},'overhead'))];
+  group.userData={...LAIVASILLANKATU_SIGN_REFERENCE,count:4,turns:LAIVASILLANKATU_SIGN_FACES.map(s=>s.turn),collision:'solid mast only; suspended signs leave the roadway open'};
   return group;
 }

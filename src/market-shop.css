@@ -8,6 +8,7 @@
 @keyframes market-in{from{opacity:0;transform:translateY(8px) scale(.98)}to{opacity:1;transform:none}}
 .market-awning{height:16px;background:repeating-linear-gradient(90deg,#dfdac7 0 22px,#efeadb 22px 44px);border-bottom:1px solid #30312e14}
 #market-card[data-canopy=orange] .market-awning{background:repeating-linear-gradient(90deg,#d97827 0 22px,#efe7d3 22px 44px)}
+#market-card[data-canopy=icecream] .market-awning{background:repeating-linear-gradient(90deg,#689f95 0 22px,#fff0d3 22px 44px)}
 #market-card header{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 16px 4px}
 .market-local{display:block;font-size:9px;letter-spacing:1.8px;font-weight:650;text-transform:uppercase;color:#87917f;margin-bottom:4px}
 #market-card h3{margin:0;font:500 21px/1.15 Manrope,sans-serif;letter-spacing:-.6px}
@@ -47,3 +48,7 @@
 @media(pointer:coarse) and (max-height:500px){#market-note{left:auto;right:var(--mobile-right,16px);transform:none;bottom:calc(var(--mobile-bottom,10px) + 262px);animation:none}}
 body.busted :is(#market-shop,#market-note),body.arrest-cinematic :is(#market-shop,#market-note){visibility:hidden}
 body.touch .market-items kbd{display:none}
+#market-encounter-cue{position:absolute;left:50%;bottom:80px;transform:translateX(-50%);margin:0;padding:3px 8px;border-radius:5px;background:#f8f5eee8;color:#354a3e;font-size:10px;line-height:1.4;pointer-events:none;white-space:nowrap}
+@media(max-width:700px) and (pointer:fine){#market-encounter-cue{bottom:166px}}
+@media(pointer:coarse){#market-encounter-cue{bottom:calc(var(--mobile-bottom,16px) + 191px)}}
+@media(pointer:coarse) and (max-height:500px){#market-encounter-cue{left:auto;right:var(--mobile-right,16px);transform:none;bottom:calc(var(--mobile-bottom,10px) + 188px)}}

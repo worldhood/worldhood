@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {objectBehavior,solidBox} from './world-objects.js';
 
 export const MANNERHEIMINTIE_GANTRY_REFERENCE=Object.freeze({
   source:'street-level reference photography',capture:'2025-09',
@@ -66,5 +67,7 @@ export function createMannerheimintieGantry({canvasFactory=()=>globalThis.docume
   for(const [geometries,material,name]of [[structure,steel,'Single mast and plain building-anchored bar'],[backs,metal,'Sign backs and anchor plates'],[faces,print,'Observed bilingual destination and route faces']]){
     const mesh=new THREE.Mesh(mergeGeometries(geometries),material);mesh.name=name;mesh.castShadow=true;g.add(mesh);geometries.forEach(geo=>geo.dispose());
   }
+  g.obstacles=[solidBox({id:'mannerheimintie-gantry-pole',name:'Mannerheimintie direction gantry support',x:p.x,z:p.z,width:.4,depth:.4,yaw:p.angle})];
+  g.worldObjects=[...g.obstacles,objectBehavior({id:'mannerheimintie-gantry-boards',minY:5.97},'overhead')];
   g.userData={...MANNERHEIMINTIE_GANTRY_REFERENCE,poleFootprint:MANNERHEIMINTIE_GANTRY_POLE,collision:'pole only; never whole gantry bounds',clearance:5.97};return g;
 }

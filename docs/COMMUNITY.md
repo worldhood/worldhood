@@ -2,16 +2,17 @@
 
 | Where | What it's for |
 | --- | --- |
-| **GitHub Issues** | The to-do list: bugs, the [wishlist](IDEAS.md), area and city claims |
-| **GitHub Discussions** | Questions, design ideas, show-and-tell; searchable and permanent |
-| **[Discord](https://discord.gg/tajQMEYxe9)** | Live chat, sharing drives and screenshots, city channels, build-alongs |
+| **[GitHub Issues](https://github.com/worldhood/worldhood/issues)** | Bugs, ideas, the [wishlist](IDEAS.md), and coordinating work on places and the engine |
+| **[Discord](https://discord.gg/tajQMEYxe9)** | Live chat, screenshots and build-alongs |
 
-Decisions are recorded on GitHub (issues, pull requests, discussions), not only in chat.
+Record decisions in GitHub issues and pull requests so contributors can find them later. GitHub Discussions is not currently enabled.
 
-## Discord server setup
+## Suggested Discord server setup
 
-**Name:** Worldhood
-**Icon:** the `o↗` brand mark
+This is a setup proposal, not a list of channels or roles that already exist.
+
+**Name:** worldhood
+**Icon:** the globe with its highlighted place
 
 ### Roles
 
@@ -31,7 +32,7 @@ INFO
   #announcements    read-only: releases, new cities, events
 COMMUNITY
   #general
-  #show-your-drive  screenshots and clips (link the ?city=&start= URL)
+  #show-your-hood   screenshots and clips (link the ?city=&start= URL)
   #ideas            discuss before opening an issue
   #help             setup and "how do I…" questions
 BUILD
@@ -49,13 +50,15 @@ VOICE
 
 ### Welcome message (pin in #welcome)
 
-> **Welcome to Worldhood.** Open-world driving across the real world, built from open data.
-> Build your own city into it.
+> **Welcome to worldhood.** Check out some hoods. Then build your own.
+> Explore real places by car, on foot, by bicycle or scooter. Help build a corner of the world,
+> improve the shared game engine, or tell us what could work better.
 >
 > - **Play:** https://worldhood.org (try `?city=helsinki` or `?city=tampere`)
 > - **Code:** https://github.com/worldhood/worldhood
-> - **Build your city:** the playbook in `docs/BUILD_YOUR_CITY.md`; it takes about 10 minutes to
->   get a drivable city
+> - **Build a place:** start with `docs/BUILD_YOUR_CITY.md`; a street or landmark is welcome too
+> - **Improve the engine:** see `docs/GAMEPLAY.md` for the shared systems
+> - **The vision:** `docs/VISION.md` explains what works today and where we want to go
 > - **Pick a task:** the wishlist (issues labelled `idea`), or `good first issue`
 >
 > Say hi in #general: which city would you build?
@@ -66,11 +69,12 @@ VOICE
 > 2. Real places, real people: no content mocking or targeting real people, private homes or
 >    sensitive sites.
 > 3. Open data only. **Never share or use Google Street View, Google 3D tiles or other proprietary
->    map imagery** in the project. Look at them in their own viewers only.
+>    map imagery** in project assets or datasets. Public access does not grant permission to
+>    copy or trace a source; use sources whose terms permit the work you are contributing.
 > 4. Credit sources. Every city and asset says where it came from.
-> 5. Decisions live on GitHub. Chat is for talking; open an issue or discussion for anything that
+> 5. Decisions live on GitHub. Chat is for talking; open an issue for anything that
 >    needs a decision.
-> 6. No spam or self-promotion outside #show-your-drive.
+> 6. No spam or unrelated self-promotion.
 
 ### Moderation basics
 

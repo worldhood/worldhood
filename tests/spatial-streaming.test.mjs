@@ -73,3 +73,19 @@ test('optional missing catalogs are empty but transient failures and malformed c
  await assert.rejects(loadExtensionIndex(async()=>{throw Object.assign(Error('server unavailable'),{status:503});}),/server unavailable/);
  await assert.rejects(loadExtensionIndex(async()=>({wrong:[]})),/Invalid map extension catalog/);
 });
+
+test('disposing a streamer aborts active callbacks and prevents queued or late completed work',async()=>{
+ const gate=deferred(),calls=[],errors=[];let signal;
+ const s=createSpatialStreamer({concurrency:1,onError:e=>errors.push(e),load:async(r,context)=>{calls.push(r.id);signal=context.signal;await gate.promise;return r.id;}});
+ s.add([record('active',0),record('queued',20)]);const pending=s.require(['active','queued']),rejected=assert.rejects(pending,/disposed/);await tick();
+ assert.deepEqual(calls,['active']);assert.equal(signal.aborted,false);s.dispose();await rejected;assert.equal(signal.aborted,true);
+ gate.resolve();await tick();assert.deepEqual(calls,['active']);assert.equal(s.state('active'),'cancelled');assert.equal(s.get('active'),undefined);assert.deepEqual(errors,[]);
+ await assert.rejects(s.require(['queued']),/disposed/);
+});
+
+test('a region download finishing after disposal cannot install or open its area',async()=>{
+ const gate=deferred();let installs=0;
+ const s=createExtensionStreamer({entries:[record('outer',8000)],load:async e=>{await gate.promise;return e;},install:()=>{installs++;}});
+ const pending=s.ensureStart({extension:'outer'}),rejected=assert.rejects(pending,/disposed/);await tick();s.dispose();await rejected;
+ gate.resolve();await tick();assert.equal(installs,0);assert.equal(s.state('outer'),'cancelled');
+});

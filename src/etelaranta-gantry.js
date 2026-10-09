@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
+import {objectBehavior,solidBox} from './world-objects.js';
 
 // 2024 street-level reference photography, including a readable close-up
 // of the same assembly. Words and
@@ -103,6 +104,8 @@ export function createEtelarantaGantry({canvasFactory=()=>globalThis.document?.c
   for(const [parts,material]of [[steelParts,steel],[backParts,aluminium],[faceParts,printed]]){
     const mesh=new THREE.Mesh(mergeGeometries(parts),material);mesh.name=material===printed?'Observed arrow, restriction and route-shield faces':material===steel?'Open cantilever steelwork':'Metal sign backs and pole base';mesh.castShadow=true;group.add(mesh);parts.forEach(g=>g.dispose());
   }
+  group.obstacles=[solidBox({id:'etelaranta-gantry-pole',name:'Eteläranta direction gantry support',x:p.x,z:p.z,width:ETELARANTA_GANTRY_POLE.radius*2,depth:ETELARANTA_GANTRY_POLE.radius*2,yaw:p.angle})];
+  group.worldObjects=[...group.obstacles,objectBehavior({id:'etelaranta-gantry-boards',minY:p.clearance},'overhead')];
   group.userData={...ETELARANTA_GANTRY_REFERENCE,clearance:p.clearance,poleFootprint:ETELARANTA_GANTRY_POLE,collision:'pole only; open roadway beneath cantilever'};
   return group;
 }

@@ -25,8 +25,9 @@ street, collect **real reference photos** first:
 - Mapillary, Panoramax or KartaView open imagery;
 - the city's own open imagery.
 
-People may also look at Google Street View in Google's viewer and write down what they see, but
-never copy, screenshot or feed it to tools. Then match the game to the photos:
+Check that each reference's licence and provider terms permit your intended use, including
+measurements, processing and redistribution. Use your own on-site observations or permitted
+photos for the project's notes and assets. Then match the game to those references:
 
 | Characteristic | What to match | Not acceptable |
 | --- | --- | --- |
@@ -48,9 +49,9 @@ never copy, screenshot or feed it to tools. Then match the game to the photos:
 | **[Panoramax](https://panoramax.fr)** / **[KartaView](https://kartaview.org)** | Open street-level imagery, strong in some countries | Look on the map; credit the photographer when you use a photo as a reference. |
 | **Your city's own open data** | Orthophotos, building photos, tree and street registers | Check the city's open-data portal (e.g. Helsinki's and Tampere's GeoServers). Many publish aerial photos you can measure from. |
 | **Wikimedia Commons** | Landmarks and famous façades | Each photo has its own licence. Use as a reference, credit in the landmark's sources file. |
-| **Google Street View** | Checking what a street looks like, anywhere | **Look only, in Google's own viewer** (`npm run area:links` opens each spot at the right heading). Write what you see in your own words in `reference-notes.json`. Never screenshot, download, trace, or give it to an agent or tool; Google's terms forbid it. |
+| **Google Street View** | Viewing on Google's service | Viewing access does not grant permission to derive this project's assets, measurements or map data. Do not use it as an asset-building source without permission covering that use. Rewording observations is not a permission workaround; see Google's [Geo Guidelines](https://about.google/brand-resource-center/products-and-services/geo-guidelines/). |
 
-What to note from each photo: storeys and roof shapes, façade colours and materials, shop fronts, tree
+What to note from each permitted reference photo: storeys and roof shapes, façade colours and materials, shop fronts, tree
 species, size and spacing, street surface (asphalt vs setts), tram tracks, kerbs, crossings, sign
 texts and styles, lamp and shelter styles, and bus and tram liveries.
 
@@ -61,8 +62,9 @@ texts and styles, lamp and shelter styles, and bus and tram liveries.
   credit the licence of each underlying source for your area. National lidar or elevation models
   from your country's mapping agency are often better still.
 - **Aerial photos:** use your city's or country's open orthophotos (many are CC BY 4.0).
-- **Not allowed:** Esri World Imagery, Google, Bing or Apple satellite imagery. They are fine to look
-  at, but their terms don't allow copying, tracing or redistributing them in an open project.
+- **Proprietary imagery:** do not use Esri, Google, Bing or Apple imagery as project data, textures
+  or tracing references without permission covering that use. Prefer municipal or national open
+  orthophotos with a documented licence.
 
 ### Proving it
 
@@ -180,9 +182,12 @@ sit at their own levels. Put `"terrain": false` in `cities/<id>/city.json` to ke
 ### Street furniture from Mapillary detections
 
 Lamp posts, traffic lights, road signs, bins, junction boxes, benches and roadworks barriers can be
-placed where they really stand, without anyone clicking through street photos. Mapillary runs
-computer vision over everyone's street-level photos and publishes what it finds, with a position, as
-open data ("map features", CC BY-SA 4.0).
+placed using positions extracted by Mapillary from street-level photos ("map features"). These
+features are provided under the [Mapillary Terms of Use](https://www.mapillary.com/terms);
+the CC BY-SA licence for imagery does not establish a CC BY-SA licence for extracted features.
+The current dataset's downstream redistribution rights still need confirmation before public
+release; see [NOTICE.md](../NOTICE.md). Keep the visible linked Mapillary logo when displaying
+these features. Attribution alone does not resolve the redistribution question.
 
 - **Turn it on:** get a free client token at
   [mapillary.com/dashboard/developers](https://www.mapillary.com/dashboard/developers) and put
@@ -283,10 +288,12 @@ shapes; everything you see comes from photos taken after the place last changed.
    - **Open photos:** `npm run photos:fetch -- <city> <place>` downloads current Commons, Mapillary
      and Panoramax photos (needs the free `MAPILLARY_TOKEN`). Look at them and write short facts,
      crediting each image.
-   - **By hand:** `npm run area:links -- <id>` opens each spot in Mapillary or Google Street View.
-     Look, then write facts in your own words.
-   - **Google Street View is for people only.** No scraping, screenshots, scraper services, or
-     agents/computer-use reading it. Its terms forbid that. Mapillary or your own photos are fine.
+   - **By hand:** write notes from your own on-site observations or appropriately licensed photos,
+     recording each source and its licence. `npm run area:links -- <id>` provides viewer links,
+     but those links do not grant permission to derive project data.
+   - **Check permission before using a reference.** Do not derive project notes, measurements,
+     textures or other assets from Google Street View without permission covering that use.
+     Having a person reword an observation does not replace permission.
 3. **Review:** `npm run area:review -- <id>` (needs `TYPESAFE_API_KEY`). Jev answers per spot: how
    recognisable, demo-ready or not, what's missing, and what kind of work fixes it.
 
@@ -334,8 +341,9 @@ the place agrees.
 >    and open imagery from Mapillary, Panoramax or KartaView (`npm run photos:fetch`). Write what
 >    the photos show into `reference-notes.json`: building colours and storeys, roof shapes, trees,
 >    signs, surfaces, furniture, vehicles.
-> 3. Do not open, screenshot or read Google Street View yourself. If photos are missing for a
->    street, ask me to look it up and describe it, or to take photos.
+> 3. Use only references whose licence and terms permit the intended work. If photos are missing
+>    for a street, ask me for my own photos, on-site observations or another permitted source.
+>    Do not ask me to extract Google Street View observations on your behalf.
 > 4. Match each street to its photos, using the characteristics table in the playbook. No generic
 >    stand-ins: trees, buildings, signs and vehicles must follow the real place. If you can't
 >    match something yet, list it as a gap instead of inventing it.

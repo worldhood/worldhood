@@ -324,6 +324,11 @@ const usableBuses=usableBusPaths({paths:busPaths},busWorld).map(p=>{const from=M
 addBusLanes(usableBuses,busWorld,mobility.roads);
 fs.writeFileSync(path.join(OUT,'bus-corridors.json'),JSON.stringify({source:'OpenStreetMap route=bus relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables simulated.'],signals,paths:usableBuses,stationStops:[],stationBays:[],clearancePrecomputed:true,clearanceNote:'Road, building and island clearance checked at build time.'}));
 fs.writeFileSync(path.join(OUT,'landcover.json'),JSON.stringify({polygons:[]}));
+// Emit an empty catalog too: static hosts may serve the homepage for missing
+// JSON paths, so a city without extensions must not rely on a 404 response.
+fs.mkdirSync(path.join(OUT,'extensions'),{recursive:true});
+const extensionCatalog=path.join(OUT,'extensions/index.json');
+if(!fs.existsSync(extensionCatalog))fs.writeFileSync(extensionCatalog,JSON.stringify({schemaVersion:1,extensions:[]}));
 const counts={official:officialCount,buildings:registry,roads:city.roads.length,pavement:city.pavement.length,parks:city.parks.length,water:city.water.length,trees:city.trees.length,roadEdges:mobility.roads.edges.length,walkEdges:mobility.walks.edges.length,signals:signals.length,starts:city.landmarks.length,tramRoutes:tramPaths.length,tramLines:[...new Set(tramPaths.map(p=>p.line))].join(' '),busRoutes:busPaths.length,busCorridors:usableBuses.length,stops:transitStops.length};
 const regFile='public/cities/index.json',registryFile=fs.existsSync(regFile)?JSON.parse(fs.readFileSync(regFile)):{schemaVersion:1,cities:[]};
 registryFile.cities=[...registryFile.cities.filter(c=>c.id!==id),{id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart:city.landmarks[0].name,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,

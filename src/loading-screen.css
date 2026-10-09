@@ -31,9 +31,18 @@ body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#
 
 /* ‹ Place name ›: a control the same width and radius as the button below it. */
 #intro .start-picker{display:flex;align-items:center}
-#intro.has-picker .start-picker{min-height:56px;margin:0 0 var(--s-12);padding:var(--s-4);border:1px solid #30312e1f;border-radius:8px;background:#fffdf8b3}
-#intro.has-picker.boot-screen #boot-title{flex:1;min-width:0;margin:0;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;transition:opacity .15s}
+#intro.has-picker .start-picker{min-height:56px;margin:0 0 var(--s-12);padding:3px var(--s-4);border:1px solid #30312e1f;border-radius:8px;background:#fffdf8b3}
+/* A long name wraps to two balanced lines (2 × 24 px + 3 px padding + border = the 56 px box), so it is never cut off. */
+#intro.has-picker.boot-screen #boot-title{flex:1;min-width:0;margin:0;line-height:24px;text-align:center;white-space:normal;text-wrap:balance;overflow-wrap:anywhere;transition:opacity .15s}
 #intro.switching #boot-title{opacity:.55}
+#intro .start-picker{position:relative;overflow:hidden}
+#intro.switching .start-picker::after{content:"";position:absolute;left:0;right:0;bottom:0;height:3px;background:linear-gradient(90deg,transparent,#d95e3b,transparent);background-size:40% 100%;background-repeat:no-repeat;animation:pick-load 1.1s ease-in-out infinite}
+#intro.switching .primary-btn{background-image:linear-gradient(110deg,transparent 30%,#ffffff33 50%,transparent 70%);background-size:220% 100%;animation:pick-shimmer 1.3s linear infinite}
+#intro.switching .primary-btn>span:last-child{opacity:.5}
+@keyframes pick-load{from{background-position:-40% 0}to{background-position:140% 0}}
+@keyframes pick-shimmer{from{background-position:120% 0}to{background-position:-120% 0}}
+@media (prefers-reduced-motion:reduce){#intro.switching .start-picker::after,#intro.switching .primary-btn{animation:pick-pulse 1.6s ease-in-out infinite}}
+@keyframes pick-pulse{50%{opacity:.6}}
 #intro .start-arrow{flex:none;display:grid;place-items:center;width:44px;height:44px;padding:0;border-radius:6px;background:none;color:var(--ink);touch-action:manipulation}
 #intro .start-arrow svg{fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 #intro .start-arrow:hover{background:var(--soft)}
@@ -53,7 +62,7 @@ body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#
 #intro .primary-btn{width:100%;min-height:56px;margin:0;padding:0 var(--s-16) 0 var(--s-24);border-radius:8px;font:700 var(--t-16)/24px var(--ui);letter-spacing:0}
 #intro .primary-btn>span:last-child{font-size:var(--t-20);line-height:1}
 .boot-enter{display:block;margin-top:var(--s-8);font:400 var(--t-12)/16px var(--ui);color:var(--muted)}
-#intro kbd{display:inline-flex;align-items:center;min-width:0;padding:2px 5px;margin:0 1px;font:600 11px/12px var(--ui);letter-spacing:.02em;color:var(--ink);background:#fff9;border:1px solid #30312e26;border-bottom-width:2px;border-radius:4px;vertical-align:1px}
+#intro kbd{display:inline-flex;align-items:center;min-width:0;padding:0 5px;margin:0 1px;font:500 var(--t-12)/16px var(--ui);letter-spacing:0;color:var(--ink);background:#fff9;border:1px solid #30312e26;border-bottom-width:2px;border-radius:4px;vertical-align:1px}
 
 .boot-help{margin-top:var(--s-8)}
 .boot-help summary{display:flex;align-items:center;justify-content:space-between;min-height:44px;cursor:pointer;list-style:none;font:500 var(--t-14)/20px var(--ui);color:var(--ink)}
@@ -69,7 +78,7 @@ body.booting :is(.topbar,.location-tag,.dashboard,.right-tools,.landmark-label,#
 #intro .boot-touch b{font-weight:600;color:var(--ink)}
 
 /* Footer: one block, one style. */
-.boot-footer{border-top:1px solid var(--line);padding-top:var(--s-16);font:400 var(--t-12)/20px var(--ui);color:var(--muted)}
+.boot-footer{border-top:1px solid var(--line);padding-top:var(--s-16);font:400 var(--t-12)/20px var(--ui);color:var(--muted);text-wrap:pretty}
 .boot-links{display:flex;align-items:center;flex-wrap:wrap;gap:0 var(--s-8)}
 .boot-links>span{opacity:.6}
 .boot-footer a{color:var(--ink);text-decoration:none;text-underline-offset:3px}
@@ -94,17 +103,21 @@ body.game-failed #intro{z-index:1000;pointer-events:auto}
 }
 @media(max-width:360px){#intro.boot-screen{--t-28:24px}#intro.boot-screen .boot-tagline{line-height:28px}}
 
-/* Short screens (phones held sideways): two columns, so nothing needs scrolling.
-   Left: wordmark, tagline, footer. Right: starting point, button, how to play. */
+/* Short screens (phones held sideways): two columns in a smaller card pinned bottom-left,
+   so the city stays in view above it and to its right while you pick a start.
+   Left: wordmark, tagline, footer. Right: starting point, button, how to play.
+   Both columns start on the card's top line and end on its bottom line. */
 @media(max-height:540px) and (min-width:560px){
- #intro.boot-screen{--pad:24px;left:max(16px,env(safe-area-inset-left));bottom:16px;width:min(680px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:var(--s-24);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;column-gap:var(--s-32);align-items:start}
- #intro.boot-screen>*{grid-column:2}
+ #intro.boot-screen{--pad:24px;left:max(16px,env(safe-area-inset-left));bottom:max(16px,env(safe-area-inset-bottom));width:min(600px,calc(100% - 32px));max-height:calc(100dvh - 32px);padding:var(--s-24);display:grid;grid-template-columns:1fr 1fr;grid-template-rows:auto auto 1fr;column-gap:var(--s-32);align-items:start}
  #intro.boot-screen>.boot-brand{grid-column:1;grid-row:1;margin-bottom:var(--s-16)}
- #intro.boot-screen>.boot-tagline{grid-column:1;grid-row:2;margin:0}
- #intro.boot-screen>.boot-footer{grid-column:1;grid-row:3;align-self:end;margin-top:var(--s-16)}
- #intro.boot-screen>.boot-place-label{grid-row:1;align-self:end}
- #intro.boot-screen>.start-picker{grid-row:2}
- #intro.boot-screen>:is(#boot-loader,#boot-launch){grid-row:3}
+ #intro.boot-screen>.boot-tagline{grid-column:1;grid-row:2;margin:0;font-size:24px;line-height:28px}
+ #intro.boot-screen>.boot-footer{grid-column:1;grid-row:3;align-self:end;margin-top:var(--s-16);border-top:0;padding-top:0}
+ #intro.boot-screen>.boot-main{grid-column:2;grid-row:1/-1;align-self:stretch;display:flex;flex-direction:column;min-width:0}
+ #intro .boot-main>#boot-launch:not([hidden]){flex:1;display:flex;flex-direction:column}
+ #intro .boot-main .boot-help{margin-top:auto;padding-top:var(--s-8)}
+ #intro .boot-main .boot-help summary{min-height:32px}
+ /* Loading: the heading and its progress read as one block. */
+ #intro:not(.has-picker) #boot-title{margin-bottom:var(--s-12)}
  .boot-enter{display:none}
 }
 @media(max-height:540px) and (max-width:559px){

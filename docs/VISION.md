@@ -14,8 +14,8 @@ residents recognise and that other players want to explore.
 
 The browser game is a single-player playground. Helsinki and Tampere have playable areas,
 with different levels of detail. Helsinki also has connected map extensions. You can drive,
-walk, run, ride a bicycle or scooter, use stopped cars and have short scripted conversations
-with simulated people. Traffic, public transport, weather and police give the streets some life.
+walk, run, ride a bicycle or scooter, use stopped cars and have branching conversations
+with simulated people and market sellers. Traffic, public transport, weather and police give the streets some life.
 
 City building currently happens in this repository: contributors import open data, model
 landmarks, refine street details and submit changes for review. There is no in-game building

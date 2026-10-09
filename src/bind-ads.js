@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
-import {SpatialIndex,bounds} from './geo.js';
+import {SpatialIndex} from './geo.js';
+import {objectBehavior,solidBox} from './world-objects.js';
 
 // Deliberate fictional sponsorship layer. These are
 // not claims that Bind has bought real advertising inventory in Helsinki.
@@ -8,7 +9,7 @@ export const BIND_BILLBOARDS=[
  {name:'Harbour Helsinki billboard',brand:'helsinki',x:112,z:724,y:13,width:24,height:10,yaw:.64,freestanding:true},
  {name:'Forum Bind screen',campaign:true,x:-759.5,z:64.8,y:16,width:18,height:20,yaw:2.2143,freestanding:false,ratu:588},
 ];
-const footprint=(p,w,d)=>{const c=Math.cos(p.yaw),s=Math.sin(p.yaw),ring=[[-w/2,-d/2],[w/2,-d/2],[w/2,d/2],[-w/2,d/2]].map(([x,z])=>[p.x+x*c+z*s,p.z-x*s+z*c]);return {name:'Advertising panel',rings:[ring],bbox:bounds([ring])};};
+const footprint=(p,w,d)=>solidBox({id:p.id,name:'Advertising panel',x:p.x,z:p.z,yaw:p.yaw,width:w,depth:d});
 
 export function stopAdPlacements(data,stops,existing=[]){
  const road=new SpatialIndex(data.roads.filter(r=>!/Koroke/.test(r.kind))),pavement=new SpatialIndex(data.pavement.filter(p=>!/pyörä/i.test(p.kind))),blocked=new SpatialIndex([...data.buildings,...existing]),placements=[];
@@ -50,24 +51,26 @@ export async function createBindAds(data,stops,existing=[]){
  hc.fillStyle='#ffffff';hc.textAlign='center';hc.textBaseline='middle';hc.font='700 360px Arial, sans-serif';hc.fillText('Helsinki',1024,440);
  const ht=new THREE.CanvasTexture(helsinki);ht.colorSpace=THREE.SRGBColorSpace;
  const screenMats=[wide,tall,ht,campaign].map(map=>new THREE.MeshBasicMaterial({map,toneMapped:false}));
- const frames=[],screens=[[],[],[],[]],obstacles=[];
+ const frames=[],screens=[[],[],[],[]],obstacles=[],worldObjects=[];
  function box(w,h,d,x,y,z,yaw){const g=new THREE.BoxGeometry(w,h,d);g.rotateY(yaw);g.translate(x,y,z);frames.push(g);}
  function screen(p,portrait,back=false){
   const yaw=p.yaw+(back?Math.PI:0),g=new THREE.PlaneGeometry(p.width,p.height);g.rotateY(yaw);g.translate(p.x+Math.sin(yaw)*.13,p.y,p.z+Math.cos(yaw)*.13);screens[p.brand==='helsinki'?2:p.campaign?3:portrait?1:0].push(g);
  }
  for(const p of BIND_BILLBOARDS){
   box(p.width+.24,p.height+.24,.24,p.x,p.y,p.z,p.yaw);screen(p,false);
+  worldObjects.push(objectBehavior({id:p.name,x:p.x,z:p.z,minY:p.y-p.height/2,buildingRatu:p.ratu},p.freestanding?'overhead':'decoration'));
   if(p.freestanding)for(const dx of [-p.width*.32,p.width*.32]){
    const x=p.x+dx*Math.cos(p.yaw),z=p.z-dx*Math.sin(p.yaw),height=p.y-p.height/2;
-   box(.25,height,.25,x,height/2,z,p.yaw);obstacles.push(footprint({x,z,yaw:p.yaw},.4,.4));
+   box(.25,height,.25,x,height/2,z,p.yaw);obstacles.push(footprint({id:`${p.name}-support-${dx}`,x,z,yaw:p.yaw},.4,.4));
   }
  }
  const placements=stopAdPlacements(data,stops,existing);
  for(const p of placements){
   const panel={...p,y:1.55,width:1.05,height:1.78};box(1.19,1.94,.22,p.x,1.55,p.z,p.yaw);box(.17,.65,.18,p.x,.325,p.z,p.yaw);
-  screen(panel,true);screen(panel,true,true);obstacles.push(footprint(p,1.2,.25));
+  screen(panel,true);screen(panel,true,true);obstacles.push(footprint({...p,id:`stop-ad-${p.stopId}`},1.2,.25));
  }
  for(const [gs,mat] of [[frames,frameMat],...screens.map((gs,i)=>[gs,screenMats[i]])])if(gs.length){const m=new THREE.Mesh(mergeGeometries(gs),mat);m.castShadow=mat===frameMat;group.add(m);gs.forEach(g=>g.dispose());}
  group.userData={fictional:true,billboards:BIND_BILLBOARDS.map(p=>p.name),stopPanels:placements.length,placements};
+ group.obstacles=obstacles;group.worldObjects=[...obstacles,...worldObjects];
  return {group,obstacles};
 }

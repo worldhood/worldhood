@@ -78,6 +78,7 @@ export function createStreetLife(scene,mobility){
   for(let i=0;i<count;i++){const a=mobility.people[i],v=views[i];advanceGait(a,gaits[i],dt,looks[i]);
    if(!a.edge||Math.hypot(a.x-player.x,a.z-player.z)>=300){gaits[i].yaw=undefined;continue;}
    v.x=a.x;v.z=a.z;v.speed=a.speed;v.running=a.running;v.knockdown=a.knockdown;v.groundY=a.groundY;v.pose=a.pose;v.suitcase=a.suitcase;
+   v.expression=a.expression;v.speaking=a.speaking;v.mouthOpen=a.mouthOpen;
    v.heading=a.knockdown?(gaits[i].yaw=a.heading):smoothHeading(gaits[i],a.heading,dt);people.draw(v,looks[i],gaits[i]);}
   people.end();
   for(const s of signalObjects){s.root.visible=s.edge.signal>=0&&Math.hypot(s.root.position.x-player.x,s.root.position.z-player.z)<350;if(!s.root.visible)continue;const green=signalGreen(s.edge,mobility.time);s.lamps[0].material.color.set(green?'#382927':'#ff392b');s.lamps[2].material.color.set(green?'#47ec9b':'#233a32');}

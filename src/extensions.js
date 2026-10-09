@@ -10,7 +10,9 @@ export {mergeGraph} from './graph-extension.js';
 // re-indexing the mobility graph across the seam.
 export async function loadExtensionIndex(json){
  let index;
- try{index=await json(dataUrl('extensions/index.json'));}catch(error){if(error?.status===404)return [];throw error;}
+ // Revalidate the catalog across releases, including a previously cached SPA
+ // fallback from a host that served HTML for a missing city catalog.
+ try{index=await json(dataUrl('extensions/index.json'),{cache:'no-cache'});}catch(error){if(error?.status===404)return [];throw error;}
  if(!Array.isArray(index?.extensions))throw Error('Invalid map extension catalog');
  return index.extensions;
 }
@@ -44,7 +46,10 @@ export function activateExtension(entry){
 export function createExtensionStreamer({entries=[],load,install=async()=>{},concurrency=1,...options}){
  const payloads=new Map();
  const stream=createSpatialStreamer({...options,concurrency,keyOf:e=>e.id,boundsOf:e=>e.mapBounds,
-  load:async entry=>{let region=payloads.get(entry.id);if(!region){region=await load(entry);payloads.set(entry.id,region);}await install(region);return region;}});
+  load:async(entry,{signal})=>{
+   let region=payloads.get(entry.id);if(!region){region=await load(entry,{signal});if(signal.aborted)throw signal.reason;payloads.set(entry.id,region);}
+   if(signal.aborted)throw signal.reason;await install(region,{signal});return region;
+  }});
  stream.add(entries);
  return {...stream,
   // A direct jump must finish its destination before actors are moved there.

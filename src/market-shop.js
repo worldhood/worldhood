@@ -9,8 +9,8 @@ export const HANDOVER_SECONDS=.9;
 export const EAT_SECONDS=2.6;
 export const CARRY_SECONDS=45; // food is finished, keepsakes tucked away, after this long in hand
 
-const item=(id,name,price,carry,use,toast,done,note='')=>Object.freeze({id,name,price,carry,use,toast,done,note});
-// carry: the held model (cup, bag, cone, bouquet, bowl, tray, parcel); use: eat, drink or keep.
+const item=(id,name,price,carry,use,toast,done,note='',extra={})=>Object.freeze({id,name,price,carry,use,toast,done,note,...extra});
+// carry: the held model (cup, bag, cone, icecream, bouquet, bowl, tray, parcel); use: eat, drink or keep.
 export const STALL_KINDS=Object.freeze({
  soup:Object.freeze({id:'soup',name:'Soup & muikku tent',local:'Lohikeitto · muikut',canopy:'orange',items:Object.freeze([
   item('salmon-soup','Salmon soup',1400,'bowl','eat','Salmon soup, €14. Creamy and hot.','Every last spoonful. Lovely.','Lohikeitto with dill and rye bread'),
@@ -39,9 +39,22 @@ export const STALL_KINDS=Object.freeze({
   item('wool-socks','Wool socks',1800,'parcel','keep','Wool socks, €18. Winter sorted.','Socks packed in your bag.','Hand-knitted, very warm'),
   item('butter-knife','Birch butter knife',1200,'parcel','keep','Birch butter knife, €12. Smells of wood.','Knife packed in your bag.','Turned from Finnish birch'),
  ])}),
+ icecream:Object.freeze({id:'icecream',name:'Ice cream stand',local:'Pehmis · jäätelö',canopy:'icecream',items:Object.freeze([
+  item('soft-serve','Pehmis soft serve',450,'icecream','eat','Vanilla pehmis, €4.50. The gulls look interested.','Pehmis finished, right down to the cone.','Vanilla soft serve in a waffle cone',{encounter:'gulls',flavour:'vanilla',color:'#fff1d2'}),
+  item('berry-cone','Berry ice cream',500,'icecream','eat','Berry ice cream, €5. Keep an eye on your cone.','The last berry-flavoured bite.','A berry scoop in a waffle cone',{encounter:'gulls',flavour:'berry',color:'#dc87a5'}),
+  item('chocolate-cone','Chocolate ice cream',500,'icecream','eat','Chocolate ice cream, €5. A cone to take along.','Chocolate ice cream finished.','A chocolate scoop in a waffle cone',{encounter:'gulls',flavour:'chocolate',color:'#825038'}),
+ ])}),
 });
 export const formatEuro=cents=>`€${cents%100===0?cents/100:(cents/100).toFixed(2)}`;
 export const edible=it=>it?.use==='eat'||it?.use==='drink';
+
+// The encounter changes the existing action, without introducing another button.
+export function marketActionPrompt(state,{coarse=false,encounter=null}={}){
+ const hand=state?.hand,key=coarse?'':'E · ',chase=encounter?.phase==='chase'&&hand?.encounter==='gulls'&&(hand.state==='carry'||hand.state==='using');
+ const intent=chase?'drop':state?.intent;
+ const text=!state?'':chase?`${key}Drop the ice cream`:intent==='buy'?`${key}Buy at the ${state.nearby.title.toLowerCase()}`:intent==='use'?`${key}${hand.use==='drink'?'Drink':'Eat'} the ${hand.name.toLowerCase()}`:intent==='stow'?`${key}Put the ${hand.name.toLowerCase()} away`:'';
+ return {intent,text,cue:chase?(coarse?'Tap Run, then hold Go to move':'Hold Shift to run away'):''};
+}
 
 const finite=p=>p&&Number.isFinite(p.x)&&Number.isFinite(p.z);
 // The stall's front faces along `facing` (radians; 0 = +z, the Kauppatori layout).
@@ -86,7 +99,7 @@ export class MarketShop{
  get stall(){return this.open;}
  menu(stall=this.open){return STALL_KINDS[stall?.kind]?.items||[];}
  update(dt,player,{enabled=true}={}){
-  dt=Math.max(0,Number.isFinite(dt)?dt:0);this.player=finite(player)?{x:player.x,z:player.z,heading:player.heading||0}:null;
+  dt=Math.max(0,Number.isFinite(dt)?dt:0);this.player=finite(player)?{x:player.x,z:player.z,heading:player.heading||0,travelMode:player.travelMode}:null;
   this.enabled=!!enabled&&player?.travelMode==='walk'&&!!this.stalls.length;
   if(this.flash&&(this.flash.left-=dt)<=0)this.flash=null;
   if(this.closeIn>0&&(this.closeIn-=dt)<=0)this.close();
@@ -117,6 +130,15 @@ export class MarketShop{
   if(!stall)return {ok:false,message:'Walk up to the front of a stall.'};
   this.open=stall;this.nearby=null;this.closeIn=0;return {ok:true,opened:true,stall};
  }
+ // A conversation names a particular seller, so never substitute an adjacent
+ // stall. Talking already establishes whom the player is addressing; a small
+ // camera turn need not cancel the handoff, but front/reach and mode still apply.
+ openStall(id,player=this.player){
+  if(!this.enabled||player?.travelMode!=='walk')return {ok:false,message:'Walk up to the seller to see the menu.'};
+  const candidate=this.stalls.find(s=>s.id===id),stall=candidate&&nearestStall(player,[candidate],{facing:-1});
+  if(!stall)return {ok:false,message:'Walk a little closer to the front of that stall.'};
+  this.open=stall;this.nearby=null;this.closeIn=0;return {ok:true,opened:true,stall};
+ }
  close(){const was=!!this.open;this.open=null;this.closeIn=0;return was;}
  canBuy(entry){
   if(!this.open||!entry)return {ok:false,reason:'closed'};
@@ -143,6 +165,12 @@ export class MarketShop{
   this.stow();const message=h.item.done;if(auto)this.messages.push(message);return {ok:true,stowed:true,message};
  }
  finish(){const h=this.hand;if(!h)return;this.hand=null;this.messages.push(h.item.done);}
+ // A dropped item is neither eaten nor refunded. The optional identity guard
+ // prevents a delayed gull event from removing a subsequently purchased item.
+ drop({hand=this.hand,message=''}={}){
+  if(!hand||hand!==this.hand)return {ok:false};
+  this.hand=null;return {ok:true,dropped:true,hand,item:hand.item,message};
+ }
  stow(){const h=this.hand;if(!h)return;this.hand=null;if(!edible(h.item))this.bag.push(h.item.id);}
  // What the single action key would do now: 'close', 'use', 'buy', 'stow' or null.
  intent(){
@@ -169,7 +197,7 @@ export class MarketShop{
   return {enabled:this.enabled,intent:this.intent(),money:this.money,wallet:formatEuro(this.money),spent:this.spent,bag:[...this.bag],stalls:this.stalls.length,
    open:s?{id:s.id,kind:s.kind,title:stallTitle(s),local:STALL_KINDS[s.kind].local,canopy:STALL_KINDS[s.kind].canopy,items:this.menu(s).map(i=>({id:i.id,name:i.name,note:i.note,price:i.price,label:formatEuro(i.price),...this.canBuy(i)}))}:null,
    nearby:n?{id:n.id,kind:n.kind,title:stallTitle(n)}:null,
-   hand:this.hand?{id:this.hand.item.id,name:this.hand.item.name,carry:this.hand.item.carry,use:this.hand.item.use,state:this.hand.state,progress:this.hand.progress,stall:this.hand.stall}:null,
+   hand:this.hand?{id:this.hand.item.id,name:this.hand.item.name,carry:this.hand.item.carry,use:this.hand.item.use,encounter:this.hand.item.encounter||null,state:this.hand.state,progress:this.hand.progress,stall:this.hand.stall}:null,
    flash:this.flash?.text||''};
  }
 }

@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {objectBehavior} from './world-objects.js';
 
 // This is a real WALL-MOUNTED board, not an invented overhead gantry.
 // Transcription and façade side observed in the linked property photograph.
@@ -62,6 +63,8 @@ export function createRouteDirectionSigns({canvasFactory = () => globalThis.docu
   }
   board.userData = {...data};
   root.add(board);
+  // Mounted above street level on an already collidable mapped building.
+  root.obstacles=[];root.worldObjects=[objectBehavior({id:data.id,buildingRatu:data.buildingRatu,minY:data.y-data.height/2},'decoration')];
   root.userData = {count: 1, overheadCount: 0, status: 'Reference-observed text; photo-guided placement; unknown imagery date'};
   return root;
 }

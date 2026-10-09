@@ -62,12 +62,15 @@ first (the main square, the main street, the station, the famous church), then w
 Where to get photos:
 - **Your own phone.** The best source: you own them. Walk the street, photograph the buildings, the
   trees, the bus stops, the signs.
-- **[Mapillary](https://www.mapillary.com)** and **[Panoramax](https://panoramax.fr)**: free
-  street-level photos anyone can use, with credit.
+- **[Mapillary](https://www.mapillary.com)** and **[Panoramax](https://panoramax.fr)**: street-level
+  photos with reuse licences. Check each source's licence and service terms for the intended work,
+  and retain the required credits and any share-alike obligations.
 - **Your city's open data portal.** Many cities publish their trees, street areas and 3D buildings.
 - **[Wikimedia Commons](https://commons.wikimedia.org)**: openly licensed photos of landmarks.
-- **Google Street View:** fine to *look at* in Google's own website to check what a street looks
-  like and write notes. Never download, screenshot or copy its images into the project.
+- **Google Street View:** viewing it on Google's service does not grant permission to build
+  project assets or map data from it. Use your own on-site observations or permitted photos for
+  notes, measurements and modelling; rewriting restricted references in your own words does not
+  establish reuse permission. See the [source guidance](EXTENDING.md#street-level-imagery).
 
 Put your photos in a folder and tell your agent which street each one shows.
 
@@ -101,7 +104,7 @@ live on **worldhood.org**.
 
 ## Stuck?
 
-- Ask in the project's [Discussions](https://github.com/worldhood/worldhood/discussions).
+- Ask in the project's [GitHub issues](https://github.com/worldhood/worldhood/issues).
 - Already someone working on your city? Check the issues labelled `city` before you start, and team
   up.
 

@@ -28,6 +28,7 @@ Live status is on each issue: open, claimed (someone commented), or closed (buil
 | Car radio | [#8](https://github.com/worldhood/worldhood/issues/8) | M | `getLocation()` in `src/main.js` |
 | Walking: expand the existing implementation | [#9](https://github.com/worldhood/worldhood/issues/9) (basic version built) | L | `src/person-model.js`, walking network |
 | Things to do on foot | [#10](https://github.com/worldhood/worldhood/issues/10) | M each | on-foot mode |
+| Richer conversations and market encounters | [#51](https://github.com/worldhood/worldhood/issues/51) (branching dialogue built; deeper encounters welcome) | M | `src/conversation-dialogue.js`, `src/people-interaction.js` |
 | Change car / garage | [#11](https://github.com/worldhood/worldhood/issues/11) | M | `src/vehicle-models.js` (7 body types) |
 | Drive a tram or bus on the real line | [#12](https://github.com/worldhood/worldhood/issues/12) | L | `src/tram-simulation.js`, `src/bus-simulation.js` |
 | Bikes and scooters: expand the existing rides | [#13](https://github.com/worldhood/worldhood/issues/13) (basic version built) | M | `src/parked-micromobility.js` |

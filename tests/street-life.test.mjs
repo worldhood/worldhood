@@ -26,3 +26,18 @@ test('street-life startup triangulates real crossing polygons with installed ear
  }
  scene.traverse(m=>{m.geometry?.dispose();m.material?.dispose();});
 });
+
+test('street pedestrians receive and clear conversation expressions through the render proxy',()=>{
+ const world={roads:new SpatialIndex([]),pavement:new SpatialIndex([]),buildings:new SpatialIndex([])};
+ const actor={id:1,x:0,z:-2,heading:0,speed:0,edge:{},expression:'friendly',speaking:true,mouthOpen:.7};
+ const scene=new THREE.Scene(),life=createStreetLife(scene,{cars:[],people:[actor],walks:{edges:[]},roads:{edges:[]},world});
+ life.update(.1,{x:0,z:0});
+ const head=scene.getObjectByName('Person heads'),state=head.geometry.attributes.faceState;
+ assert.equal(head.count,1);assert.ok(Math.abs(state.getX(0)-.7)<1e-6,'the rendered walker receives the speech envelope');
+ assert.ok(state.getY(0)>0,'the rendered walker receives the friendly expression');
+ delete actor.expression;delete actor.speaking;delete actor.mouthOpen;
+ life.update(.1,{x:0,z:0});
+ assert.equal(state.getX(0),0,'closing the conversation clears the old speech state');
+ assert.equal(state.getY(0),0,'closing restores a neutral face');
+ scene.traverse(m=>{m.geometry?.dispose();m.material?.dispose();});
+});

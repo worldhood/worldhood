@@ -7,6 +7,7 @@ import {createTrafficRenderer} from './traffic-renderer.js';
 import {createLooseMicromobility} from './parked-micromobility.js';
 import {createBreakableSigns} from './breakable-signs.js';
 import {createParkedCarSource} from './parked-car-sources.js';
+import {solidBox} from './world-objects.js';
 
 export const TERMINAL_SIGN_TEXT=['SILJA LINE','OLYMPIATERMINAALI / OLYMPIATERMINALEN','OLYMPIAPARKKI'];
 export const TERMINAL_POSTS=[
@@ -97,7 +98,12 @@ export function createTerminalDetails(city){
    }
    if(p.kind==='destination')for(const side of [-1,1]){const x=p.x+side*1.32*Math.cos(p.yaw),z=p.z-side*1.32*Math.sin(p.yaw);beam([x,0,z],[x,2.6,z],.037);}
   }
-  const ring=footprint(p.x,p.z,.15,.15,0);placements.signs.push(p);if(postIndex===null)obstacle('terminal-sign',ring);else obstacles.push({id:'terminal-sign',rings:[ring],bbox:bounds([ring]),breakable:true});postIndex=null;
+  const ring=footprint(p.x,p.z,.15,.15,0);placements.signs.push(p);
+  if(postIndex===null){
+   // Three low boards span the whole frame; a tiny collider at the central
+   // pole left both the outer supports and most of the visible sign passable.
+   obstacles.push(solidBox({id:'terminal-destination-sign',name:'Terminal destination board',x:p.x+.075*Math.cos(p.yaw)+.10*Math.sin(p.yaw),z:p.z-.075*Math.sin(p.yaw)+.10*Math.cos(p.yaw),width:3.3,depth:.30,yaw:p.yaw}));
+  }else obstacles.push({id:'terminal-sign',rings:[ring],bbox:bounds([ring]),breakable:true});postIndex=null;
  }
  // Dock row on the eastern terminal approach, separated from the cycle track.
  for(let i=0;i<12;i++){

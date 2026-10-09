@@ -66,20 +66,50 @@ export function personLook(seed=0,overrides={}){
  look.phoneWalk=look.age!=='senior'&&phoneRoll<.09&&!look.accessory;
  look.stride=look.age==='senior'?.82:look.age==='teen'?1.04:.93+tone*.12;
  look.stoop=look.age==='senior'?.08+tone*.08:0;
+ // Keep facial variation after the established appearance draws.
+ look.eyeSpacing=.94+r()*.12;look.mouthWidth=.91+r()*.18;look.browTilt=(r()-.5)*.0025;
  return Object.assign(look,overrides);
 }
 const smooth=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3-2*t);};
-function bump(phase,center,width){let d=(phase-center)%TAU;if(d>Math.PI)d-=TAU;if(d<-Math.PI)d+=TAU;return Math.exp(-d*d/(2*width*width));}
+
+// smile, brow lift and outer-brow tilt. These stay deliberately small on the
+// shared street characters; a conversation should not change their identity.
+const EXPRESSIONS={neutral:[0,0,0],friendly:[.65,.12,-.001],concerned:[-.35,.3,-.005],angry:[-.3,-.3,.005],surprised:[0,.9,0]};
+// Actor API: expression, speaking, and optional mouthOpen (0..1, for audio sync).
+// All facial parts are vertices of the existing head instance. The two vectors
+// here animate that instance, so a crowd still costs the same nine draw calls.
+export function facePose(actor,look,gait,time=0,out=new Float32Array(8),animated=true){
+ const expression=actor.expression||(actor.pose==='chat'?'friendly':actor.pose==='flinch'?'surprised':actor.pose==='wave'?'angry':actor.pose==='cuffed'?'concerned':'neutral');
+ const e=Object.hasOwn(EXPRESSIONS,expression)?EXPRESSIONS[expression]:EXPRESSIONS.neutral,clock=Number.isFinite(gait.gaitClock)?gait.gaitClock:time,phase=look.phase||0;
+ let mouth=expression==='surprised'?.24:0,blink=0;
+ if(animated){
+  if(Number.isFinite(actor.mouthOpen))mouth=Math.min(1,Math.max(0,actor.mouthOpen));
+  else if(actor.speaking){
+   const syllable=.5+.5*Math.sin(clock*TAU*4.1+phase),cadence=.5+.5*Math.sin(clock*TAU*1.7+phase*.7);
+   const phrase=((clock+phase*.2)%2.7+2.7)%2.7,pause=smooth(.02,.2,phrase)*(1-smooth(2.5,2.68,phrase));
+   mouth=(.06+.74*syllable*(.4+.6*cadence))*pause;
+  }
+  const period=3.4+phase*.23,t=((clock+phase)%period+period)%period;
+  blink=smooth(0,.075,t)*(1-smooth(.085,.19,t));
+ }
+ out[0]=mouth;out[1]=e[0];out[2]=e[1];out[3]=blink;
+ out[4]=look.eyeSpacing||1;out[5]=look.mouthWidth||1;out[6]=(look.browTilt||0)+e[2];out[7]=0;
+ return out;
+}
 
 // Advance gait state from actual ground speed: stride length grows with speed,
 // so cadence and amplitude follow movement rather than a fixed clock.
 export function advanceGait(actor,gait,dt,look=actor){
  // A knocked-down person walking back to their path (impacts.js) walks at knockdown.walk.
  const v=actor.knockdown?actor.knockdown.walk||0:Math.max(0,actor.speed||0),k=(look.height||1.72)/REFERENCE_HEIGHT;
- const walk=smooth(.03,.55,v),run=Math.max(actor.running&&v>.3?.7:0,smooth(1.9,3.6,v)),a=1-Math.exp(-Math.max(0,dt)*7);
+ const walk=smooth(.03,.55,v),run=smooth(actor.running?1.8:2,3.6,v),a=1-Math.exp(-Math.max(0,dt)*7);
  gait.gaitWalk=gait.gaitWalk===undefined?walk:gait.gaitWalk+(walk-gait.gaitWalk)*a;
  gait.gaitRun=gait.gaitRun===undefined?run:gait.gaitRun+(run-gait.gaitRun)*a;
- gait.gaitPhase=((gait.gaitPhase??look.phase??0)+dt*TAU*v/(k*(look.stride||1)*(.75+.45*v)))%TAU;
+ // Use the same eased stride in the clock and the feet. Braking must not
+ // shorten a stretched leg in one frame, and steady steps still match travel.
+ gait.gaitSpeed=gait.gaitSpeed===undefined?v:gait.gaitSpeed+(v-gait.gaitSpeed)*(1-Math.exp(-Math.max(0,dt)*12));
+ const stride=k*(look.stride||1)*(.75+.45*gait.gaitSpeed)*Math.max(.15,gait.gaitWalk),direction=actor.gaitDirection<0?-1:1;
+ gait.gaitPhase=((gait.gaitPhase??look.phase??0)+dt*TAU*v/stride*direction)%TAU;
  gait.gaitClock=(gait.gaitClock||0)+dt;
  blendPose(actor,gait,dt);
 }
@@ -108,7 +138,7 @@ export const accessoryOn=(actor,look)=>look.accessory&&!actor.pose&&!actor.suitc
 // Share of the walk cycle each foot spends on the ground (double support either side).
 export const STANCE=.6;
 // The foot lands a little ahead of the hip and leaves well behind it, heel up (fractions of the step, of height).
-export const FRONT=.65,HEEL=.09,HEEL_OFF=.55;
+export const FRONT=.85,HEEL=.09,HEEL_OFF=.55;
 const V=new Float64Array(12);
 // Two-bone IK in body space; writes elbow/knee to out[o..o+2] and the reachable end to out[e..e+2].
 function ik(out,s,o,e,tx,ty,tz,a,b,hx,hy,hz){
@@ -128,34 +158,33 @@ export function posePerson(actor,look,gait,out,time=0){
  const Lt=P.thigh*H,Ls=P.shin*H,Lu=P.upperArm*H,Lf=P.forearm*H,Lh=P.hand*H,ankleH=P.ankle*H;
  const cycle=actor.pose==='cycle'&&actor.bike,scooter=actor.pose==='scooter',scooterFeet=scooter&&actor.scooter;
  const w=cycle||scooter?0:gait.gaitWalk??0,r=cycle||scooter?0:gait.gaitRun??0,phase=gait.gaitPhase??look.phase??0,clock=(gait.gaitClock??time)+(look.phase||0);
- // Legs (left = phase, right = phase + pi). Hip flexion forward, knee swing bump after toe-off.
- // Walking hip swing from the stride the gait clock assumes (advanceGait): the
- // stance foot travels back by about half a stride, so feet do not skate.
- const stride=k*(look.stride||1)*(.75+.45*Math.min(2.2,actor.speed||0)),legL=(P.thigh+P.shin+P.ankle)*H;
- const hipAmp=w*(1-r)*Math.asin(Math.min(.5,stride/(4.4*legL)))+r*.74,hipOff=.03*w+.1*r;
- // Walking: each ankle follows a footstep path. In stance (STANCE of the cycle) it
- // is on the ground and slides back at exactly the walking speed, so planted
- // feet do not skate; in swing it lifts and swings forward. The hip sits as
- // high as the farther foot allows (natural bob) and the knee is solved by IK.
- // Running keeps the swing-based cycle (hip/knee angles) with a flight phase.
- let minAnkle=Infinity;const reach=(Lt+Ls)*(1-.0004-.004*w),A=w*(1-r)*Math.min(.42*H,STANCE*stride/2),lift=w*(1-r)*(.045+.035*Math.min(1,(actor.speed||0)/1.4))*H;
- const walkY=[0,0],walkZ=[0,0],walkPitch=[0,0],heel=w*(1-r)*HEEL*H*Math.min(1,(actor.speed||0)/1.2);
+ const speed=gait.gaitSpeed??Math.max(0,actor.speed||0),stride=k*(look.stride||1)*(.75+.45*speed);
+ // Both gaits use a continuous foot path. Running shortens support, leaving
+ // a flight interval between steps, instead of blending two competing strides.
+ const stance=STANCE-.25*r,reach=(Lt+Ls)*(1-.0004-.004*w),A=w*Math.min(.42*H,stance*stride/2);
+ const lift=w*((.045+.035*Math.min(1,speed/1.4))*(1-r)+.19*r)*H;
+ const walkY=[0,0],walkZ=[0,0],walkPitch=[0,0],heel=w*HEEL*H*Math.min(1,speed/1.2)*(1-.3*r);
+ const sway=cycle||scooterFeet?0:.012*H*w*(1-.7*r)*Math.sin(phase)+(1-w)*.006*H*Math.sin(clock*.7);
+ const hipTurn=cycle||scooterFeet?0:.006*H*w*(1-.3*r)*Math.sin(phase);
+ let load=0;
  for(let side=0;side<2;side++){
-  const sgn=side?1:-1,ph=phase+(side?Math.PI:0),hj=JOINT.hipL+side*3,kj=JOINT.kneeL+side*3,aj=JOINT.ankleL+side*3;
+  const sgn=side?1:-1,ph=phase+(side?Math.PI:0),hj=JOINT.hipL+side*3,aj=JOINT.ankleL+side*3;
   const hx=sgn*P.hipX*H*hw;
   if(cycle||scooterFeet){continue;}
-  const u=(((ph-Math.PI/2)/TAU)%1+1)%1;
-  // Late stance: the heel peels up and the foot rolls onto the toes before lifting.
-  if(u<STANCE){walkZ[side]=-A*FRONT+2*A*u/STANCE;const e=heel*smooth(HEEL_OFF,1,u/STANCE);walkY[side]=ankleH+e;walkPitch[side]=-Math.asin(Math.min(.9,e/(.112*H)));}
-  else{const q=(u-STANCE)/(1-STANCE),e=heel*(1-smooth(0,.4,q));// Swing path leaves and lands at ground speed (Hermite), so the foot neither stops nor jerks at heel strike.
-   const z0=A*(2-FRONT),c=2*A*(1-STANCE)/STANCE,q2=q*q,q3=q2*q;walkZ[side]=(2*q3-3*q2+1)*z0+(q3-2*q2+q)*c+(-2*q3+3*q2)*(-A*FRONT)+(q3-q2)*c;walkY[side]=ankleH+e+lift*Math.sin(Math.PI*q)**1.5;
-   walkPitch[side]=-Math.asin(Math.min(.9,e/(.112*H)))*(1-smooth(0,.5,q))+.3*smooth(.6,1,q);}
-  const th=hipAmp*Math.sin(ph)+hipOff;
-  const knee=w*((1-r)*(1.05*Math.min(.86,.4+.35*(actor.speed||0))*bump(ph,-.75,.75)+.16*bump(ph,2.05,.4))+r*(1.75*bump(ph,.55,.8)+.45*bump(ph,2.1,.5)))+.04;
-  set(out,hj,hx,0,0);
-  set(out,kj,hx,-Lt*Math.cos(th),-Lt*Math.sin(th));
-  const sh=th-knee;set(out,aj,hx*.96,out[kj+1]-Ls*Math.cos(sh),out[kj+2]-Ls*Math.sin(sh));
-  minAnkle=Math.min(minAnkle,out[aj+1]);
+  const u=(((ph-Math.PI/2)/TAU)%1+1)%1,strike=.24*w*(1-.65*r),push=Math.asin(Math.min(.9,heel/(.112*H)));
+  let rise=0;
+  if(u<stance){const t=u/stance;walkZ[side]=-A*FRONT+2*A*t;
+   walkPitch[side]=strike*(1-smooth(0,.16,t))-push*smooth(HEEL_OFF,1,t);load=Math.max(load,Math.sin(Math.PI*t)**2);
+  }else{const q=(u-stance)/(1-stance),z0=A*(2-FRONT),c=2*A*(1-stance)/stance,q2=q*q,q3=q2*q;
+   // Matching endpoint velocity prevents a hitch at heel strike and toe-off.
+   walkZ[side]=(2*q3-3*q2+1)*z0+(q3-2*q2+q)*c+(-2*q3+3*q2)*(-A*FRONT)+(q3-q2)*c;
+   walkPitch[side]=-push*(1-smooth(0,.42,q))+strike*smooth(.6,1,q);rise=lift*Math.sin(Math.PI*q)**2;
+  }
+  // Keep the heel or toe on the floor while the shoe rolls. The same pitch at
+  // the end of swing and start of support removes the old heel-strike snap.
+  const fp=walkPitch[side],fy=Math.sin(fp);
+  walkY[side]=ankleH+(Math.cos(fp)-1)*.028*H+Math.max(fy*.03*H,-fy*.112*H)+rise;
+  set(out,hj,hx+sway,0,sgn*hipTurn);set(out,aj,hx*.96,0,0);
  }
  let py;
  if(cycle){
@@ -175,22 +204,20 @@ export function posePerson(actor,look,gait,out,time=0){
    ik(out,hj,JOINT.kneeL+side*3,JOINT.ankleL+side*3,sgn*scooterFeet.footX,ankleH,side?scooterFeet.backZ:scooterFeet.frontZ,Lt,Ls,0,0,-1);
   }
  }else{
-  // Runners keep their hips high and leave the ground between steps (flight phase).
-  let run=ankleH-minAnkle;run+=r*Math.max(0,(ankleH+Lt+Ls)*.93-run);
-  let walk=Infinity;for(let side=0;side<2;side++)walk=Math.min(walk,walkY[side]+Math.sqrt(Math.max(0,reach*reach-walkZ[side]*walkZ[side])));
-  py=walk+(run-walk)*r;
+  py=ankleH+reach+r*.015*H;
+  for(let side=0;side<2;side++){const hj=JOINT.hipL+side*3,aj=JOINT.ankleL+side*3,dx=out[aj]-out[hj],dz=walkZ[side]-out[hj+2];
+   py=Math.min(py,walkY[side]+Math.sqrt(Math.max(0,reach*reach-dx*dx-dz*dz)));}
+  // A soft supporting knee absorbs the step; the pelvis rises during flight.
+  py-=w*(.012+.012*r)*H*load;
   for(let side=0;side<2;side++){const hj=JOINT.hipL+side*3,aj=JOINT.ankleL+side*3;
-   const rz=out[aj+2],ry=out[aj+1]+run,ax=out[aj];out[hj+1]=py;
-   ik(out,hj,JOINT.kneeL+side*3,aj,ax,walkY[side]+(ry-walkY[side])*r,walkZ[side]+(rz-walkZ[side])*r,Lt,Ls,0,0,-1);
+   out[hj+1]=py;ik(out,hj,JOINT.kneeL+side*3,aj,out[aj],walkY[side],walkZ[side],Lt,Ls,0,0,-1);
   }
  }
- const sway=cycle||scooterFeet?0:.012*H*w*(1-r)*Math.sin(phase)+(1-w)*.006*H*Math.sin(clock*.7);
- for(let side=0;side<2;side++)for(const j of [JOINT.hipL,JOINT.kneeL,JOINT.ankleL])out[j+side*3]+=sway;
  set(out,JOINT.pelvis,sway,py,cycle?actor.bike.hipZ:0);
  // Feet: flat during stance, heel strike toe-up, toe-down after push-off.
  for(let side=0;side<2;side++){
-  const ph=phase+(side?Math.PI:0),aj=JOINT.ankleL+side*3;
-  const fp=cycle?-.25+.2*Math.sin(actor.bike.crank+(side?Math.PI:0)):(1-r)*walkPitch[side]+w*r*(.2*bump(ph,1.4,.4)-.7*bump(ph,-.9,.6));
+  const aj=JOINT.ankleL+side*3;
+  const fp=cycle?-.25+.2*Math.sin(actor.bike.crank+(side?Math.PI:0)):walkPitch[side];
   const fy=Math.sin(fp),fz=-Math.cos(fp),dy=-Math.cos(fp),dz=-Math.sin(fp),drop=.028*H;
   set(out,JOINT.heelL+side*3,out[aj],out[aj+1]-fy*.03*H+dy*drop,out[aj+2]-fz*.03*H+dz*drop);
   set(out,JOINT.toeL+side*3,out[aj]*1.04,out[aj+1]+fy*.112*H+dy*drop,out[aj+2]+fz*.112*H+dz*drop);
@@ -211,7 +238,7 @@ export function posePerson(actor,look,gait,out,time=0){
  set(out,JOINT.headY,0,hy,hz);
  set(out,JOINT.head,out[JOINT.neck],out[JOINT.neck+1]+hy*.09*H,out[JOINT.neck+2]+hz*.09*H-.01*H);
  // Arms: swing opposite to the same-side leg; more swing and a bent elbow when running.
- const armAmp=w*(.26+.12*Math.min(1,(actor.speed||0)/1.5))*(1-r)+r*.75;
+ const armAmp=w*((.26+.12*Math.min(1,speed/1.5))*(1-r)+r*.62);
  for(let side=0;side<2;side++){
   const sgn=side?1:-1,sj=JOINT.shoulderL+side*3,ej=JOINT.elbowL+side*3,wj=JOINT.wristL+side*3,hj=JOINT.handL+side*3;
   up(sj,sgn*P.shoulderX*H*sw,P.torso*H*.885,.004*H);
@@ -262,9 +289,9 @@ export function posePerson(actor,look,gait,out,time=0){
   // weight of the hold pose this frame, blended against the natural arm swing below.
   const hold=side===1?Math.min(1,phoneLook+browseW):0;
   const chat=chatW,bag=look.bagType==='tote'&&side===0?.45:1;
-  const alpha=-armAmp*bag*Math.sin(ph)+.04+(1-w)*.02*Math.sin(clock*.8+side)+chat*(side?.32+.12*Math.sin(clock*2.1+(look.phase||0)):.05);
-  const beta=.18+w*(1-r)*(.14+.25*Math.max(0,alpha))+r*1.35+chat*(side?.95+.25*Math.sin(clock*2.6):.1);
-  const abd=.13+.03*(build-1)+r*.08;
+  const alpha=-armAmp*bag*Math.sin(ph+r*.35)+.04+(1-w)*.02*Math.sin(clock*.8+side)+chat*(side?.32+.12*Math.sin(clock*2.1+(look.phase||0)):.05);
+  const beta=.18+w*(1-r)*(.14+.25*Math.max(0,alpha))+w*r*(1.12+.12*Math.sin(ph+.4))+chat*(side?.95+.25*Math.sin(clock*2.6):.1);
+  const abd=.13+.03*(build-1)+r*.04;
   const ua=alpha+lean*.6,fa=ua+beta,sa=Math.sin(abd);
   let ux=sgn*sa,uy=-Math.cos(ua),uz=-Math.sin(ua);const ul=Math.hypot(ux,uy,uz);ux/=ul;uy/=ul;uz/=ul;
   set(out,ej,out[sj]+ux*Lu,out[sj+1]+uy*Lu,out[sj+2]+uz*Lu);
@@ -299,22 +326,56 @@ export function limbGeometry(){return lathe([[0,0],[.8,.06],[1,.2],[.8,.86],[0,1
 export function torsoGeometry(){return lathe([[0,0],[.8,.03],[.84,.16],[.78,.38],[.92,.66],[1,.82],[.88,.93],[.45,.99],[0,1]],12);}
 function coatGeometry(){return lathe([[0,0],[.84,0],[.92,.35],[1.08,.97],[0,1]],12);}
 export function headGeometry(){
- const parts=[];const tint=(g,v)=>{const c=new Float32Array(g.attributes.position.count*3).fill(v);g.setAttribute('color',new THREE.BufferAttribute(c,3));return g;};
+ const parts=[],tint=(g,v,feature=0)=>{
+  const n=g.attributes.position.count,c=new Float32Array(n*3),f=new Float32Array(n*3),rgb=typeof v==='number'?[v,v,v]:new THREE.Color(v).toArray();
+  for(let i=0;i<n;i++){c.set(rgb,i*3);f[i*3]=feature;}
+  g.setAttribute('color',new THREE.BufferAttribute(c,3));g.setAttribute('faceFeature',new THREE.BufferAttribute(f,3));return g;
+ };
  const skull=new THREE.SphereGeometry(1,14,9),p=skull.attributes.position;
  for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);if(y<0){const t=1-.28*y*y;x*=t;if(z<0)z*=1-.12*y*y;}p.setXYZ(i,x*.077,y*.117,z*.094);}
  skull.computeVertexNormals();parts.push(tint(skull,1));
  const neck=new THREE.CylinderGeometry(.043,.047,.13,6,1,true);neck.translate(0,-.115,.012);parts.push(tint(neck,1));
- const nose=new THREE.SphereGeometry(.02,4,3);nose.scale(.75,1.15,1);nose.translate(0,-.012,-.09);parts.push(tint(nose,1));
+ const nose=new THREE.SphereGeometry(.02,6,4);nose.scale(.65,1.15,.9);nose.translate(0,-.012,-.09);parts.push(tint(nose,1));
+ // Thin, curved facial patches sit just in front of the skin. The old tiny
+ // spheres were largely buried in the skull, leaving the face unreadable.
+ const front=(x,y)=>-.094*Math.sqrt(Math.max(.08,1-(x/.077)**2-(y/.117)**2))-.0025;
+ const patch=(vertices,indices,feature,colour,units)=>{
+  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(vertices.flat(),3));g.setIndex(indices);g.computeVertexNormals();
+  // Keep the attribute set shared with the sphere/neck when merging.
+  g.setAttribute('uv',new THREE.Float32BufferAttribute(new Float32Array(vertices.length*2),2));tint(g,colour,feature);
+  const f=g.attributes.faceFeature;for(let i=0;i<vertices.length;i++){f.setY(i,units[i][0]);f.setZ(i,units[i][1]);}parts.push(g);
+ };
+ const disc=(x,y,rx,ry,feature,colour,depth=0,steps=8)=>{
+  const vertices=[[x,y,front(x,y)-depth]],units=[[0,0]],indices=[];
+  for(let i=0;i<steps;i++){const a=i/steps*TAU,u=Math.cos(a),v=Math.sin(a),px=x+rx*u,py=y+ry*v;vertices.push([px,py,front(px,py)-depth]);units.push([u,v]);indices.push(0,(i+1)%steps+1,i+1);}
+  patch(vertices,indices,feature,colour,units);
+ };
  for(const s of [-1,1]){
   const ear=new THREE.SphereGeometry(.022,4,3);ear.scale(.45,1,.7);ear.translate(s*.074,.0,.008);parts.push(tint(ear,.92));
-  const eye=new THREE.SphereGeometry(.011,4,2);eye.scale(1.2,.8,.6);eye.translate(s*.03,.016,-.083);parts.push(tint(eye,.13));
-  const brow=new THREE.SphereGeometry(.014,4,2);brow.scale(1.5,.35,.5);brow.translate(s*.031,.034,-.084);parts.push(tint(brow,.45));
+  disc(s*.03,.018,.014,.0065,1,'#dad5c8');
+  disc(s*.03,.018,.0047,.0052,2,'#332c27',.0007);
+  const vertices=[],units=[],indices=[];
+  for(let i=0;i<3;i++){const u=i-1,x=s*(.03+u*.016),y=.038+(1-u*u)*.0015;
+   for(const edge of [-1,1]){const py=y+edge*.0015;vertices.push([x,py,front(x,py)-.001]);units.push([u,edge]);}
+   if(i<2){const a=i*2;indices.push(a,a+1,a+2,a+1,a+3,a+2);}
+  }
+  // Each eyebrow points outwards in its local coordinate, reversing winding on one side.
+  if(s<0)for(let i=0;i<indices.length;i+=3)[indices[i+1],indices[i+2]]=[indices[i+2],indices[i+1]];
+  patch(vertices,indices,3,'#514138',units);
  }
- const merged=mergeGeometries(parts.map(g=>g.index?g.toNonIndexed():g));parts.forEach(g=>g.dispose());return merged;
+ disc(0,-.047,.022,.0013,4,'#321e20',.0008,12);
+ const lip=[],units=[],indices=[];
+ for(let i=0;i<12;i++){const a=i/12*TAU,u=Math.cos(a),v=Math.sin(a);
+  for(const [rx,ry] of [[.022,.0013],[.024,.0028]]){const x=rx*u,y=-.047+ry*v;lip.push([x,y,front(x,y)-.001]);units.push([u,v]);}
+  const a0=i*2,b=(i+1)%12*2;indices.push(a0,b,b+1,a0,b+1,a0+1);
+ }
+ patch(lip,indices,5,'#97625a',units);
+ const flat=parts.map(g=>g.index?g.toNonIndexed():g),merged=mergeGeometries(flat);
+ new Set([...parts,...flat]).forEach(g=>g.dispose());return merged;
 }
 // Far level (beyond PERSON_LOD.detail): four-sided limbs, a six-sided torso and a low sphere head,
 // roughly a quarter of the near triangles. Nobody is drawn past PERSON_LOD.hide.
-export const PERSON_LOD={detail:70,hide:220};
+export const PERSON_LOD={face:18,detail:70,hide:220};
 export function limbLowGeometry(){return lathe([[0,0],[.9,.1],[.8,.9],[0,1]],4);}
 export function torsoLowGeometry(){return lathe([[0,0],[.85,.05],[.95,.6],[.85,.95],[0,1]],6);}
 export function headLowGeometry(){
@@ -325,7 +386,7 @@ export function headLowGeometry(){
 export function hairGeometry(){
  // Cap: covers the crown and back of head, hairline high at the forehead.
  const g=new THREE.SphereGeometry(1,14,6,0,TAU,0,Math.PI*.72),p=g.attributes.position;
- for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);const front=Math.max(0,-z);y=Math.max(y,-.62+front*front*1.05);p.setXYZ(i,x*.083,y*.124+.004,z*.1+.004);}
+ for(let i=0;i<p.count;i++){let x=p.getX(i),y=p.getY(i),z=p.getZ(i);const front=Math.max(0,-z);y=Math.max(y,-.62+1.16*smooth(.1,.8,front));p.setXYZ(i,x*.083,y*.124+.004,z*.1+.004);}
  g.computeVertexNormals();return g;
 }
 
@@ -368,6 +429,45 @@ function colors(look){
  looks.set(look,c);return c;
 }
 
+function faceMaterial(){
+ const material=new THREE.MeshStandardMaterial({roughness:.75,vertexColors:true});
+ material.onBeforeCompile=shader=>{
+  shader.vertexShader='attribute vec3 faceFeature;\nattribute vec4 faceState;\nattribute vec4 faceShape;\n'+shader.vertexShader;
+  shader.vertexShader=shader.vertexShader.replace('#include <begin_vertex>',`#include <begin_vertex>
+   float feature=faceFeature.x;
+   if(feature>0.5 && feature<3.5){
+    transformed.x*=faceShape.x;
+    if(feature<2.5){
+     transformed.y=0.018+(position.y-0.018)*(1.0-0.96*faceState.w);
+    }else{
+     transformed.y+=0.007*faceState.z+faceFeature.y*faceShape.z;
+    }
+   }else if(feature>3.5){
+    transformed.x*=faceShape.y*(1.0+0.1*faceState.y-0.18*faceState.x);
+    transformed.y+=faceFeature.z*0.011*faceState.x+(faceFeature.y*faceFeature.y*0.009-0.002)*faceState.y;
+    transformed.z+=max(0.0,-faceFeature.z)*0.002*faceState.x;
+   }
+   if(feature>0.5){
+    // Follow the skin surface as the brows rise or the mouth opens.
+    vec2 fromFace=position.xy/vec2(0.077,0.117),toFace=transformed.xy/vec2(0.077,0.117);
+    float before=sqrt(max(0.08,1.0-dot(fromFace,fromFace)));
+    float after=sqrt(max(0.08,1.0-dot(toFace,toFace)));
+    transformed.z-=0.094*(after-before);
+   }
+  `).replace('#include <color_vertex>',`#include <color_vertex>
+   #ifdef USE_INSTANCING_COLOR
+    if(faceFeature.x>0.5){
+     // Whites and dark pupils keep contrast on every skin tone. Lip and brow
+     // colour retain some of the person's complexion without disappearing.
+     float skinMix=faceFeature.x>4.5?0.6:(faceFeature.x>2.5 && faceFeature.x<3.5?0.3:0.0);
+     vColor.rgb=color.rgb*mix(vec3(1.0),instanceColor,skinMix);
+    }
+   #endif
+  `);
+ };
+ material.customProgramCacheKey=()=>'person-face-v1';return material;
+}
+
 export function createPersonBatch(capacity,options={}){
  const group=new THREE.Group();group.name=options.name||'Pedestrians';
  const luggage=!!options.luggage,culled=!!options.frustumCulled,lod={...PERSON_LOD,...(options.lod||{})};
@@ -379,7 +479,7 @@ export function createPersonBatch(capacity,options={}){
  const segPer=19+(luggage?5:0)+3;
  const meshes={
   torso:make(torsoGeometry(),cloth,capacity,'Person torsos and jackets'),
-  head:make(headGeometry(),skinMat,capacity,'Person heads'),
+  head:make(headGeometry(),faceMaterial(),capacity,'Person heads'),
   hair:make(hairGeometry(),cloth,capacity,'Person hair and hats'),
   seg:make(limbGeometry(),cloth,capacity*segPer,'Person limbs, hips, neck and feet'),
   coat:make(coatGeometry(),cloth,capacity,'Long coats and skirts'),
@@ -389,6 +489,9 @@ export function createPersonBatch(capacity,options={}){
   lowHead:make(headLowGeometry(),skinMat,capacity,'Distant person heads',false),
   lowSeg:make(limbLowGeometry(),cloth,capacity*10,'Distant person limbs',false),
  };
+ const faceState=new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1,capacity)*4),4).setUsage(THREE.DynamicDrawUsage);
+ const faceShape=new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1,capacity)*4),4).setUsage(THREE.DynamicDrawUsage),face=new Float32Array(8);
+ meshes.head.geometry.setAttribute('faceState',faceState);meshes.head.geometry.setAttribute('faceShape',faceShape);
  if(options.police){
   // Police uniforms: textured torsos (navy patrol jacket, hi-vis vest), two more draw calls in the officers' batch only.
   for(const kind of ['jacket','vest']){const map=uniformTexture(kind);meshes[kind]=make(uniformTorsoGeometry(),new THREE.MeshStandardMaterial({roughness:.8,map}),capacity,`Police ${kind==='vest'?'hi-vis vests':'patrol jackets'}`);}
@@ -439,6 +542,8 @@ export function createPersonBatch(capacity,options={}){
   write(list[tm],cursor[tm]++,J[X]*tw,J[X+1]*tw,J[X+2]*tw,J[Y]*tl,J[Y+1]*tl,J[Y+2]*tl,J[Z]*td,J[Z+1]*td,J[Z+2]*td,J[b],J[b+1],J[b+2],tm?WHITE:col.shirt);
   // Head and hair share the head frame.
   const hY=JOINT.headY,hx=J[hY],hy=J[hY+1],hz=J[hY+2],zx=J[X+1]*hz-J[X+2]*hy,zy=J[X+2]*hx-J[X]*hz,zz=J[X]*hy-J[X+1]*hx,h=JOINT.head;
+  const headIndex=cursor[1];
+  if(headIndex<faceState.count){facePose(actor,look,gait,time,face,distance<=lod.face);faceState.setXYZW(headIndex,face[0],face[1],face[2],face[3]);faceShape.setXYZW(headIndex,face[4],face[5],face[6],face[7]);}
   write(meshes.head,cursor[1]++,J[X]*hk,J[X+1]*hk,J[X+2]*hk,hx*hk,hy*hk,hz*hk,zx*hk,zy*hk,zz*hk,J[h],J[h+1],J[h+2],col.skin);
   const style=look.hairStyle||(look.hat?'beanie':'short');
   const capped=style==='cap'||style==='police';
@@ -561,6 +666,7 @@ export function createPersonBatch(capacity,options={}){
    if(mesh.count){mesh.instanceMatrix.addUpdateRange?.(0,mesh.count*16);mesh.instanceColor.addUpdateRange?.(0,mesh.count*3);}
    // Bounds from body positions (+ reach of a fallen/striding person) instead of per-instance scans.
    if(culled){mesh.boundingSphere??=new THREE.Sphere();if(minX>maxX)mesh.boundingSphere.makeEmpty();else{mesh.boundingSphere.center.set((minX+maxX)/2,(minY+maxY)/2+1,(minZ+maxZ)/2);mesh.boundingSphere.radius=Math.hypot(maxX-minX,maxZ-minZ,maxY-minY)/2+2.5;}}}
+  for(const attribute of [faceState,faceShape]){attribute.clearUpdateRanges();if(meshes.head.count)attribute.addUpdateRange(0,meshes.head.count*4);attribute.needsUpdate=true;}
  }
  return {group,meshes,list,begin,draw,end,joints:J,drawCalls:list.length,segmentsPerPerson:segPer,lod};
 }
