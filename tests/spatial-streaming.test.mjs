@@ -61,7 +61,10 @@ test('direct starts await complete installation and retries reuse their payload 
  const entries=[record('near',0),record('chosen',5000)],calls=[],gate=deferred();let installs=0,first;
  const s=createExtensionStreamer({entries,retryDelay:1,load:async entry=>{calls.push(entry.id);return {...entry,readyData:true};},install:async e=>{first??=e;assert.equal(e,first);installs++;if(installs===1)throw Error('surface download');await gate.promise;}});
  await tick();assert.deepEqual(calls,[]);await s.ensureStart({x:0,z:0});assert.deepEqual(calls,[]);
- const ready=s.ensureStart({extension:'chosen'});let resolved=false;ready.then(()=>resolved=true);await new Promise(r=>setTimeout(r,10));assert.equal(s.state('chosen'),'loading');assert.equal(resolved,false);assert.deepEqual(calls,['chosen']);assert.equal(installs,2);
+ const ready=s.ensureStart({extension:'chosen'});let resolved=false;ready.then(()=>resolved=true);
+ // The retry runs on a real timer: wait for it (bounded) instead of a fixed sleep a loaded machine can outrun.
+ for(let i=0;i<400&&installs<2;i++)await new Promise(r=>setTimeout(r,5));
+ assert.equal(s.state('chosen'),'loading');assert.equal(resolved,false);assert.deepEqual(calls,['chosen']);assert.equal(installs,2);
  gate.resolve();await ready;assert.equal(s.state('chosen'),'ready');assert.equal(s.state('near'),'idle');s.dispose();
 });
 

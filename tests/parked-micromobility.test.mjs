@@ -13,7 +13,9 @@ import {nearRoute} from '../src/street-furniture.js';
 const city=JSON.parse(gunzipSync(readFileSync('public/data/city.pack')));
 const mobility=correctHarbourLanes(JSON.parse(readFileSync('public/data/mobility.json')));
 const trams=JSON.parse(readFileSync('public/data/trams.json'));
-const t0=performance.now(),plan=planParkedMicromobility(city,mobility,trams,{obstacles:[]}),planMs=performance.now()-t0;
+// Budget the planner by this process's CPU time, not wall time: npm test runs files in parallel, and on a busy
+// machine wall time measured several seconds for a plan that costs under one second of CPU.
+const cpu0=process.cpuUsage(),plan=planParkedMicromobility(city,mobility,trams,{obstacles:[]}),cpu=process.cpuUsage(cpu0),planMs=(cpu.user+cpu.system)/1000;
 const roads=new SpatialIndex(city.roads.filter(p=>!/Koroke/.test(p.kind))),pavement=new SpatialIndex(city.pavement),buildings=new SpatialIndex(city.buildings);
 const walkable=(x,z)=>{const p=pavement.at(x,z);return !!p&&!/pyör|Pyör|Portaat/.test(p.kind)&&!roads.at(x,z)&&!buildings.at(x,z);};
 const simulate=(k,car,world,seconds,dt=1/60)=>{for(let t=0;t<seconds;t+=dt){if(car){car.x-=Math.sin(car.heading)*car.speed*dt;car.z-=Math.cos(car.heading)*car.speed*dt;}k.step(dt,car,world);}k.update();};
@@ -42,7 +44,7 @@ test('every station and scooter cluster is placed, on walkable mapped pavement o
   assert.ok(c.snapped<=16);assert.ok(c.scooters.length>=2&&c.scooters.length<=6);
   for(const s of c.scooters){assert.ok(walkable(s.x,s.z),`${c.id} scooter on pavement`);assert.ok(OPERATORS.some(o=>o.name===s.operator&&o.accent===s.accent));}
  }
- assert.ok(planMs<1500,`planning took ${Math.round(planMs)} ms`);
+ assert.ok(planMs<1500,`planning took ${Math.round(planMs)} ms of CPU`);
 });
 
 test('rows keep clear of crossings, NPC lanes, tram rails and each other',()=>{
