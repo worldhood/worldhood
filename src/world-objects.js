@@ -15,7 +15,10 @@ export function solidBox({id,name,x,z,width,depth,yaw=0}){
  return objectBehavior({id,name,rings:[ring],bbox:bounds([ring])},'solid');
 }
 const EPSILON=1e-8,REACH=4;
-const ignored=(item,ignore)=>item.disabled||item.playerTaken||ignore?.includes(item);
+// options.trees===false: riders that follow mapped paths under tree rows (NPC scooters) pass trunks.
+const ignored=(item,options)=>item.disabled||item.playerTaken||options.ignore?.includes(item)||(item.tree&&options.trees===false);
+// Tree trunks (tree-trunks.js) are circles {x,z,radius}, not footprint rings.
+const circular=item=>item.radius>0&&!item.rings;
 function footprint(p,{halfWidth=.98,halfLength=2.3}={}){
  const c=Math.cos(p.heading||0),s=Math.sin(p.heading||0);
  return [[-halfWidth,-halfLength],[halfWidth,-halfLength],[halfWidth,halfLength],[-halfWidth,halfLength]].map(([x,z])=>[p.x+x*c+z*s,p.z-x*s+z*c]);
@@ -28,6 +31,14 @@ function overlapArea(ring,item){
  return intersection.reduce((total,rings)=>total+Math.max(0,area(rings[0])-rings.slice(1).reduce((n,r)=>n+area(r),0)),0);
 }
 
+// How far a circle reaches into the body's box (0 without contact); grows as the body sinks in.
+function circleDepth(p,{halfWidth=.98,halfLength=2.3}={},item){
+ const c=Math.cos(p.heading||0),s=Math.sin(p.heading||0),dx=item.x-p.x,dz=item.z-p.z;
+ const ox=Math.abs(dx*c-dz*s)-halfWidth,oz=Math.abs(dx*s+dz*c)-halfLength;
+ return Math.max(0,item.radius-(Math.hypot(Math.max(ox,0),Math.max(oz,0))+Math.min(Math.max(ox,oz),0)));
+}
+const contact=(p,ring,item,options)=>circular(item)?circleDepth(p,options,item):overlapArea(ring,item);
+
 export class WorldObjects{
  constructor(items=[]){this.items=new Set();this.index=new SpatialIndex([],16);this.add(items);}
  add(items){
@@ -36,7 +47,8 @@ export class WorldObjects{
    const mode=item.collisionMode??(item.breakable?'breakable':'solid');
    objectBehavior(item,mode);
    if(mode==='solid'){
-    if(!item.rings?.length)throw Error(`Solid world object ${item.id||item.name||''} has no footprint`);
+    if(circular(item))item.bbox??=[item.x-item.radius,item.z-item.radius,item.x+item.radius,item.z+item.radius];
+    else if(!item.rings?.length)throw Error(`Solid world object ${item.id||item.name||''} has no footprint`);
     item.bbox??=bounds(item.rings);
     const b=item.bbox;
     // Index expanded bounds, not just the post's tiny centre cell: a car can
@@ -49,7 +61,7 @@ export class WorldObjects{
  }
  overlap(p,options={}){
   const ring=footprint(p,options);
-  for(const {item} of this.index.near(p.x,p.z))if(!ignored(item,options.ignore)&&overlapArea(ring,item)>EPSILON)return item;
+  for(const {item} of this.index.near(p.x,p.z))if(!ignored(item,options)&&contact(p,ring,item,options)>EPSILON)return item;
   return null;
  }
  blocksStep(from,to,options={}){
@@ -59,9 +71,9 @@ export class WorldObjects{
   for(let i=1;i<=n;i++){
    const t=i/n,p={x:from.x+(to.x-from.x)*t,z:from.z+(to.z-from.z)*t,heading:(from.heading||0)+turn*t},ring=footprint(p,options);
    for(const {item} of this.index.near(p.x,p.z)){
-    if(ignored(item,options.ignore))continue;
-    const overlap=overlapArea(ring,item);if(overlap<=EPSILON)continue;
-    if(!initial.has(item))initial.set(item,overlapArea(first,item));
+    if(ignored(item,options))continue;
+    const overlap=contact(p,ring,item,options);if(overlap<=EPSILON)continue;
+    if(!initial.has(item))initial.set(item,contact(from,first,item,options));
     // A player already touching an object can back or slide out. A new
     // contact must stop before even a narrow post passes inside the body.
     if(overlap>initial.get(item)+EPSILON)return item;

@@ -13,7 +13,7 @@ const clamp=(x,a,b)=>Math.max(a,Math.min(b,x));
 const hash=n=>((Math.imul(n+31,2654435761)>>>0)%10007)/10007;
 const cycleKind=kind=>/pyör|cycle|yhdistetty|kevyt|\bpp\b/i.test(kind||'');
 const forbiddenKind=kind=>/portaat|stair|steps|polku|unpaved/i.test(kind||'');
-const BODY={halfWidth:.24,halfLength:.56};
+const BODY={halfWidth:.24,halfLength:.56,trees:false}; // they follow mapped paths under tree rows: trunks never strand them
 // Coastal polygons can have thousands of vertices. Cache only the nearby rings
 // we actually query, and test the edges crossing the point's horizontal band.
 // This preserves the polygon/hole test without scanning the whole coast each frame.
