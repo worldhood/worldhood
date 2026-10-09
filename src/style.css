@@ -117,6 +117,8 @@ body.framed canvas{position:absolute;left:0;top:0}
 .edge-invite[hidden]{display:none}
 .edge-invite strong{font-size:15px}
 .edge-invite a{color:#d4572f;font-weight:600;text-underline-offset:3px}
+.edge-links{display:flex;flex-wrap:wrap;gap:6px 16px;margin-top:2px}
+@media(pointer:coarse){.edge-links a{display:inline-block;padding:8px 0}}
 .edge-invite button{position:absolute;right:10px;top:8px;border:0;background:none;font-size:20px;color:#5d6a66;cursor:pointer}
 body.clean-capture .edge-invite{display:none}
 
