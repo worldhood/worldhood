@@ -97,6 +97,9 @@ npm run extension:build -- <id>
   The city's geoserver sometimes resets connections; the script retries.
 - **`extension:build`:** writes `public/data/extensions/<id>/` and registers the area in
   `index.json`. Trees inferred inside mapped forest are flagged `inferred: true`.
+- **`extension:transit`** (optional, after the build): HSL buses through the area and the Raide-Jokeri light
+  rail (line 15) from the HSL GTFS feed (CC BY 4.0, download it to `data/raw/hsl-gtfs.zip`, see
+  `scripts/hsl-gtfs.mjs`), with their stops, into `transit.json`. Run it again after rebuilding the area.
 
 Run `npm test`, start `npm run dev`, then try `?start=<your start>`. Drive the whole route, both
 ways.
@@ -257,6 +260,7 @@ so the game merges it like any other area.
 npm run extension:route -- espoo   # route crop; "areas" circles widen it around Otaniemi and Tapiola
 npm run espoo:fetch                # City of Espoo WFS, Digiroad, OpenStreetMap water (cached)
 npm run espoo:build                # needs python3 with Pillow for the texture atlases
+npm run extension:transit -- lansivayla espoo   # HSL buses and the Raide-Jokeri (HSL GTFS)
 ```
 
 | Layer | Source | Licence |

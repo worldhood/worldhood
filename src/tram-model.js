@@ -255,6 +255,21 @@ export function createArticModules(){
  ];
 }
 
+// Raide-Jokeri light rail (line 15): Škoda ForCity Smart Artic X54, the same family in five modules
+// (34 m, cabs at both ends) in its grey and white HSL livery: white body and upper band, grey skirt,
+// light grey roof fairings. Lengths match JOKERI_DIMENSIONS in tram-simulation.js.
+export const JOKERI_COLOURS={green:'#646b70',yellow:'#eef0ef',silver:'#d9dddf',fairing:'#c3c8cb',trim:'#9aa0a4'};
+export function createJokeriModules(){
+ const saved=C;C={...ARTIC_COLOURS,...JOKERI_COLOURS};
+ try{return [
+  buildArticModule({length:7.9,cab:'front',doors:[2.75,6.35],roofBoxes:[[4.2,7.4]],pantograph:true,seed:51}),
+  buildArticModule({length:5.5,doors:[2.75],roofBoxes:[[1.2,4.3]],bellows:true,seed:53}),
+  buildArticModule({length:6.3,doors:[3.15],roofBoxes:[[1.4,4.9]],bellows:true,seed:59}),
+  buildArticModule({length:5.5,doors:[2.75],roofBoxes:[[1.2,4.3]],bellows:true,seed:61}),
+  buildArticModule({length:7.9,cab:'rear',doors:[2.75,6.35],roofBoxes:[[4.2,7.4]],pantograph:true,bellows:true,seed:67})
+ ];}finally{C=saved;}
+}
+
 // Draw one tram's row of the lettering atlas: amber LED destination display
 // (line number large at the left, destination at the right, split over two
 // lines when a long name would otherwise shrink too far, as HSL displays do),

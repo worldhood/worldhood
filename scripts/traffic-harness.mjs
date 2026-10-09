@@ -108,7 +108,7 @@ export function vehicles(s){
  const out=[];
  for(const c of s.mobility.cars)if(c.edge&&!c.knocked)out.push({key:keyOf('car',c),kind:'car',ref:c,id:c.id,x:c.x,z:c.z,heading:c.heading,speed:c.speed,exempt:false});
  for(const t of s.trams.trams)out.push({key:keyOf('tram',t),kind:'tram',ref:t,id:t.id,x:t.x,z:t.z,heading:t.heading,speed:t.speed,exempt:t.wait>0||t.s>=t.path.length-1});
- for(const b of s.buses.buses)if(!b.parked)out.push({key:keyOf('bus',b),kind:'bus',ref:b,id:b.id,x:b.x,z:b.z,heading:b.heading,speed:b.speed,exempt:b.s>=b.path.end-1});
+ for(const b of s.buses.buses)if(!b.parked)out.push({key:keyOf('bus',b),kind:'bus',ref:b,id:b.id,x:b.x,z:b.z,heading:b.heading,speed:b.speed,exempt:b.s>=b.path.end-1||b.dwell>0});
  return out;
 }
 // Steps a scenario and watches every vehicle. A vehicle is stuck when it has not moved PROGRESS metres

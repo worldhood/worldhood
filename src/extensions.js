@@ -24,7 +24,9 @@ export async function loadExtension(e,json,unpack){
   const [water,land]=await Promise.all([e.osmWater&&json(dataUrl(`${e.dir}/${e.osmWater}`)),e.osmLandcover&&json(dataUrl(`${e.dir}/${e.osmLandcover}`))]);
   if(water)city.water.push(...water.water);
   if(land){city.parks.push(...land.parks);city.trees.push(...land.trees);}
-  return {...e,city,buildings,surfaces,mobility};
+  // HSL buses and light rail of the area (scripts/build-extension-transit.mjs), when it has them.
+  const transitLines=e.transit?await json(dataUrl(`${e.dir}/${e.transit}`)):null;
+  return {...e,city,buildings,surfaces,mobility,transitLines};
 }
 // Compatibility for import/build tools. Runtime startup uses the catalog alone.
 export async function loadExtensions(json,unpack){

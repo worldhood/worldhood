@@ -43,6 +43,12 @@ and OpenStreetMap follow the middle of the street, so without this both directio
 buses (station and tour bays, a bus at the end of its mapped run) are moved to the kerb when there is room;
 otherwise cars steer round them.
 
+**Bus stops.** Buses halt at their stops: the stop poles come from the data (`npm run bus:stops -- <city>`:
+HSL GTFS for Helsinki, OpenStreetMap elsewhere; an extension's `transit.json` lists each line's own stops).
+A bus takes the poles beside its right-hand kerb, eases up to 1.6 m towards the kerb where the whole swept
+approach and departure stay on mapped road (otherwise it stops in its lane), stands with its doors open for
+four to eight seconds and pulls out again.
+
 **Bodies.** Cars never drive or spawn into a tram section or a bus body, and trams and buses never move
 into a car. Cars do not spawn inside a junction box or on a tram conflict.
 

@@ -56,6 +56,7 @@ import {createLaivasillankatuSigns} from './laivasillankatu-signs.js';
 import {createKauppatoriFingerpost} from './kauppatori-fingerpost.js';
 import {createSofiankatuSigns} from './sofiankatu-signs.js';
 import {createBusSystem} from './bus-system.js';
+import {installTransit} from './extension-transit.js';
 import {createSea,removeLegacyWater} from './sea.js';
 import {PoliceSimulation} from './police.js';
 import {createPoliceRenderer} from './police-renderer.js';
@@ -812,16 +813,16 @@ async function boot(){
    for(const e of extensions)data.landmarks.push(...(e.starts||[]));
    areaLabel=areaCaption(helsinki?[...HELSINKI_AREAS,...extensions.flatMap(e=>e.starts||[])]:data.landmarks,city.name);
    const requestedStart=new URLSearchParams(location.search).get('start'),firstStart=pickStart(data.landmarks,requestedStart)||pickStart(data.landmarks,city.defaultStart)||(helsinki?HARBOUR_START:data.landmarks[0]);
-   const regionStages=new Map();
+   const regionStages=new Map(),transitQueue=[],addTransit=e=>{if(!tramSim||!buses)transitQueue.push(e);else installTransit(e.transitLines,{trams:tramSim,tramRenderer,buses:buses.simulation});};
    extensionStreamer=createExtensionStreamer({entries:extensions,load:e=>loadExtension(e,json,unpack),onError:handleTileError,install:async e=>{
     if(gameIsStopped())return;
-    if(!world){applyExtensions([e],{data,roofIndex,surfaceIndex,mobility:mobilityData});return;}
+    if(!world){applyExtensions([e],{data,roofIndex,surfaceIndex,mobility:mobilityData});addTransit(e);return;}
     // Finish nearby ground before opening the region. Other tiles continue to stream ahead.
     surfaceStreamer.add(e.surfaces);await surfaceStreamer.ensure(car,{radius:1000,aheadSeconds:12});
     if(gameIsStopped())return;
     let stage=regionStages.get(e.id);
     if(!stage){
-     const roadStart=mobility.roads.edges.length,walkStart=mobility.walks.edges.length;
+     const roadStart=mobility.roads.edges.length,walkStart=mobility.walks.edges.length;addTransit(e);
      applyExtensions([e],{data,roofIndex,surfaceIndex,mobility,world,police,activate:false});
      stage={roads:mobility.roads.edges.slice(roadStart),walks:mobility.walks.edges.slice(walkStart)};regionStages.set(e.id,stage);
     }
@@ -927,7 +928,7 @@ async function boot(){
     impacts.onHit=e=>crowd.alarm(e,[mobility.people,detailPeople]);}
    progress(94,'Preparing buses');buses=await createBusSystem(scene,world,car);
    // Lanes know the tram tracks and buses the junction signals; respawn traffic clear of trams and buses.
-   mobility.attachTrams(tramSim);mobility.attachBuses(buses.simulation);buses.reset(car,tramSim.obstacles);mobility.externalBodies=transitBodies();mobility.reset(car);
+   transitQueue.splice(0).forEach(addTransit);mobility.attachTrams(tramSim);mobility.attachBuses(buses.simulation);buses.reset(car,tramSim.obstacles);mobility.externalBodies=transitBodies();mobility.reset(car);
    progress(100,'Ready');
    ready=true;carGroup.visible=true;marker.visible=true;loadingScreen.ready(startPoint.name);
    if(!helsinki)$('boot-place-label').textContent=`Your starting point in ${city.name}`;

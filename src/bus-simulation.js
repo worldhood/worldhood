@@ -18,10 +18,37 @@ export function safeBusSweep(a,b,world){const distance=Math.hypot(b.x-a.x,b.z-a.
 // every LANE_STEP metres, as far right as the bus fits; buses then keep to their own side like cars.
 export const LANE_STEP=3,BUS_LANE_OFFSETS=[1.6,1.2,.8,.4];
 export function laneOffset(path,s){const l=path.lanes;if(!l?.length)return 0;const i=Math.max(0,Math.min(l.length-1,s/LANE_STEP)),k=Math.floor(i),t=i-k;return k+1<l.length?l[k]+(l[k+1]-l[k])*t:l[k];}
-export function busPose(path,s,kind='city'){
- const centre=routePoint(path,s,laneOffset(path,s)),front=routePoint(path,s+3,laneOffset(path,s+3)),rear=routePoint(path,s-3,laneOffset(path,s-3));
+// `pull(s)` is an extra offset to the right: the bus pulling in to a stop and out again (busStopPull).
+export function busPose(path,s,kind='city',pull=null){
+ const at=s=>routePoint(path,s,laneOffset(path,s)+(pull?pull(s):0)),centre=at(s),front=at(s+3),rear=at(s-3);
  return {...centre,kind,heading:Math.atan2(rear.x-front.x,rear.z-front.z)};
 }
+// Bus stops (dated stop poles from the data, `data.stops`). A path takes the stops beside its right-hand kerb
+// (doors side) within reach of its line, or exactly its own stops when the data lists them (`stopIds`).
+// `s` is where the bus centre halts: the front door level with the pole.
+export const BUS_STOP_REACH=12,BUS_PULL_IN=22,BUS_PULL_OUT=16;
+export function assignBusStops(path,stops=[]){
+ if(path.kind==='tourist'||path.kind==='coach')return []; // sightseeing and charter coaches keep off HSL stops
+ const own=path.stopIds&&new Set(path.stopIds),half=dims(path).length/2,out=[];let x0=Infinity,z0=Infinity,x1=-Infinity,z1=-Infinity;
+ for(const [x,z] of path.points){x0=Math.min(x0,x);z0=Math.min(z0,z);x1=Math.max(x1,x);z1=Math.max(z1,z);}
+ for(const stop of stops){if(own?!own.has(stop.id):stop.x<x0-BUS_STOP_REACH||stop.x>x1+BUS_STOP_REACH||stop.z<z0-BUS_STOP_REACH||stop.z>z1+BUS_STOP_REACH)continue;let best=own?25:BUS_STOP_REACH,at=null;
+  for(let i=1;i<path.points.length;i++){const a=path.points[i-1],b=path.points[i],dx=b[0]-a[0],dz=b[1]-a[1],l2=dx*dx+dz*dz||1,t=Math.max(0,Math.min(1,((stop.x-a[0])*dx+(stop.z-a[1])*dz)/l2)),ox=stop.x-a[0]-dx*t,oz=stop.z-a[1]-dz*t,d=Math.hypot(ox,oz);
+   if(d<best&&(own||ox*-dz+oz*dx>0||d<1)){best=d;at=path.cumulative[i-1]+Math.sqrt(l2)*t;}}
+  const s=at-half+1.5;if(at!==null&&s>path.start+BUS_PULL_IN&&s<path.end-BUS_PULL_OUT&&!out.some(o=>Math.abs(o.s-s)<30))out.push({id:stop.id,name:stop.name,s,x:stop.x,z:stop.z});}
+ return out.sort((a,b)=>a.s-b.s);
+}
+// Sideways ease towards the kerb over BUS_PULL_IN metres, back out over BUS_PULL_OUT after the stop.
+export function busStopPull(stop,amount){const e=t=>t<=0?0:t>=1?1:t*t*(3-2*t);return s=>amount*(s<=stop.s?e((s-stop.s+BUS_PULL_IN)/(BUS_PULL_IN-6)):1-e((s-stop.s)/BUS_PULL_OUT));}
+// How far the bus may pull in at a stop: the most of 1.6 m whose whole swept approach and departure stays on
+// mapped road; a kerb-side lane or a narrow street keeps the bus in its lane (0).
+export function stopPullFor(path,stop,kind,world){
+ for(const amount of [1.6,1.2,.8,.4]){const pull=busStopPull(stop,amount);let ok=true,previous=null;
+  for(let s=stop.s-BUS_PULL_IN;s<=stop.s+BUS_PULL_OUT&&ok;s+=1){const p=busPose(path,s,kind,pull);ok=busFitsRoad(p,world)&&(!previous||safeBusSweep(previous,p,world));previous=p;}
+  if(ok)return amount;}
+ return 0;
+}
+// Doors stay open for a few seconds; deterministic per bus and stop so replays match.
+export const busDwell=(bus,stopIndex)=>4+((bus.id*3+stopIndex*7)%5);
 // Dated GTFS stop and departure-shape evidence, not a guessed parking grid.
 // A stop coordinate is often on the kerb: only accept a nearby, fully road-clear
 // body pose on the departure shape. No pavement permission is introduced.
@@ -65,8 +92,11 @@ export function busLaneOffsets(path,world,kind=path.kind||'city',target=()=>null
 }
 export class BusSimulation{
  constructor(data,world,{cityCount=6,trunkCount=2,touristCount=3,coachCount=2}={}){this.world=world;this.paths=data.clearancePrecomputed?data.paths.filter(p=>p.kind!=='tourist'||p.verified).map(p=>({...prepareGraph({nodes:[0,1],edges:[{...p,from:0,to:1,lane:0}]}).edges[0],id:p.id})):usableBusPaths(data,world);this.stationBays=[...(data.stationBays||[]),...(data.sightseeingBays||[])];this.cityCount=Math.min(6,cityCount);this.trunkCount=Math.min(2,trunkCount);this.touristCount=Math.min(3,touristCount);this.coachCount=Math.min(2,coachCount);this.buses=[];this.obstacles=[];this.bodies=[];this.time=0;this.supplyAt=4;
-  this.signalPoints=data.signals||[];
+  this.signalPoints=data.signals||[];this.stops=[];this.addStops(data.stops);
  }
+ // Paths and stops arriving later (a map extension's transit.json), prepared like the city's own.
+ addPaths(data){const paths=(data.paths||[]).map(p=>({...prepareGraph({nodes:[0,1],edges:[{...p,from:0,to:1,lane:0}]}).edges[0],id:p.id}));this.paths.push(...paths);this.addStops(data.stops,paths);this.signalPoints.push(...(data.signals||[]));return paths;}
+ addStops(stops=[],paths=this.paths){this.stops.push(...stops);for(const p of paths)p.busStops=assignBusStops(p,this.stops);}
  // Standing buses (station and tour bays) belong at the kerb, not in a car lane: nothing behind them could
  // ever pass. `laneTaken(box)` (from mobility.js) says whether a body would cover a car lane; a bay that does
  // moves sideways in 25 cm steps until it is clear and still fits; otherwise cars steer around it.
@@ -89,7 +119,15 @@ export class BusSimulation{
    const blocked=this.buses.some(b=>b.path.id===c.path.id||(c.parked?busOverlaps(c,b,1):Math.hypot(b.x-c.x,b.z-c.z)<55));
    if((c.parked||count<this.cap(c.kind))&&!blocked&&!traffic.some(o=>o.edge!==null&&busOverlaps(c,o,1)))this.buses.push(c);
   }this.buses.forEach((b,i)=>b.id=i);}
-  for(const b of this.buses){if(b.parked)continue;b.redFor=0;let desired=Math.min(30/3.6,b.path.speedLimitKmh?b.path.speedLimitKmh/3.6:30/3.6),remaining=b.path.end-b.s;if(b.path.loopTo==null)desired=Math.min(desired,Math.sqrt(Math.max(0,remaining-.4)*2));
+  for(const b of this.buses){if(b.parked)continue;b.redFor=0;
+   // At a stop: doors open, then close a moment before it pulls out.
+   if(b.dwell>0){b.dwell=Math.max(0,b.dwell-dt);b.speed=0;b.held=0;b.doorsOpen=b.dwell>.8;continue;}
+   let desired=Math.min(30/3.6,b.path.speedLimitKmh?b.path.speedLimitKmh/3.6:30/3.6),remaining=b.path.end-b.s;if(b.path.loopTo==null)desired=Math.min(desired,Math.sqrt(Math.max(0,remaining-.4)*2));
+   const stops=b.path.busStops||[];if(b.stop&&b.s>b.stop.s+BUS_PULL_OUT){b.stop=null;b.pull=null;}
+   if(b.nextStop==null){const i=stops.findIndex(st=>st.s-b.s>BUS_PULL_IN);b.nextStop=i<0?stops.length:i;}
+   if(!b.stop&&b.nextStop<stops.length&&stops[b.nextStop].s-b.s<=80){const st=stops[b.nextStop++];
+    if(st.s-b.s>BUS_PULL_IN-1){st.pull??={};st.pull[b.kind]??=stopPullFor(b.path,st,b.kind,this.world);b.stop=st;b.served=false;b.pull=st.pull[b.kind]?busStopPull(st,st.pull[b.kind]):null;}}
+   if(b.stop&&!b.served){const gap=b.stop.s-b.s;if(gap<.5){b.served=true;b.dwell=busDwell(b,stops.indexOf(b.stop));b.doorsOpen=true;b.speed=0;continue;}desired=Math.min(desired,Math.sqrt(Math.max(0,gap-.3)*1.6));}
    if(b.path.signalStops){for(const g of b.path.signalStops){const gap=g.s-b.s-dims(b).length/2;if(gap<0)continue;if(gap>45)break;if(!signalGreen(g.signal,g.group,this.time)&&gap>b.speed*b.speed/6-.5){b.redFor=untilGreen(g.signal,g.group,this.time);desired=Math.min(desired,Math.sqrt(Math.max(0,gap-1)*2));}break;}}
    else for(const light of this.legacySignals(b.path)){const dist=light.s-b.s;if(dist<8||dist>45)continue;const phase=(this.time+light.id*2.13)%32,northSouth=Math.abs(Math.cos(b.heading))>.707,green=northSouth?phase<13:phase>=16&&phase<29;if(!green)desired=Math.min(desired,Math.sqrt(Math.max(0,dist-BUS_DIMENSIONS[b.kind].length/2-3)*2));}
    // Full long footprint probes, including lateral cross traffic; conservative
@@ -101,24 +139,24 @@ export class BusSimulation{
    const other=b.holdBy;b.gridlock=other&&other.holdBy===b&&b.speed<.1&&(!this.buses.includes(other)||b.id<other.id)?(b.gridlock||0)+dt:0;
    if(b.gridlock>2){b.unjam=other;b.unjamUntil=this.time+5;b.gridlock=0;}
    const others=[player,...traffic,...this.buses].filter(o=>o!==b&&o.edge!==null&&(!b.unjam||o!==b.unjam&&o.ref!==b.unjam)&&Math.abs(o.x-b.x)<40&&Math.abs(o.z-b.z)<40&&(o.x-b.x)*-Math.sin(b.heading)+(o.z-b.z)*-Math.cos(b.heading)>dims(b).length/2-2.5&&!oncomingPasses(b,o));b.holdBy=null;
-   for(let ahead=2;ahead<28;ahead+=2){const p=busPose(b.path,Math.min(b.path.end,b.s+ahead),b.kind),o=others.find(o=>busOverlaps(p,o,.25));if(o){desired=Math.min(desired,Math.sqrt(Math.max(0,ahead-3)*2));b.holdBy=o.ref||o;break;}}
-   b.speed+=Math.max(-3.2*dt,Math.min(1.1*dt,desired-b.speed));const nextS=Math.min(b.path.end,b.s+b.speed*dt),next=busPose(b.path,nextS,b.kind);
+   for(let ahead=2;ahead<28;ahead+=2){const p=busPose(b.path,Math.min(b.path.end,b.s+ahead),b.kind,b.pull),o=others.find(o=>busOverlaps(p,o,.25));if(o){desired=Math.min(desired,Math.sqrt(Math.max(0,ahead-3)*2));b.holdBy=o.ref||o;break;}}
+   b.speed+=Math.max(-3.2*dt,Math.min(1.1*dt,desired-b.speed));const nextS=Math.min(b.path.end,b.s+b.speed*dt),next=busPose(b.path,nextS,b.kind,b.pull);
    // Authored street furniture can change after offline road validation. Check a
    // metre ahead periodically against the live world before entering it.
-   if(!b.clearUntil||nextS>b.clearUntil){const checkS=Math.min(b.path.end,nextS+1),check=busPose(b.path,checkS,b.kind);b.clearUntil=safeBusSweep(b,check,this.world)?checkS:0;}
+   if(!b.clearUntil||nextS>b.clearUntil){const checkS=Math.min(b.path.end,nextS+1),check=busPose(b.path,checkS,b.kind,b.pull);b.clearUntil=safeBusSweep(b,check,this.world)?checkS:0;}
    const hit=[player,...traffic,...this.buses].find(o=>o!==b&&o.edge!==null&&(!b.unjam||o!==b.unjam&&o.ref!==b.unjam)&&busOverlaps(next,o)&&!busOverlaps(b,o));
    if(!b.clearUntil||hit){b.speed=0;b.held=(b.held||0)+dt;if(hit)b.holdBy=hit.ref||hit;}else{b.s=nextS;Object.assign(b,next);b.held=0;}
    // A bus that has finished its route, or is held by live furniture for a long time, restarts its route once the
    // player is well away. It used to wait at a route end until the player was 450 m off, standing in a live lane.
    // Sightseeing circuits close on themselves: the usable end lies on the same spot as `loopTo`, so the bus carries straight on.
-   if(b.path.loopTo!=null&&remaining<1.5){b.s=b.path.loopTo-remaining;b.clearUntil=0;Object.assign(b,busPose(b.path,b.s,b.kind));continue;}
+   if(b.path.loopTo!=null&&remaining<1.5){b.s=b.path.loopTo-remaining;b.clearUntil=0;b.stop=b.pull=b.nextStop=null;Object.assign(b,busPose(b.path,b.s,b.kind));continue;}
    // Out of the camera's view counts as away too (main.js sets visibilityTest), so a bus at the end of its
    // mapped run does not stand in a live lane for as long as the player stays nearby.
    // At the end of its mapped run a bus stands like a parked one: cars steer round it (mobility.js).
    b.standing=remaining<1;b.standFor=b.standing?(b.standFor||0)+dt:0;
    const distance=Math.hypot(b.x-player.x,b.z-player.z),away=distance>150||distance>40&&this.visibilityTest&&!this.visibilityTest(b)||b.standFor>20&&distance>60;
    // The route start must be clear: restarting on top of queued cars used to wedge them inside the bus.
-   if((remaining<1||(b.held||0)>12)&&away){const start=busPose(b.path,b.path.start,b.kind);if(![player,...traffic,...this.buses].some(o=>o!==b&&o.edge!==null&&busOverlaps(start,o,1))){b.s=b.path.start;b.held=0;b.clearUntil=0;Object.assign(b,start);}else b.done=true;}
+   if((remaining<1||(b.held||0)>12)&&away){const start=busPose(b.path,b.path.start,b.kind);if(![player,...traffic,...this.buses].some(o=>o!==b&&o.edge!==null&&busOverlaps(start,o,1))){b.s=b.path.start;b.held=0;b.clearUntil=0;b.stop=b.pull=b.nextStop=null;Object.assign(b,start);}else b.done=true;}
   }
   // A bus that cannot restart leaves the street; the supply brings a new one in later.
   if(this.buses.some(b=>b.done)){this.buses=this.buses.filter(b=>!b.done);this.buses.forEach((b,i)=>b.id=i);}
@@ -126,5 +164,5 @@ export class BusSimulation{
   for(const b of this.buses)if(busOverlaps(b,player)){if(!leavingBody(player,dt,b))player.speed=0;b.speed=0;const side=(player.x-b.x)*Math.cos(b.heading)-(player.z-b.z)*Math.sin(b.heading);nudgeOut(player,b.heading,(BUS_DIMENSIONS[b.kind].width/2+(player.halfWidth??.98)+.05-Math.abs(side))*(side<0?-1:1),this.world);}
   this.refreshObstacles();
  }
- snapshot(){return this.buses.map(({id,kind,path,x,z,heading,speed,parked,stopId,platform})=>({id,kind,line:path.line,destination:path.destination,x,z,heading,speed,parked:!!parked,stopId,platform}));}
+ snapshot(){return this.buses.map(({id,kind,path,x,z,heading,speed,parked,stopId,platform,dwell,doorsOpen,stop})=>({id,kind,line:path.line,destination:path.destination,x,z,heading,speed,parked:!!parked,stopId,platform,dwelling:dwell>0,doorsOpen:!!doorsOpen,busStop:dwell>0?stop?.name||null:null}));}
 }

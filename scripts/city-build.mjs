@@ -176,7 +176,7 @@ for(const r of transit.elements.filter(e=>e.type==='relation')){
   (rail?tramPaths:busPaths).push(rail?path:{...path,kind:'city'});
  }
 }
-const transitStops=stopNodes.elements.filter(e=>e.type==='node').map(e=>{const [x,z]=local(e.lon,e.lat);return {id:`osm-${e.id}`,name:e.tags?.name||'',x,z,tram:e.tags?.railway==='tram_stop'||e.tags?.tram==='yes'||e.tags?.light_rail==='yes'};}).filter(s=>Math.abs(s.x)<EXTENT&&Math.abs(s.z)<EXTENT);
+const transitStops=stopNodes.elements.filter(e=>e.type==='node').map(e=>{const [x,z]=local(e.lon,e.lat);return {id:`osm-${e.id}`,name:e.tags?.name||'',x,z,tram:e.tags?.railway==='tram_stop'||e.tags?.tram==='yes'||e.tags?.light_rail==='yes',bus:e.tags?.highway==='bus_stop'||e.tags?.public_transport==='stop_position'&&e.tags?.bus==='yes'};}).filter(s=>Math.abs(s.x)<EXTENT&&Math.abs(s.z)<EXTENT);
 
 // ---------- Official city open data (optional: cities/<id>/city.json → "official") ----------
 // Many cities publish their street register and tree register over WFS. When configured, those
@@ -315,14 +315,14 @@ const chunks=surfaceChunks(rendered);const surfaceIndex=[];
 for(const [k,values] of chunks){const file=`surfaces/${k}.bin`;fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push(surfaceRecord(file,values));}
 fs.writeFileSync(path.join(OUT,'surface-index.json'),JSON.stringify(surfaceIndex));
 fs.writeFileSync(path.join(OUT,'mobility.json'),JSON.stringify(mobility));
-fs.writeFileSync(path.join(OUT,'trams.json'),JSON.stringify({source:'OpenStreetMap route=tram relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables and frequencies are simulated.'],paths:tramPaths,stops:transitStops.filter(s=>s.tram)}));
+fs.writeFileSync(path.join(OUT,'trams.json'),JSON.stringify({source:'OpenStreetMap route=tram relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables and frequencies are simulated.'],paths:tramPaths,stops:transitStops.filter(s=>s.tram).map(({bus,...s})=>s)}));
 // Check bus routes against the street geometry once here, not in every player's browser
 // (same clearance test and compaction as Helsinki's scripts/prepare-bus-corridors.mjs).
 const busWorld={buildings:new SpatialIndex(city.buildings),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),trafficForbidden:new SpatialIndex(city.roads.filter(r=>/Koroke/.test(r.kind)))};
 const usableBuses=usableBusPaths({paths:busPaths},busWorld).map(p=>{const from=Math.max(0,p.start-8),to=Math.min(p.length,p.end+8),a=routePoint(p,from,0),b=routePoint(p,to,0),points=[[a.x,a.z],...p.points.filter((_,i)=>p.cumulative[i]>from&&p.cumulative[i]<to),[b.x,b.z]].map(q=>q.map(v=>+v.toFixed(3)));const {cumulative,...rest}=p;return {...rest,points,start:p.start-from,end:p.end-from,length:to-from};});
 // Lanes for buses: the car lane of their own direction, else keep right (scripts/bus-lanes.mjs).
 addBusLanes(usableBuses,busWorld,mobility.roads);
-fs.writeFileSync(path.join(OUT,'bus-corridors.json'),JSON.stringify({source:'OpenStreetMap route=bus relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables simulated.'],signals,paths:usableBuses,stationStops:[],stationBays:[],clearancePrecomputed:true,clearanceNote:'Road, building and island clearance checked at build time.'}));
+fs.writeFileSync(path.join(OUT,'bus-corridors.json'),JSON.stringify({source:'OpenStreetMap route=bus relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables simulated.'],signals,paths:usableBuses,stops:transitStops.filter(s=>s.bus).map(({id,name,x,z})=>({id,name,x,z})),stopsSource:'OpenStreetMap bus stops, ODbL',stationStops:[],stationBays:[],clearancePrecomputed:true,clearanceNote:'Road, building and island clearance checked at build time.'}));
 fs.writeFileSync(path.join(OUT,'landcover.json'),JSON.stringify({polygons:[]}));
 // Emit an empty catalog too: static hosts may serve the homepage for missing
 // JSON paths, so a city without extensions must not rely on a 404 response.

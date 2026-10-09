@@ -27,7 +27,9 @@ export function createBusModel(kind='city',{line='',destination='HELSINKI'}={}){
  for(const x of [-1.27,1.27]){box(.025,.2,d.length*.7,'white',x,.70,1.05);for(let z=-d.length/2+.5;z<d.length/2-.2;z+=1.25)box(.05,1.34,.065,'black',x,2.11,z);for(const z of [-4.5,0,4.8])box(.03,.10,.23,'amber',x,.91,z);}
  if(!tourist&&kind!=='coach')for(const side of [-1,1])for(const z of [-1.25,0,1.25]){const g=new THREE.TorusGeometry(.55,.032,5,32);g.scale(1,1.35,1);g.rotateY(Math.PI/2);add(g,'white',side*1.302,1.69,z+.25);}
  // Right-side front/middle/rear double doors and step edge, lime grab poles.
- for(const z of tourist||kind==='coach'?[-4.9,1.5]:trunk?[-6.3,.05,5.3]:[-4.8,.05,3.95]){box(.04,2.27,1.17,'black',1.295,1.63,z);box(.055,1.85,1.01,'glass',1.322,1.8,z);box(.06,2.16,.06,'alloy',1.36,1.62,z);box(.06,.07,1.10,'white',1.36,.57,z);}
+ // The glazed door leaves are their own two batches (forward and rear leaf of each door) so they can open at stops.
+ const doorZ=tourist||kind==='coach'?[-4.9,1.5]:trunk?[-6.3,.05,5.3]:[-4.8,.05,3.95],leaves=[[],[]];
+ for(const z of doorZ){box(.04,2.27,1.17,'black',1.295,1.63,z);box(.06,.07,1.10,'white',1.36,.57,z);for(const [k,side] of [[0,-1],[1,1]]){const g=new THREE.BoxGeometry(.055,1.85,.5);g.translate(1.322,1.8,z+side*.255);leaves[k].push(g);const pole=new THREE.BoxGeometry(.06,1.9,.05);pole.translate(1.36,1.75,z+side*.03);leaves[k].push(pole);}}
  // Raked-looking split windscreen surround and wiper arms.
  box(2.18,1.18,.05,'glass',0,2.05,-d.length/2-.018);
  box(.055,1.05,.065,'black',0,2.0,-d.length/2-.055);
@@ -58,7 +60,10 @@ export function createBusModel(kind='city',{line='',destination='HELSINKI'}={}){
  if(typeof document!=='undefined'){
   const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const ctx=canvas.getContext('2d');ctx.fillStyle='#101918';ctx.fillRect(0,0,512,96);ctx.fillStyle='#f8cd67';ctx.font='bold 55px sans-serif';ctx.fillText(tourist?(destination||'CITY TOUR'):`${line} ${destination}`,12,66,490);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(2.1,.37),new THREE.MeshBasicMaterial({map:texture}));screen.rotation.y=Math.PI;screen.position.set(0,2.77,-d.length/2-.055);group.add(screen);
  }
- group.name=tourist?'Original Helsinki sightseeing double decker':kind==='coach'?'Original harbour charter coach':trunk?'Original Helsinki orange trunk bus':'Original Helsinki blue electric city bus';group.userData={kind,dimensions:d,originalModel:true};return group;
+ const doors=leaves.map((gs,k)=>{const mesh=new THREE.Mesh(mergeGeometries(gs.map(g=>g.toNonIndexed())),mats.glass);mesh.name=`Door leaves ${k?'rear':'forward'}`;gs.forEach(g=>g.dispose());group.add(mesh);return mesh;});
+ // Doors open outward and slide apart (0 closed … 1 open).
+ const setDoors=open=>{doors[0].position.set(.14*open,0,-.45*open);doors[1].position.set(.14*open,0,.45*open);};
+ group.name=tourist?'Original Helsinki sightseeing double decker':kind==='coach'?'Original harbour charter coach':trunk?'Original Helsinki orange trunk bus':'Original Helsinki blue electric city bus';group.userData={kind,dimensions:d,originalModel:true,doors:0,setDoors};return group;
 }
 
 const slope={y:0,pitch:0,roll:0};
@@ -69,7 +74,7 @@ export function createBusRenderer(sim){
   const wanted=new Set(sim.buses.map(key));
   for(const [id,m]of models)if(!wanted.has(id)){group.remove(m);m.traverse(o=>{if(o.isMesh){o.geometry.dispose();o.material.map?.dispose();o.material.dispose();}});models.delete(id);}
   for(const b of sim.buses){const id=key(b);let m=models.get(id);if(!m){m=createBusModel(b.kind,b.path);models.set(id,m);group.add(m);}
-   m.visible=Math.hypot(b.x-player.x,b.z-player.z)<500;groundPose(b.x,b.z,b.heading,5,1.2,slope);m.position.set(b.x,.12+slope.y,b.z);m.rotation.set(slope.pitch,b.heading,slope.roll,'YXZ');
+   m.visible=Math.hypot(b.x-player.x,b.z-player.z)<500;const u=m.userData,open=Math.max(0,Math.min(1,u.doors+(b.doorsOpen?.06:-.06)));if(open!==u.doors){u.doors=open;u.setDoors(open);}groundPose(b.x,b.z,b.heading,5,1.2,slope);m.position.set(b.x,.12+slope.y,b.z);m.rotation.set(slope.pitch,b.heading,slope.roll,'YXZ');
   }
  }};
 }
