@@ -94,8 +94,10 @@ remain absent from the draft's generic shell.
 
 [Comparison image](../../data/raw/place-compare/oulu/cathedral/draft-199558409.jpg).
 Reference: [Leonhard Lenz, 5 January 2026, CC0](https://commons.wikimedia.org/wiki/File:Oulun_tuomiokirkko_Oulun_vanha_monumentaalikeskus_ja_Franz%C3%A9nin_puisto_Oulu_2026-01-05_02.jpg).
-The stepped tower, clock, spire, white entrance columns and front steps need a
-bespoke model; the footprint and a default building height do not reproduce them.
+The [Cathedral visual pass](CATHEDRAL-REVIEW.md) now implements the stepped tower, four
+clocks, square spire, crossing dome/curved roofs, white entrance columns and front steps.
+Fine profiles, side/rear details and churchyard validation remain pending. The linked
+comparison is the original generic-shell baseline.
 
 ### City Hall
 
@@ -167,3 +169,10 @@ All changes are local. No GitHub push, pull request or deployment was created.
 Toripolliisi geometry and its collision obstacle are excluded pending artwork permission.
 Earlier review notes describing that model are historical. The local version is retained
 in an unpushed backup branch. The draft still needs recognisability and traffic review.
+
+## Cathedral follow-up, 17 October 2026
+
+See CATHEDRAL-REVIEW.md for inspected CC0 sources, the city-reported tower height,
+implemented features, remaining limitations and regression checks. The original mapped
+outline is retained; a separate stair collision and terrain-supported foundation are included.
+The full suite now contains 690 tests. This is still an approximate draft landmark.

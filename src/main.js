@@ -814,6 +814,7 @@ async function boot(){
     for(const m of pl.municipalModels||[]){const building=data.buildings.find(b=>b.id===m.building);if(building){building.rings=[m.ring];building.bbox=bounds(building.rings);building.height=m.height;}}
     for(const m of pl.ouluMarket?.square?.buildings||[]){const building=data.buildings.find(b=>b.id===m.building);if(building)building.height=m.eave+m.rise;}
     if(pl.ouluCityHall){const building=data.buildings.find(b=>b.id===pl.ouluCityHall.building);if(building)building.height=pl.heights[building.id];}
+    if(pl.ouluCathedral){const building=data.buildings.find(b=>b.id===pl.ouluCathedral.building);if(building)building.height=pl.heights[building.id];}
     for(const t of roofIndex.tiles)for(const part of t.parts)if(pl.heights?.[part.id]&&!part.facade?.height)part.measuredHeight=pl.heights[part.id];}
    // The catalog lists every destination; only the requested region blocks startup.
    if(helsinki)data.landmarks.push({...HARBOUR_START});

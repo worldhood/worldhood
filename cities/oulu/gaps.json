@@ -24,7 +24,7 @@
   "No central street has yet passed the guide's photo-by-photo appearance review.",
   "Market Hall has a bespoke procedural model; exact ornament, proportions, unseen elevations and surrounding market buildings remain provisional. Toripolliisi reconstruction and collision are excluded pending artwork permission; see HANDOVER.md.",
   "Valkea shopping centre has no completed dedicated, reference-validated landmark treatment. Mapped shells, if present, remain provisional; validate the complex and entrances before modelling.",
-  "Cathedral tower stages, clock, spire, entrance columns and steps need bespoke modelling.",
+  "Cathedral now has a bespoke model: curved roofs/dome, staged tower, four clocks, square spire, ball/cross, columned entrance and terrain-supported stairs. Fine profiles, clock numerals, side/rear details and churchyard need validation. See CATHEDRAL-REVIEW.md.",
   "City Hall now has a municipal-height, twin-pavilion bespoke model, entrance stairs, lamps and benches. Fine relief, side/rear details and full garden reconstruction remain provisional.",
   "Theatre and Library Saari now use municipal LOD1 shells and photo-guided facade additions. Entrance glazing and colonnades have CC0 photo guidance; lettering, steps, current quay/garden and exact facade/interior details remain incomplete; railway station remains provisional.",
   "Most building heights remain estimates. Municipal tile 212221 now supplies the theatre/library LOD1 shell heights; these are legacy data, not current detailed roof measurements.",
@@ -60,5 +60,12 @@
   "renderedModel": false,
   "collisionObstacle": false,
   "nextStep": "Establish and document permission or an applicable legal basis for redistributing a 3D recreation, including intended reuse. See HANDOVER.md and market-sources.json."
+ },
+ "cathedralReview": {
+  "status": "implemented-approximation",
+  "report": "CATHEDRAL-REVIEW.md",
+  "sources": "cathedral-sources.json",
+  "exactMatch": false,
+  "localSignOff": "pending"
  }
 }

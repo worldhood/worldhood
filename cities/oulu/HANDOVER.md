@@ -10,7 +10,7 @@ generic OSM-derived buildings; their presence does not mean their appearance is 
 | Place | Current state | Next work |
 | --- | --- | --- |
 | **Valkea shopping centre** | No dedicated, reference-validated Valkea landmark treatment completed in this contribution. Any mapped shell is provisional. | Identify the complete building complex and entrances from permitted references; check footprint, heights, facade materials, glazing, signs and pedestrian connections. Record sources before modelling. |
-| **Oulu Cathedral** | Mapped shell; bespoke landmark reconstruction incomplete. | Model and validate tower stages, clock, spire, columns, entrance and steps. |
+| **Oulu Cathedral** | Custom curved roofs/dome, staged tower, four clocks, spire, columns and entrance stairs; reported 56.5 m tower height. | Validate fine clock numerals, proportions, roof profiles, side/rear details and churchyard; independent local review pending. See CATHEDRAL-REVIEW.md. |
 | **Railway station** | Provisional mapped building. | Validate roof, facade, entrance, platform-facing details and surroundings. |
 | **City Hall** | Custom facade, twin roof pavilions, stairs and garden furniture; municipal main-height reference; foundation contact fixed. | Check fine relief, roof profiles, side/rear elevations and the complete garden. Detailed proportions remain estimates. See CITY-HALL-REVIEW.md. |
 | **Market Hall and Kauppatori** | Custom hall and fifteen mapped square structures, representative seasonal stalls, paving and waterfront detail. | Validate exact ornament, dimensions, unseen elevations, sign placement, trees, furniture and the seasonal market layout. This is an approximation. See KAUPPATORI-SQUARE-REVIEW.md. |

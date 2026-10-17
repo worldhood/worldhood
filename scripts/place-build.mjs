@@ -21,6 +21,14 @@ export function buildPlace(cityId,place,{refresh=false,registry='public/cities/i
  const ref=JSON.parse(fs.readFileSync(path.join('cities',cityId,`${place}-reference.json`)));
  const reg=JSON.parse(fs.readFileSync(registry)),city=reg.cities.find(c=>c.id===cityId);if(!city)throw Error(`No built city "${cityId}"`);
  const root=path.join('public',city.dataRoot),data=JSON.parse(gunzipSync(fs.readFileSync(path.join(root,'city.pack'))));
+ if(ref.adapter==='oulu-cathedral'){
+  const mapped=data.buildings.find(b=>b.id===ref.building);if(!mapped)throw Error('Cathedral footprint missing');
+  const out={schemaVersion:1,city:cityId,place,name:ref.name,centre:ref.centreLocal,radius:ref.radiusMetres,replaceTrees:false,trees:[],paving:[],landmarks:[],heights:{[mapped.id]:56.5},hideBuildings:[mapped.id],source:ref.source,sourceUrl:ref.heightSource,ouluCathedral:{building:mapped.id,rings:mapped.rings,towerHeight:56.5}};
+  const errors=validatePlace(out);if(errors.length)throw Error(errors.join('; '));
+  fs.mkdirSync(path.join(root,'places'),{recursive:true});fs.writeFileSync(path.join(root,'places',`${place}.json`),JSON.stringify(out));
+  city.places=[...new Set([...(city.places||[]),place])];if(!city.attribution.includes(ref.source))city.attribution+=` ${ref.source}`;
+  fs.writeFileSync(registry,JSON.stringify(reg,null,1));return {cathedralBuildings:1,towerHeight:56.5};
+ }
  if(ref.adapter==='oulu-city-hall'){
   const model=JSON.parse(fs.readFileSync(path.join('cities',cityId,ref.modelFile)));
   const mapped=data.buildings.find(b=>b.id===model.building);if(!mapped)throw Error('City Hall footprint missing');

@@ -103,7 +103,7 @@
    "maintainers": [
     "zaw-ye-tun"
    ],
-   "attribution": "Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright). Building heights from OSM tags or estimated by building type. Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com). Appearance colours described from reference photographs by zaw-ye-tun, used with permission. Original photographs are not distributed as game assets. Oulu Market Square and Market Hall: OpenStreetMap contributors (ODbL); Estormiz CC0 photographs; original photographs by zaw-ye-tun used with permission. No photo textures distributed. Municipal shell geometry: City of Oulu, CC BY 4.0, tile 212221 (2017); converted, clipped to two buildings and recoloured by worldhood. Appearance: Estormiz CC0 photographs, 2026. Municipal height reference: City of Oulu, CC BY 4.0, tile 212221 (2017), component 226; extracted and converted by worldhood.",
+   "attribution": "Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright). Building heights from OSM tags or estimated by building type. Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com). Appearance colours described from reference photographs by zaw-ye-tun, used with permission. Original photographs are not distributed as game assets. Oulu Market Square and Market Hall: OpenStreetMap contributors (ODbL); Estormiz CC0 photographs; original photographs by zaw-ye-tun used with permission. No photo textures distributed. Municipal shell geometry: City of Oulu, CC BY 4.0, tile 212221 (2017); converted, clipped to two buildings and recoloured by worldhood. Appearance: Estormiz CC0 photographs, 2026. Municipal height reference: City of Oulu, CC BY 4.0, tile 212221 (2017), component 226; extracted and converted by worldhood. Oulu Cathedral: OpenStreetMap footprint (ODbL 1.0); 56.5 m tower-height reference from City of Oulu high-rise report (2014). Original geometry interpreted from Leonhard Lenz and Estormiz CC0 photographs; other dimensions and colours estimated.",
    "fetchedAt": "2026-10-14",
    "counts": {
     "official": {},
@@ -159,7 +159,8 @@
    "places": [
     "market",
     "waterfront",
-    "city-hall"
+    "city-hall",
+    "cathedral"
    ]
   }
  ]

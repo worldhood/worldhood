@@ -80,3 +80,7 @@ The [whole Kauppatori square pass](KAUPPATORI-SQUARE-REVIEW.md) replaces fifteen
 warehouse/kiosk/boat structures, adds a representative twelve-stall summer market and granite
 slab paving, and retains the Market Hall and stepped waterfront refinements.
 Its measured outlines, interpreted details and remaining gaps are recorded separately.
+
+[Oulu Cathedral visual pass](CATHEDRAL-REVIEW.md) replaces the generic shell with curved
+roofs/dome, staged clock tower and spire, white entrance columns and supported stairs.
+Fine details and the churchyard remain provisional; no local sign-off is claimed.

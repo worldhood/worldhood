@@ -5,6 +5,7 @@ import {createPhotoPanels} from './photo-panels.js';
 import {createOuluMarket} from './oulu-market.js';
 import {createMunicipalWaterfront} from './municipal-waterfront.js';
 import {createOuluCityHall} from './oulu-city-hall.js';
+import {createOuluCathedral} from './oulu-cathedral.js';
 
 // Draws a photo-matched place built by scripts/place-build.mjs (public/cities/<id>/places/<place>.json):
 // paving with the real materials and patterns, raised tram platforms with kerbs and warning strips,
@@ -190,6 +191,7 @@ export function createPlace(place,{textureUrl=f=>f}={}){
  if(place.ouluMarket){const market=createOuluMarket(place.ouluMarket);group.add(market.group);obstacles.push(...market.obstacles);}
  if(place.municipalModels)group.add(createMunicipalWaterfront(place.municipalModels));
  if(place.ouluCityHall){const hall=createOuluCityHall(place.ouluCityHall);group.add(hall.group);obstacles.push(...hall.obstacles);}
+ if(place.ouluCathedral){const cathedral=createOuluCathedral(place.ouluCathedral);group.add(cathedral.group);obstacles.push(...cathedral.obstacles);}
  const panels=createPhotoPanels(place.photoPanels||[],{ringOf:p=>p.ring,urlOf:p=>textureUrl(p.texture),loader:typeof document==='undefined'?null:new THREE.TextureLoader()});group.add(panels);
  group.userData={place:place.place,paving:place.paving?.length||0,platforms:place.platforms?.length||0,shelters:place.shelters?.length||0,masts:place.masts?.length||0,lamps:place.lamps?.length||0,landmarks:landmarks.group.userData,photoPanels:panels.userData.panels};
  return {group,obstacles};
