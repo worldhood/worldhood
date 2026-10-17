@@ -2,6 +2,9 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createPlaceLandmarks} from './place-landmarks.js';
 import {createPhotoPanels} from './photo-panels.js';
+import {createOuluMarket} from './oulu-market.js';
+import {createMunicipalWaterfront} from './municipal-waterfront.js';
+import {createOuluCityHall} from './oulu-city-hall.js';
 
 // Draws a photo-matched place built by scripts/place-build.mjs (public/cities/<id>/places/<place>.json):
 // paving with the real materials and patterns, raised tram platforms with kerbs and warning strips,
@@ -22,6 +25,20 @@ function canvasTexture(size,draw){
 const stoneFill=(g,palette,x,y,w,h,r,seed)=>{const k=hash(seed,x+y);g.fillStyle=palette[Math.floor(k*palette.length)];g.beginPath();if(g.roundRect)g.roundRect(x,y,w,h,r);else g.rect(x,y,w,h);g.fill();
  g.fillStyle=`rgba(255,255,255,${.05+.08*hash(x,y)})`;g.fillRect(x+w*.15,y+h*.12,w*.5,h*.25);};
 export const PAVING_LOOKS={
+ 'oulu-square-granite':{size:6,joint:'#7e776e',stones:['#a38e7e','#a99787','#b09d8c','#a08d7e'],draw(g,px,n){
+  g.fillStyle=this.joint;g.fillRect(0,0,n,n);const w=.6*px,h=.4*px;
+  for(let y=0;y<n;y+=h)for(let x=-w;x<n;x+=w){const offset=(Math.round(y/h)%2)*w/2;stoneFill(g,this.stones,x+offset+.5,y+.5,w-1,h-1,.4,x+y);}
+  // Narrow grey granite strips divide the rose slab fields in the permitted square photos.
+  for(const [x,y,w,h] of [[0,0,.24*px,n],[0,0,n,.24*px]]){g.fillStyle='#777b72';g.fillRect(x,y,w,h);g.strokeStyle='#a2a092';g.lineWidth=.6;for(let q=0;q<n;q+=.25*px){g.beginPath();if(w<h){g.moveTo(0,q);g.lineTo(w,q);}else{g.moveTo(q,0);g.lineTo(q,h);}g.stroke();}}
+ }},
+ 'market-pavers':{size:6,joint:'#77736d',stones:['#a29d92','#99968d','#ada89d'],draw(g,px,n){
+  g.fillStyle=this.joint;g.fillRect(0,0,n,n);const w=.2*px,h=.1*px;
+  for(let y=0;y<n;y+=h)for(let x=-w;x<n;x+=w){const offset=(Math.round(y/h)%2)*w/2;stoneFill(g,this.stones,x+offset+.4,y+.4,w-.8,h-.8,.2,x+y);}
+  g.fillStyle='#ac9188';g.fillRect(0,0,n,.2*px);
+ }},
+ 'rose-fans':{size:2.4,joint:'#6a6860',stones:['#ab9289','#a18880','#b09a90','#9b857e'],draw(g,px,n){
+  PAVING_LOOKS['fan-setts'].draw.call(this,g,px,n);
+ }},
  // Grey granite setts laid in fan-shaped arcs (the main square), 1.2 m fans.
  'fan-setts':{size:2.4,joint:'#4c4b48',stones:['#7b7a76','#86837d','#6f6e6b','#8d8780','#77736e','#918b85','#6a6a68'],draw(g,px,n){
   g.fillStyle=this.joint;g.fillRect(0,0,n,n);const fan=1.2*px,s=.1*px;
@@ -170,6 +187,9 @@ export function createPlace(place,{textureUrl=f=>f}={}){
  const lamps=G.mesh(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.4,emissive:'#fffbe8',emissiveIntensity:.25}),'Place lamp globes');if(lamps)group.add(lamps);
  const glassMesh=glass.mesh(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.1,transparent:true,opacity:.32,depthWrite:false,side:THREE.DoubleSide}),'Place glass');if(glassMesh){glassMesh.castShadow=false;glassMesh.renderOrder=4;group.add(glassMesh);}
  const landmarks=createPlaceLandmarks(place.landmarks||[],{heights:place.heights});group.add(landmarks.group);obstacles.push(...landmarks.obstacles);
+ if(place.ouluMarket){const market=createOuluMarket(place.ouluMarket);group.add(market.group);obstacles.push(...market.obstacles);}
+ if(place.municipalModels)group.add(createMunicipalWaterfront(place.municipalModels));
+ if(place.ouluCityHall){const hall=createOuluCityHall(place.ouluCityHall);group.add(hall.group);obstacles.push(...hall.obstacles);}
  const panels=createPhotoPanels(place.photoPanels||[],{ringOf:p=>p.ring,urlOf:p=>textureUrl(p.texture),loader:typeof document==='undefined'?null:new THREE.TextureLoader()});group.add(panels);
  group.userData={place:place.place,paving:place.paving?.length||0,platforms:place.platforms?.length||0,shelters:place.shelters?.length||0,masts:place.masts?.length||0,lamps:place.lamps?.length||0,landmarks:landmarks.group.userData,photoPanels:panels.userData.panels};
  return {group,obstacles};

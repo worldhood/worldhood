@@ -1,0 +1,175 @@
+{
+ "photos": [
+  {
+   "source": "commons",
+   "id": "162968278",
+   "file": "commons/162968278.jpg",
+   "title": "Oulu City Hall 20250330 01.jpg",
+   "category": "Aerial photographs of Oulu City Hall",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Hall_20250330_01.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-03-30",
+   "x": 152.8,
+   "z": -223.3,
+   "textures": false,
+   "use": "Observed appearance notes and draft game comparison; no image pixels used as runtime textures."
+  },
+  {
+   "file": "commons/Oulu_City_Hall_20110827.JPG",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Hall_20110827.JPG",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/9/96/Oulu_City_Hall_20110827.JPG/1920px-Oulu_City_Hall_20110827.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 27 August 2011",
+   "camera": [
+    25.469893,
+    65.015472
+   ],
+   "lens": [
+    {
+     "name": "Model",
+     "value": "Canon EOS 450D"
+    },
+    {
+     "name": "FocalLength",
+     "value": "55/1"
+    },
+    {
+     "name": "FocalPlaneXResolution",
+     "value": "4272000/878"
+    },
+    {
+     "name": "FocalPlaneYResolution",
+     "value": "2848000/584"
+    },
+    {
+     "name": "FocalPlaneResolutionUnit",
+     "value": 2
+    }
+   ],
+   "textures": false
+  },
+  {
+   "file": "commons/Oulu_City_Hall_20170521.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Hall_20170521.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/45/Oulu_City_Hall_20170521.jpg/1920px-Oulu_City_Hall_20170521.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 21 May 2017",
+   "camera": [
+    null,
+    null
+   ],
+   "lens": [
+    {
+     "name": "Model",
+     "value": "Canon EOS 6D"
+    },
+    {
+     "name": "FocalLength",
+     "value": "32/1"
+    }
+   ],
+   "textures": false
+  },
+  {
+   "file": "commons/Oulu_City_Hall_20250330_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Hall_20250330_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2b/Oulu_City_Hall_20250330_02.jpg/1920px-Oulu_City_Hall_20250330_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 30 March 2025",
+   "camera": [
+    25.473336,
+    65.013804
+   ],
+   "lens": [
+    {
+     "name": "Model",
+     "value": "FC7703"
+    },
+    {
+     "name": "FocalLength",
+     "value": "449/100"
+    },
+    {
+     "name": "FocalLengthIn35mmFilm",
+     "value": 24
+    }
+   ],
+   "textures": false
+  },
+  {
+   "file": "commons/Oulun_kaupungintalo_Oulu_2026-01-05_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulun_kaupungintalo_Oulu_2026-01-05_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/86/Oulun_kaupungintalo_Oulu_2026-01-05_01.jpg/1920px-Oulun_kaupungintalo_Oulu_2026-01-05_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Leonhard Lenz",
+   "licence": "CC0",
+   "captured": "2026-01-05 13:19:38",
+   "camera": [
+    25.471207,
+    65.014219
+   ],
+   "lens": [
+    {
+     "name": "Model",
+     "value": "DC-S1RM2"
+    },
+    {
+     "name": "FocalLength",
+     "value": "140/10"
+    },
+    {
+     "name": "FocalLengthIn35mmFilm",
+     "value": 14
+    }
+   ],
+   "textures": false
+  },
+  {
+   "file": "commons/Oulun_kaupungintalo_Oulu_at_night_2026-01-04_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulun_kaupungintalo_Oulu_at_night_2026-01-04_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/29/Oulun_kaupungintalo_Oulu_at_night_2026-01-04_01.jpg/1920px-Oulun_kaupungintalo_Oulu_at_night_2026-01-04_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Leonhard Lenz",
+   "licence": "CC0",
+   "captured": "2026-01-04 19:18:27",
+   "camera": [
+    25.473087,
+    65.013656
+   ],
+   "lens": [
+    {
+     "name": "Model",
+     "value": "DC-S1RM2"
+    },
+    {
+     "name": "FocalLength",
+     "value": "240/10"
+    },
+    {
+     "name": "FocalLengthIn35mmFilm",
+     "value": 24
+    }
+   ],
+   "textures": false
+  }
+ ],
+ "municipal": {
+  "building": "osm-relation-1303262",
+  "component": 226,
+  "tile": "212221",
+  "sourceUrl": "https://api.ouka.fi/3d/Mallit/212221.html",
+  "licence": "CC BY 4.0",
+  "attribution": "Municipal height reference: City of Oulu, CC BY 4.0, tile 212221 (2017), component 226; extracted and converted by worldhood.",
+  "sourceHeight": 16.4733,
+  "sourceBaseElevation": 6.4229,
+  "bboxResidual": 1.7586,
+  "detail": "Legacy LOD1 height and registration reference. OSM outlines and both inner courtyard rings retained. Detailed facade, roof, pavilions and finials are original photo-based estimates; source does not measure their current heights. Vertical datum unconfirmed."
+ },
+ "ownerPhoto": {
+  "file": "Oulu city hall.jpg",
+  "author": "zaw-ye-tun",
+  "permission": "Reference use authorised; original photo not distributed."
+ }
+}

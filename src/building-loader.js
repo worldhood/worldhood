@@ -5,7 +5,7 @@ let worker,id=0;const pending=new Map();
 export function createSourceShell(array,part,texture){
  const data=array.slice(part.start*5,(part.start+part.count)*5),buffer=new THREE.InterleavedBuffer(data,5),geometry=new THREE.BufferGeometry();
  geometry.setAttribute('position',new THREE.InterleavedBufferAttribute(buffer,3,0));geometry.setAttribute('uv',new THREE.InterleavedBufferAttribute(buffer,2,3));geometry.computeVertexNormals();geometry.computeBoundingSphere();
- const material=new THREE.MeshStandardMaterial({map:texture,color:texture?'#ffffff':'#aca79a',roughness:.8,side:THREE.DoubleSide,forceSinglePass:true});
+ const material=new THREE.MeshStandardMaterial({map:texture,color:texture?'#ffffff':part.facade?.wall||'#aca79a',roughness:.8,side:THREE.DoubleSide,forceSinglePass:true});
  const mesh=new THREE.Mesh(geometry,material);mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData={shell:true,source:true,id:part.id,occlusion:{opacity:1,clearTime:1},box:new THREE.Box3(new THREE.Vector3(part.bbox[0]-.5,0,part.bbox[1]-.5),new THREE.Vector3(part.bbox[2]+.5,part.height+.5,part.bbox[3]+.5))};return mesh;
 }
 // `images` maps an atlas file to either its encoded bytes (ArrayBuffer, decoded in the worker) or

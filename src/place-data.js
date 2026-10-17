@@ -5,7 +5,7 @@
 // which is written from current photos. No network, no THREE: the tests load this directly.
 
 // Paving looks the renderer knows (src/place-scene.js draws each as a procedural texture).
-export const PAVINGS=['fan-setts','setts','cobbles','red-granite','tram-blocks','grey-blocks','grey-pavers','stone-dust'];
+export const PAVINGS=['fan-setts','setts','cobbles','red-granite','tram-blocks','grey-blocks','grey-pavers','stone-dust','market-pavers','rose-fans','oulu-square-granite'];
 export const LANDMARKS=['old-church','bell-tower','city-hall','theatre'];
 
 const centroid=ring=>{let x=0,z=0;const n=ring.length-(ring[0]+''===ring.at(-1)+''?1:0);for(let i=0;i<n;i++){x+=ring[i][0];z+=ring[i][1];}return [x/n,z/n];};
@@ -109,6 +109,7 @@ export function validatePlace(p){
  if(p.schemaVersion!==1)e.push('schemaVersion must be 1');
  if(!Array.isArray(p.centre)||p.centre.length!==2)e.push('centre: [x, z]');
  for(const [i,s] of (p.paving||[]).entries()){if(!PAVINGS.includes(s.kind))e.push(`paving[${i}].kind: one of ${PAVINGS.join(', ')}`);if(!Array.isArray(s.rings)||!s.rings[0]?.length)e.push(`paving[${i}].rings`);}
+ for(const [i,s] of (p.paving||[]).entries())if(s.rings?.some(r=>!Array.isArray(r)||r.some(p=>!Array.isArray(p)||p.length!==2||!p.every(Number.isFinite))))e.push(`paving[${i}]: finite coordinate pairs required`);
  for(const [i,l] of (p.landmarks||[]).entries())if(!LANDMARKS.includes(l.type))e.push(`landmarks[${i}].type: one of ${LANDMARKS.join(', ')}`);
  for(const [i,t] of (p.trees||[]).entries())if(!Number.isFinite(t.height)||t.height<=0||!Array.isArray(t.p))e.push(`trees[${i}]: needs p and height`);
  for(const k of ['platforms','shelters','poles','lamps'])if(p[k]!=null&&!Array.isArray(p[k]))e.push(`${k} must be a list`);

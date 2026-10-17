@@ -1,0 +1,46 @@
+{
+ "referenceOnly": false,
+ "name": "Oulu City Hall and Kirkkokatu",
+ "photoSearch": {
+  "centre": [
+   25.471926,
+   65.013996
+  ],
+  "radiusMetres": 180,
+  "since": "2021-01-01",
+  "commons": [
+   "Oulu City Hall"
+  ]
+ },
+ "views": [
+  {
+   "photo": "commons/162968278.jpg",
+   "x": 152.8,
+   "z": -223.3,
+   "heading": -72.4,
+   "eye": 28.5,
+   "pitch": -13,
+   "note": "Estormiz CC0, 2025-03-30. City Hall model comparison: source geotag, elevated eye height and FOV interpreted, not surveyed. No source photograph pixels in the model.",
+   "fov": 40
+  },
+  {
+   "photo": "../own/Oulu city hall.jpg",
+   "x": 162.02,
+   "z": -202.43,
+   "eye": -0.21,
+   "heading": -61.7,
+   "pitch": 5,
+   "note": "Owner photograph, reference use authorised. Original twin-pavilion model; camera and window-view framing approximate."
+  }
+ ],
+ "adapter": "oulu-city-hall",
+ "modelFile": "city-hall-model.json",
+ "centreLocal": [
+  82.665,
+  -245.146
+ ],
+ "radiusMetres": 105,
+ "model": {
+  "wall": "#c69a60"
+ }
+}

@@ -25,7 +25,7 @@ export function footprintFrame(ring,facing=null){
  return {matrix,width:a1-a0,depth:f1-f0,local:pts.map(([a,f])=>[a-ac,f-fc]),axis:ax,normal:n,origin:[ox,oz]};
 }
 
-class Kit{
+export class Kit{
  constructor(){this.solid=[];this.glass=[];}
  put(list,g,hex){g=g.index?g.toNonIndexed():g;for(const k of Object.keys(g.attributes))if(k!=='position'&&k!=='normal')g.deleteAttribute(k);if(!g.attributes.normal)g.computeVertexNormals();
   const c=C(hex),a=new Float32Array(g.attributes.position.count*3);for(let i=0;i<a.length;i+=3)a.set([c.r,c.g,c.b],i);g.setAttribute('color',new THREE.BufferAttribute(a,3));list.push(g);return g;}

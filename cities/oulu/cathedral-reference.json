@@ -1,0 +1,26 @@
+{
+ "referenceOnly": true,
+ "name": "Oulu Cathedral and Kirkkokatu",
+ "photoSearch": {
+  "centre": [
+   25.475714,
+   65.01464
+  ],
+  "radiusMetres": 200,
+  "since": "2021-01-01",
+  "commons": [
+   "Oulu Cathedral"
+  ]
+ },
+ "views": [
+  {
+   "photo": "commons/199558409.jpg",
+   "x": 211.9,
+   "z": -355.3,
+   "heading": 128,
+   "pitch": 20,
+   "note": "Draft comparison. Leonhard Lenz, CC0, 2026-01-05. Camera uses the photo geotag; heading is estimated toward the mapped building, not surveyed. Eye position is adjusted to the game terrain; height above ground is estimated.",
+   "eye": 1.94
+  }
+ ]
+}

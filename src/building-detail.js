@@ -102,7 +102,7 @@ export function createModelledBuilding(array,part,pixels,texture=null,includeHer
   if(isSugarCubeFront(part.ratu,f))continue;
   if(isForumFront(part.ratu,f))continue;
   if(corridor){f.windows=[];f.color=hexRGB(front?.wall||corridor.wall);}
-  else if(described){f.windows=[];f.color=hexRGB(described.wall);}
+  else if(described){f.windows=described.appearanceOnly?provisionalWindows(f):[];provisional||=!!described.appearanceOnly&&f.windows.length>0;f.color=hexRGB(described.wall);}
   else if(clean)f.windows=[];
   else if(!pixels&&!f.windows.length&&![23,1707,324].includes(part.ratu)){
    f.windows=provisionalWindows(f);if(f.windows.length){provisional=true;f.color=[.73,.72,.67];}
@@ -149,7 +149,7 @@ export function createModelledBuilding(array,part,pixels,texture=null,includeHer
  }
  if(part.ratu===23)for(const f of analysis.faces)for(const m of createPalaceWingDetails(f)){mesh(m.geometry,m.material);meshes.at(-1).userData.shell=true;}
  if(corridor){const r=createCorridorFacade(part,analysis.faces,corridor);for(const m of r.meshes){mesh(m.geometry,m.material);meshes.at(-1).userData.shell=true;meshes.at(-1).userData.corridor=true;}windows+=r.windows;}
- if(described){const r=createFacade(analysis.faces,described),m=facadeMaterials();for(const k of ['glass','relief'])if(r[k]){mesh(r[k],m[k]);meshes.at(-1).userData.provisional=true;meshes.at(-1).userData.role='facade-detail';}else m[k].dispose();windows+=r.windows;}
+ if(described&&!described.appearanceOnly){const r=createFacade(analysis.faces,described),m=facadeMaterials();for(const k of ['glass','relief'])if(r[k]){mesh(r[k],m[k]);meshes.at(-1).userData.provisional=true;meshes.at(-1).userData.role='facade-detail';}else m[k].dispose();windows+=r.windows;}
  for(const [geometries,material] of [[trim,new THREE.MeshStandardMaterial({color:part.ratu===324?'#927e60':'#d6d1c4',roughness:.7})],[glazing,new THREE.MeshStandardMaterial({color:'#263e4d',roughness:.19,metalness:.55})],[ridges,new THREE.MeshStandardMaterial({color:'#606869',roughness:.48,metalness:.5})]])if(geometries.length){mesh(mergeGeometries(geometries),material);geometries.forEach(g=>g.dispose());}else material.dispose();
  // Keep the inexpensive interim window batches at follow-camera distance;
  // otherwise a building becomes a blank block again beyond the detail radius.

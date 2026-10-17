@@ -1,0 +1,172 @@
+{
+ "schemaVersion": 1,
+ "id": "oulu",
+ "name": "Oulu",
+ "country": "Suomi / Finland",
+ "origin": [
+  25.4702,
+  65.01179
+ ],
+ "radiusMetres": 1500,
+ "terrainZoom": 14,
+ "maintainers": [
+  "zaw-ye-tun"
+ ],
+ "status": "draft",
+ "note": "Origin and radius define the playable circle. Starts are chosen automatically from well-known named places; add your own in \"starts\".",
+ "starts": [
+  {
+   "name": "Kauppahalli",
+   "at": [
+    25.464199,
+    65.013077
+   ]
+  },
+  {
+   "name": "Oulun tuomiokirkko",
+   "at": [
+    25.475714,
+    65.01464
+   ]
+  },
+  {
+   "name": "Oulun kaupungintalo",
+   "at": [
+    25.471926,
+    65.013996
+   ]
+  },
+  {
+   "name": "Oulun teatteri",
+   "at": [
+    25.46238,
+    65.014593
+   ]
+  },
+  {
+   "name": "Oulun keskustakirjasto Saari",
+   "at": [
+    25.463463,
+    65.015417
+   ]
+  },
+  {
+   "name": "Oulun rautatieasema",
+   "at": [
+    25.483958,
+    65.011413
+   ]
+  }
+ ],
+ "source": {
+  "geocoder": "Nominatim / OpenStreetMap",
+  "displayName": "Oulu, Oulun seutukunta, Pohjois-Pohjanmaa, Manner-Suomi, Suomi / Finland"
+ },
+ "knownFor": [
+  {
+   "name": "Kauppahalli",
+   "near": "Kauppahalli",
+   "at": [
+    [
+     25.464199,
+     65.013077
+    ]
+   ],
+   "mustHave": true,
+   "source": "https://www.openstreetmap.org/way/28979742",
+   "description": "Match the real landmark from permitted reference photography; the OSM footprint is only a starting point."
+  },
+  {
+   "name": "Oulun tuomiokirkko",
+   "near": "Oulun tuomiokirkko",
+   "at": [
+    [
+     25.475714,
+     65.01464
+    ]
+   ],
+   "mustHave": true,
+   "source": "https://www.openstreetmap.org/way/28849152",
+   "description": "Match the real landmark from permitted reference photography; the OSM footprint is only a starting point."
+  },
+  {
+   "name": "Oulun kaupungintalo",
+   "near": "Oulun kaupungintalo",
+   "at": [
+    [
+     25.471926,
+     65.013996
+    ]
+   ],
+   "mustHave": true,
+   "source": "https://www.openstreetmap.org/relation/1303262",
+   "description": "Match the real landmark from permitted reference photography; the OSM footprint is only a starting point."
+  },
+  {
+   "name": "Oulun teatteri",
+   "near": "Oulun teatteri",
+   "at": [
+    [
+     25.46238,
+     65.014593
+    ]
+   ],
+   "mustHave": true,
+   "source": "https://www.openstreetmap.org/way/5122974",
+   "description": "Match the real landmark from permitted reference photography; the OSM footprint is only a starting point."
+  },
+  {
+   "name": "Oulun keskustakirjasto Saari",
+   "near": "Oulun keskustakirjasto Saari",
+   "at": [
+    [
+     25.463463,
+     65.015417
+    ]
+   ],
+   "mustHave": true,
+   "source": "https://www.openstreetmap.org/way/5122973",
+   "description": "Match the real landmark from permitted reference photography; the OSM footprint is only a starting point."
+  },
+  {
+   "name": "Oulun rautatieasema",
+   "near": "Oulun rautatieasema",
+   "at": [
+    [
+     25.483958,
+     65.011413
+    ]
+   ],
+   "mustHave": true,
+   "source": "https://www.openstreetmap.org/way/38295259",
+   "description": "Match the real landmark from permitted reference photography; the OSM footprint is only a starting point."
+  }
+ ],
+ "limitations": [
+  "Draft OSM city; heights may be estimated.",
+  "Street geometry, fleet-wide bus appearance, landmark details and furniture still need photo validation; two facade colours and a pink bus livery have owner-photo evidence.",
+  "Requires local sign-off before publication."
+ ],
+ "liveries": {
+  "bus": {
+   "paint": "#c43d8d",
+   "white": "#edeae6",
+   "motif": "none",
+   "headlights": "round-triple",
+   "windscreen": "single",
+   "operatorLabel": "Oulun seudun liikenne",
+   "badgeText": "BYD"
+  },
+  "note": "Pink body and dark glazing observed in the owner photo Oulu new bus color.jpg (EXIF capture 2026-02-22). Colours are approximate in winter lighting. Generic bus geometry remains; no BYD or OSL logo reproduced.",
+  "evidence": {
+   "photos": [
+    {
+     "id": "own_91444c5d9f11",
+     "captured": "2026-02-22"
+    }
+   ],
+   "source": "own-photo-sources.json",
+   "author": "zaw-ye-tun"
+  }
+ }
+}

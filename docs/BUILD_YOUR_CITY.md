@@ -179,6 +179,10 @@ can also run on its own after any rebuild:
 Check: drive the steepest street you know, look at the main bridge from the water, and see that lakes
 sit at their own levels. Put `"terrain": false` in `cities/<id>/city.json` to keep a city flat.
 
+If Mapterhorn returns 404 at the default zoom 15, check whether lower-resolution tiles exist
+and set `"terrainZoom": 14` (or another available zoom) in `city.json`. The output grid stays
+3 m, but the source resolution depends on the selected zoom. Oulu uses zoom 14.
+
 ### Street furniture from Mapillary detections
 
 Lamp posts, traffic lights, road signs, bins, junction boxes, benches and roadworks barriers can be
@@ -262,6 +266,8 @@ shapes; everything you see comes from photos taken after the place last changed.
    It saves current Commons, Mapillary and Panoramax photos (plus any of your own you drop in the
    folder) to the git-ignored `data/raw/photos/<id>/<place>/` with `catalog.json`. List what you used,
    with author, licence, date and use, in `<place>-sources.json`.
+   A photo acquisition plan can set `"referenceOnly": true` while observations and the place
+   model are pending; `city:build` skips that file. Remove the flag once the model is ready.
 2. **Describe:** look at every photo and write the place in your own words in the reference file:
    paving per street-part rule (the city's street-part polygons give the areas), tram stop, lamps,
    furniture, landmark dimensions and colours. `npm run place:build -- <id> <place>` joins it with the

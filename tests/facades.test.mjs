@@ -89,6 +89,20 @@ test('missing data keeps the provisional look; glass and ribbon styles render',(
  assert.equal(createFacade([],normaliseFacade({wall:'#ffffff'},10)).glass,null);
 });
 
+test('colour-only reference observations preserve provisional bays and mapped heights',()=>{
+ const data={schemaVersion:1,attribution:'Owner photos, used with permission.',buildings:{'osm-way-1':{appearanceOnly:true,wall:'#c69a60',material:'render',evidence:{photos:[{id:'own_1',captured:'2025-04-06'}],confidence:.75}}}};
+ assert.deepEqual(validateFacades(data),[]);
+ const p=part();attachFacades({tiles:[{parts:[p]}]},data);
+ const a=extrude(RING,16),before=Array.from(a);applyFacadeHeights(a,[p]);assert.deepEqual(Array.from(a),before);
+ const result=createModelledBuilding(a,p,null,null),plain=createModelledBuilding(extrude(RING,16),part(),null,null);
+ assert.equal(result.windows,plain.windows);
+ assert.ok(result.meshes.some(m=>m.userData.provisional));
+ assert.ok(!result.meshes.some(m=>m.userData.role==='facade-detail'));
+ const colour=result.meshes.find(m=>m.userData.role==='facade').geometry.attributes.color,expected=new THREE.Color('#c69a60');
+ assert.ok(Math.abs(colour.getX(0)-expected.r)<1e-6);
+ data.buildings['osm-way-1'].height=30;assert.ok(validateFacades(data).some(e=>e.includes('appearanceOnly')));
+});
+
 test('photo matching: street line, views, buildings shown and spacing',()=>{
  const road=(x0,x1)=>({rings:[[[x0,-5],[x1,-5],[x1,5],[x0,5],[x0,-5]]]});
  const line=streetLine([road(0,50),road(100,150),road(50,100)]);

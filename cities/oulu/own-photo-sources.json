@@ -1,0 +1,638 @@
+{
+ "schemaVersion": 1,
+ "author": "zaw-ye-tun",
+ "referenceRoot": "data/raw/photos/oulu/own",
+ "permission": "Project-reference use authorised by the photographer; no raw-photo redistribution licence granted.",
+ "photos": [
+  {
+   "id": "own_a770ad6e7f9c",
+   "file": "Ainoland park kid playground.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-06-19",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    3072,
+    4080
+   ],
+   "cameraWgs84": [
+    25.479230555555553,
+    65.01869166666667
+   ],
+   "sha256": "70fd2da6da05d8da382c1d027449b1a2e952521c1f98e3e2db3c85bdd7cd9b4d",
+   "distanceFromOriginMetres": 879,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_01b5aaa8b77c",
+   "file": "Ideapark oulu 2.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-04-29",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    2268,
+    4032
+   ],
+   "cameraWgs84": [
+    25.446408333333334,
+    65.07710555555555
+   ],
+   "sha256": "0eb40600d4d173625cdcb54774e33334e2286c2b0b1b9a1d32b3383d46375f47",
+   "distanceFromOriginMetres": 7368,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_7d2e8ab1322c",
+   "file": "Ideapark oulu.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-04-04",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.44851388888889,
+    65.07811388888888
+   ],
+   "sha256": "bbf1a2f7adf601662e2fa4c84b589b6754cfb3e7ba659d2e43d64ed5f5fc700f",
+   "distanceFromOriginMetres": 7465,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_3772e8923a08",
+   "file": "Isokatu infront of veripalvelu Oulu.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-10-22",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.470177777777778,
+    65.01022777777777
+   ],
+   "sha256": "ce9a0df6cfdefb2b2fd5622768ca12396d3fe588879c0510fd3bcb6897e7b2e3",
+   "distanceFromOriginMetres": 174,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "inspected and used for first colour pass"
+  },
+  {
+   "id": "own_22384e453d80",
+   "file": "Junction of Kaitoväylä and yliopistokatu.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2024-11-23",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    8160,
+    4590
+   ],
+   "cameraWgs84": [
+    25.469991666666665,
+    65.06267222222222
+   ],
+   "sha256": "63a5d9c453597c4647db95d93614d7a6a5211b16ecf9d942b1d763deffac8278",
+   "distanceFromOriginMetres": 5673,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_675802938c82",
+   "file": "Kaitoväylä at north of OAMK.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-10-04",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.469908333333333,
+    65.06280277777778
+   ],
+   "sha256": "30cc585c8cbc764f5cebc04e29de48463ddd77ba47da3292b82426bb84211275",
+   "distanceFromOriginMetres": 5688,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_df3c38fd4393",
+   "file": "Kimmontie 4.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-10-14",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    3072,
+    4080
+   ],
+   "cameraWgs84": [
+    25.482869444444443,
+    65.06169722222222
+   ],
+   "sha256": "0af1fb74215a19ffad595bd0c6f4338550f3e67d770ec1868c7291520c29f3ae",
+   "distanceFromOriginMetres": 5596,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_40fb4fa435d6",
+   "file": "Kimmontie.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-05-02",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.482466666666664,
+    65.06246388888889
+   ],
+   "sha256": "05c35309a6edce1cf4fe848e731cda661a85fb092feab20500cf7a456c4e64d4",
+   "distanceFromOriginMetres": 5679,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_f46d227d6041",
+   "file": "Linanmaa prisma car parking sign.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-06-29",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    3072,
+    4080
+   ],
+   "cameraWgs84": [
+    25.458794444444443,
+    65.05424444444444
+   ],
+   "sha256": "f6bd136dc79c8441bb0423227b9f7fde32cf7710fdac78dce1cae3b2d34207d7",
+   "distanceFromOriginMetres": 4764,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_75bfb3fa4220",
+   "file": "Oulu city hall.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-04-06",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    8160,
+    4590
+   ],
+   "cameraWgs84": [
+    25.47363611111111,
+    65.01360555555556
+   ],
+   "sha256": "72813e75447ef341619e5bfa113a6017a3a5fb9bc22ae89c6b81054474a46ad8",
+   "distanceFromOriginMetres": 259,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "inspected and used for first colour pass"
+  },
+  {
+   "id": "own_91444c5d9f11",
+   "file": "Oulu new bus color.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-02-22",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.47858611111111,
+    65.06280833333334
+   ],
+   "sha256": "f4287a0692832c79f71297476eb4008fe8de4a259d93dc496b4a572f2d349f6c",
+   "distanceFromOriginMetres": 5702,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "inspected and used for first colour pass"
+  },
+  {
+   "id": "own_41645f59d53e",
+   "file": "Oulu police statue.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-06-24",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    2268,
+    4032
+   ],
+   "cameraWgs84": [
+    25.464772222222223,
+    65.01325555555556
+   ],
+   "sha256": "374d54f74aaf2dfefde9362a4a96332607f9bab1d8399c32a4959159dafc7f01",
+   "distanceFromOriginMetres": 304,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_b18b5ece04f8",
+   "file": "Oulu sign at Ainoland park.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-04-19",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.47754722222222,
+    65.01943055555556
+   ],
+   "sha256": "b1c2b034823babdc292134fc280330f0759e6eac04c3732d4e43c55257fc16cc",
+   "distanceFromOriginMetres": 920,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_be76b19a27b1",
+   "file": "Oulu sign at ainoland park (2).jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-04-21",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.47728611111111,
+    65.01868888888889
+   ],
+   "sha256": "61de115ca73842095f2d03cecebb6ad10e8c03fd241aef66bb85202553ef6490",
+   "distanceFromOriginMetres": 839,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_788b341a7534",
+   "file": "Rautatienkatu.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-07-04",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    3072,
+    4080
+   ],
+   "cameraWgs84": [
+    25.468305555555553,
+    65.0005861111111
+   ],
+   "sha256": "b0d8f31dad57e2a70d5efe9ef31cb5544612c422c86b39d1bbbd17ba80deee30",
+   "distanceFromOriginMetres": 1252,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_f0719bb7118c",
+   "file": "TE tomisto.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-04-15",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.469441666666665,
+    65.00806944444444
+   ],
+   "sha256": "60481d546d32ceb0d956a679287ca7a52a382d6e6d311947ded7e4b6db85cce7",
+   "distanceFromOriginMetres": 416,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_038116d9ffd3",
+   "file": "Tuira valtatie  .jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-03-30",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    2268,
+    4032
+   ],
+   "cameraWgs84": [
+    25.468130555555554,
+    65.02638333333333
+   ],
+   "sha256": "7b3d1144a1102e43f7c4c2f58f278b32b75df0c85e9298b9d1ddca27b0150a11",
+   "distanceFromOriginMetres": 1630,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_991145157208",
+   "file": "Ukkometso.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-04-29",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.54386666666667,
+    64.94669722222223
+   ],
+   "sha256": "d81a070bea0dbc974054524f1b0124751172bd629e4e76b379bfb4b9420c1a3d",
+   "distanceFromOriginMetres": 8048,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_410e2575143f",
+   "file": "University of Oulu from parking lot.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-01-09",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    3072,
+    4080
+   ],
+   "cameraWgs84": [
+    25.470724999999998,
+    65.05888888888889
+   ],
+   "sha256": "0a97a0d56ae02fce99ee16f55621109fd7c6bdcee6b5b9258e00f910007d5080",
+   "distanceFromOriginMetres": 5251,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_975a6272abb2",
+   "file": "VR train view.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2024-10-30",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    8160,
+    4590
+   ],
+   "cameraWgs84": [
+    25.46833333333333,
+    65.01028055555555
+   ],
+   "sha256": "a71138b62a90a0fcb00b2106140a690726e6b7e5bfd8812eb7303ed8dad69b98",
+   "distanceFromOriginMetres": 190,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_d064e37ce9b1",
+   "file": "View of Kaakkurinkulma from McDonald.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-06-12",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.520422222222223,
+    64.96163611111112
+   ],
+   "sha256": "acb0e6653afcbcf7b6adc78fc50c4fd8a985d87f83abdc71d01157805516db6b",
+   "distanceFromOriginMetres": 6073,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_3a553d4f1125",
+   "file": "View of Pikisaarensilta from inside of Keskustakirjasto.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2026-07-08",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4080,
+    3072
+   ],
+   "cameraWgs84": [
+    25.463313888888887,
+    65.01563888888889
+   ],
+   "sha256": "3e0f9e47d88aa7225b2619d6e0ac2621ba2d5996c6f1ac73622974adc2b39d20",
+   "distanceFromOriginMetres": 538,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_d9965f9868f1",
+   "file": "infront of OAMK.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-08-05",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    2268,
+    4032
+   ],
+   "cameraWgs84": [
+    25.467463888888886,
+    65.06084166666666
+   ],
+   "sha256": "b7fedb25e34ffd6d76e23f954e0f7c7bb7497b2a4d5ea0cc37fbca6440c3550d",
+   "distanceFromOriginMetres": 5470,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_35cc1f172446",
+   "file": "merikoskenkatu, tuira small markets.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-01-03",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.469941666666664,
+    65.02488888888888
+   ],
+   "sha256": "ef618b0b68906536d63d45a9aa54aa5dc13349fc5f8e2a27dc038fd13ee09572",
+   "distanceFromOriginMetres": 1460,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_bdb42fe9f6fe",
+   "file": "road condition.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2024-11-06",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    1151,
+    2048
+   ],
+   "cameraWgs84": [
+    25.489616666666667,
+    65.00506666666666
+   ],
+   "sha256": "986a8689e6a1e2b6698715b099f718af672c2e4a63cf1c1d1c228d60c798184b",
+   "distanceFromOriginMetres": 1183,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_22c1b2c04d80",
+   "file": "tall building at puistokatu and uusikatu junctions.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2024-10-29",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4590,
+    8160
+   ],
+   "cameraWgs84": [
+    25.461930555555554,
+    65.00384166666667
+   ],
+   "sha256": "f68188184c4ec63b99cfadb980a2e37b919f3d4d83e020d9d9b249d1b3b6a254",
+   "distanceFromOriginMetres": 968,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_d6ea4c636692",
+   "file": "view from hesburger kynsilehto.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-05-14",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    2268,
+    4032
+   ],
+   "cameraWgs84": [
+    25.53546111111111,
+    65.02759999999999
+   ],
+   "sha256": "f626364f4df27574eecdba92ce09770d300306080db74b75005d32722e2e98be",
+   "distanceFromOriginMetres": 3546,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_9a419db4b831",
+   "file": "view of OAMK from Kyykkästadion.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-07-27",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    2268,
+    4032
+   ],
+   "cameraWgs84": [
+    25.466466666666665,
+    65.06151388888888
+   ],
+   "sha256": "98a7076c8302446826a4c52128eec1ac94c2b00753e2a85ab5627213b049e991",
+   "distanceFromOriginMetres": 5547,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_6c8c4592966c",
+   "file": "view of puolivälinkankaan vesitorni from pohjantie.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2025-05-29",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4032,
+    2268
+   ],
+   "cameraWgs84": [
+    25.494822222222222,
+    65.0322
+   ],
+   "sha256": "841b698d89383f50a003854c40f6983cd2084b9f79a26ef42cbce62fd0242379",
+   "distanceFromOriginMetres": 2554,
+   "cameraInsidePlayableCircle": false,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  },
+  {
+   "id": "own_cf19f0131853",
+   "file": "view to city center from limingantie and kempeleentie junction.jpg",
+   "author": "zaw-ye-tun",
+   "source": "user-owned photograph",
+   "permission": "User confirmed authorship and permitted project-reference use in this conversation. No open licence or raw-photo redistribution permission inferred.",
+   "captured": "2024-10-29",
+   "dateSource": "EXIF DateTimeOriginal",
+   "dimensions": [
+    4590,
+    8160
+   ],
+   "cameraWgs84": [
+    25.463908333333332,
+    65.00033888888889
+   ],
+   "sha256": "a741fc0603786089c2be99b90d0fe3488c31d6a6ce79dda8f5053dd448810e6b",
+   "distanceFromOriginMetres": 1311,
+   "cameraInsidePlayableCircle": true,
+   "observationStatus": "catalogued; not yet visually surveyed"
+  }
+ ]
+}

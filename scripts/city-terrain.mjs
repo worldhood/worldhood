@@ -13,7 +13,7 @@ import {pathToFileURL} from 'node:url';
 import proj4 from 'proj4';
 import {encodeTerrain} from '../src/terrain.js';
 
-const ZOOM=15,TILE=512,CELL=3;
+const TILE=512,CELL=3;
 export const TERRAIN_SOURCES={
  fi:'Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com).',
  default:'Elevation: Mapterhorn terrain tiles (mapterhorn.com); see mapterhorn.com/attribution for the sources and licences of your area.'
@@ -41,7 +41,12 @@ async function decodeWebp(files){
  if(!todo.length)return out;
  let sips=false;try{execFileSync('sips',['--help'],{stdio:'ignore'});sips=true;}catch{}
  if(sips){for(const f of todo){const png=f.replace(/\.webp$/,'.png');execFileSync('sips',['-s','format','png',f,'--out',png],{stdio:'ignore'});out.set(f,readPng(fs.readFileSync(png)));}return out;}
- const {chromium}=await import('@playwright/test');const browser=await chromium.launch();const page=await browser.newPage();
+ const {chromium}=await import('@playwright/test');
+ const browser=await chromium.launch(process.env.PW_CHANNEL?{channel:process.env.PW_CHANNEL}:{}).catch(error=>{
+  if(process.env.PW_CHANNEL||!String(error.message).includes("Executable doesn't exist"))throw error;
+  return chromium.launch({channel:'chrome'});
+ });
+ const page=await browser.newPage();
  try{for(const f of todo){const b64=fs.readFileSync(f).toString('base64');
   const rgba=await page.evaluate(async s=>{const blob=await (await fetch(`data:image/webp;base64,${s}`)).blob(),bmp=await createImageBitmap(blob,{colorSpaceConversion:'none',premultiplyAlpha:'none'});
    const c=new OffscreenCanvas(bmp.width,bmp.height),x=c.getContext('2d');x.drawImage(bmp,0,0);return Array.from(x.getImageData(0,0,bmp.width,bmp.height).data);},b64);
@@ -264,6 +269,8 @@ function rasterise(polys,size,cell,extent){
 
 export async function buildTerrain(id,{refresh=false}={}){
  const def=JSON.parse(fs.readFileSync(path.join('cities',id,'city.json'))),OUT=path.join('public/cities',id),RAW=path.join('data/raw/cities',id,'terrain');
+ const ZOOM=def.terrainZoom??15;
+ if(!Number.isInteger(ZOOM)||ZOOM<0||ZOOM>17)throw Error('terrainZoom must be an integer from 0 to 17');
  const [lon0,lat0]=def.origin,EXTENT=Math.round(def.radiusMetres*1.25),size=Math.round(2*EXTENT/CELL)+1;
  const projection=`+proj=tmerc +lat_0=${lat0} +lon_0=${lon0} +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`,toWgs=proj4(projection,'EPSG:4326'),toLocal=proj4('EPSG:4326',projection);
  const n=2**ZOOM,px=lon=>(lon+180)/360*n*TILE,py=lat=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n*TILE;};

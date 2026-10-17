@@ -40,13 +40,23 @@ function overpass(name,body){
   const endpoint=ENDPOINTS[attempt%ENDPOINTS.length];
   try{const text=execFileSync('curl',['-sS','-f','--max-time','300','-A','worldhood/0.1 (city build)','--data-urlencode',`data=${q}`,endpoint],{encoding:'utf8',maxBuffer:1<<30});
    const json=JSON.parse(text);fs.writeFileSync(file,text);console.log(`  ${name}: ${json.elements.length} elements`);return json;}
-  catch(error){console.log(`  ${name}: retry ${attempt+1} (${String(error.message).slice(0,80)})`);execFileSync('sleep',[String(10+attempt*10)]);}
+  catch(error){console.log(`  ${name}: retry ${attempt+1} (${String(error.message).slice(0,80)})`);Atomics.wait(new Int32Array(new SharedArrayBuffer(4)),0,0,(10+attempt*10)*1000);}
  }
  throw Error(`Overpass failed for ${name}`);
 }
 const around=`(around:${Math.round(EXTENT*1.42)},${lat0},${lon0})`;
 console.log(`Fetching OpenStreetMap around ${def.name}…`);
-const areas=overpass('areas',`(way["building"]${around};relation["building"]["type"="multipolygon"]${around};way["natural"="water"]${around};relation["natural"="water"]${around};way["waterway"="riverbank"]${around};way["leisure"~"^(park|garden|playground|pitch)$"]${around};relation["leisure"="park"]${around};way["landuse"~"^(grass|forest|recreation_ground|meadow|cemetery|village_green)$"]${around};way["natural"~"^(wood|scrub|grassland)$"]${around};way["area:highway"]${around};way["highway"="pedestrian"]["area"="yes"]${around};);out geom tags;`);
+const areas=overpass('areas',`(way["building"]${around};relation["building"]["type"="multipolygon"]${around};way["natural"="water"]${around};relation["natural"="water"]${around};way["waterway"="riverbank"]${around};way["leisure"~"^(park|garden|playground|pitch)$"]${around};relation["leisure"="park"]${around};way["landuse"~"^(grass|forest|recreation_ground|meadow|cemetery|village_green)$"]${around};way["natural"~"^(wood|scrub|grassland)$"]${around};way["area:highway"]${around};way["highway"="pedestrian"]["area"="yes"]${around};);out geom;`);
+// Older caches used tags-only output, which omits multipolygon members even
+// with geom requested. Repair those cached relations without refetching ways.
+const missingRelations=areas.elements.filter(e=>e.type==='relation'&&!e.members);
+if(missingRelations.length){
+ const repaired=overpass('relations-geometry',`relation(id:${missingRelations.map(e=>e.id).join(',')});out geom;`);
+ const byId=new Map(repaired.elements.map(e=>[e.id,e]));
+ areas.elements=areas.elements.map(e=>e.type==='relation'&&byId.has(e.id)?byId.get(e.id):e);
+ if(areas.elements.some(e=>e.type==='relation'&&!e.members))throw Error('Area relation geometry is missing; refresh the city data.');
+ fs.writeFileSync(path.join(RAW,'areas.json'),JSON.stringify(areas));
+}
 const ways=overpass('highways',`(way["highway"]${around};);out body;>;out skel qt;`);
 // Two light queries rather than one heavy one: public Overpass servers time out on large mixed requests.
 const nodePoints=overpass('nodes',`(node["natural"="tree"]${around};node["highway"="traffic_signals"]${around};);out;`);

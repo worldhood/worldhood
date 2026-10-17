@@ -19,6 +19,10 @@ page.on('pageerror',e=>console.log('page error:',e.message));
 await page.goto(`${base}/?city=${city}`);
 await page.waitForFunction(()=>window.openCityDrive?.getState().ready||window.helsinkiBootError,null,{timeout:240000});
 const boot=await page.evaluate(()=>window.helsinkiBootError);if(boot)throw Error(`Game failed to start: ${boot.message}`);
+const requestedLook=opt('look',ref.look);if(requestedLook){
+ for(let i=0;i<5&&await page.locator('#look-label').textContent()!==requestedLook;i++)await page.evaluate(()=>document.getElementById('look-btn').click());
+ if(await page.locator('#look-label').textContent()!==requestedLook)throw Error(`Unknown comparison look: ${requestedLook}`);
+}
 await page.addStyleTag({content:'body *{visibility:hidden!important}canvas:not(#minimap):not(#city-map){visibility:visible!important}'});
 for(const v of ref.views||[]){
  if(only.length&&!only.some(o=>v.photo.includes(o)))continue;
@@ -26,13 +30,13 @@ for(const v of ref.views||[]){
  const h=v.heading*Math.PI/180,eye=[v.x,v.eye??EYE,v.z],target=[v.x+Math.sin(h)*60,(v.eye??EYE)+(v.pitch||0)/57.3*60,v.z-Math.cos(h)*60];
  const placed=await page.evaluate(({x,z})=>{for(let r=0;r<40;r+=1.5)for(let a=0;a<6.3;a+=.5)try{window.openCityDrive.inspectView({x:x+Math.cos(a)*r,z:z+Math.sin(a)*r});return true;}catch{}return false;},{x:v.x,z:v.z});
  if(!placed){console.log(`skip   ${v.photo}: no clear ground near (${v.x}, ${v.z})`);continue;}
- await page.evaluate(({eye,target})=>window.openCityDrive.inspectCamera({eye,target}),{eye,target});
+ await page.evaluate(({eye,target,fov})=>window.openCityDrive.inspectCamera({eye,target,fov}),{eye,target,fov:v.fov??null});
  await page.waitForTimeout(Number(process.env.SETTLE_MS||7000));
  const shot=(await page.screenshot({type:'jpeg',quality:82})).toString('base64'),img=fs.readFileSync(photo).toString('base64');
- const pair=await browser.newPage({viewport:{width:2060,height:800}});
+ const pair=await browser.newPage({viewport:{width:2060,height:860}});
  await pair.setContent(`<body style="margin:0;background:#111;color:#eee;font:13px sans-serif"><div style="display:flex;gap:12px;padding:6px">
   <figure style="margin:0"><img src="data:image/jpeg;base64,${shot}" width="1018" height="764"><figcaption>${label}: (${v.x}, ${v.z}) heading ${v.heading}°</figcaption></figure>
-  <figure style="margin:0"><img src="data:image/jpeg;base64,${img}" width="1018" height="764" style="object-fit:cover"><figcaption>${v.photo}: ${v.note||''}</figcaption></figure></div></body>`);
+  <figure style="margin:0"><img src="data:image/jpeg;base64,${img}" width="1018" height="764" style="object-fit:contain"><figcaption>${v.photo}: ${v.note||''}</figcaption></figure></div></body>`);
  const file=path.join(out,`${label}-${path.basename(v.photo,'.jpg')}.jpg`);await pair.screenshot({path:file,type:'jpeg',quality:80});await pair.close();console.log(file);
 }
 await browser.close();

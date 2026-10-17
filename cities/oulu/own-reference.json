@@ -1,0 +1,28 @@
+{
+ "referenceOnly": true,
+ "name": "Owner photo comparisons",
+ "views": [
+  {
+   "photo": "Oulu city hall.jpg",
+   "x": 162.02,
+   "z": -202.43,
+   "eye": -0.21,
+   "heading": -61.7,
+   "pitch": 5,
+   "note": "Owner photo by zaw-ye-tun, EXIF 2025-04-06; reference use authorised. Camera geotag from EXIF; eye height and heading estimated. Custom City Hall model with municipal-height reference; architectural detail and comparison camera remain approximate."
+  },
+  {
+   "photo": "Isokatu infront of veripalvelu Oulu.jpg",
+   "x": 5,
+   "z": 181,
+   "eye": 0.06,
+   "heading": 138.7,
+   "pitch": 5,
+   "note": "Owner photo by zaw-ye-tun, EXIF 2025-10-22; reference use authorised. Camera geotag from EXIF; eye height and heading estimated. Colour-only update; geometry remains provisional. Source geotag falls inside the mapped Isokatu 32 building; game camera moved about 9 m toward the street because the draft has no modelled interior/window opening.",
+   "sourceCamera": {
+    "x": -1.05,
+    "z": 174.18
+   }
+  }
+ ]
+}

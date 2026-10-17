@@ -22,6 +22,7 @@ export function validateFacades(data){
  const errors=[];
  if(!data||typeof data!=='object')return ['facades file must be a JSON object'];
  if(data.schemaVersion!==1)errors.push('schemaVersion must be 1');
+ if(data.attribution!=null&&(typeof data.attribution!=='string'||!data.attribution.trim()))errors.push('attribution must be non-empty text');
  if(!data.buildings||typeof data.buildings!=='object')return [...errors,'buildings must map building ids to façades'];
  if(data.groups!=null&&!Array.isArray(data.groups))errors.push('groups must be a list of {ids, facade}');
  const entries=[...Object.entries(data.buildings).map(([id,b])=>[`buildings["${id}"]`,b]),...(data.groups||[]).map((g,i)=>[`groups[${i}].facade`,g?.facade])];
@@ -29,6 +30,8 @@ export function validateFacades(data){
  for(const [at,b] of entries){
   if(!b||typeof b!=='object'){errors.push(`${at}: must be an object`);continue;}
   if(!HEX.test(b.wall||''))errors.push(`${at}.wall: #rrggbb colour required`);
+  if(b.appearanceOnly!=null&&typeof b.appearanceOnly!=='boolean')errors.push(`${at}.appearanceOnly: boolean`);
+  if(b.appearanceOnly&&['height','storeys','groundStorey','windows','storeyWindows','ground'].some(k=>b[k]!=null))errors.push(`${at}.appearanceOnly: use colours and material only; measured geometry belongs in a full description`);
   for(const k of ['wallLower','roof','cornice','trim'])if(b[k]!=null&&!HEX.test(b[k]))errors.push(`${at}.${k}: #rrggbb colour`);
   if(b.material!=null&&!MATERIALS.includes(b.material))errors.push(`${at}.material: one of ${MATERIALS.join(', ')}`);
   if(b.storeys!=null&&!(Number.isInteger(b.storeys)&&b.storeys>=1&&b.storeys<=40))errors.push(`${at}.storeys: whole number 1–40`);

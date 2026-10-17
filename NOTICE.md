@@ -15,6 +15,8 @@ that the notices match the locked runtime packages and bundled fonts.
 | Source code, scripts, tests, docs | MIT | `src/`, `scripts/`, `tests/`, `docs/` |
 | Original assets made for this project (procedural models, `senate-pavilions` model and source) | MIT | `public/models/senate-pavilions.glb`, `assets/source/` |
 | City of Helsinki map, 3D and imagery data | CC BY 4.0 | most of `public/data/` |
+| City of Oulu legacy municipal 3D model, tile 212221 (2017); two building shells converted, clipped and recoloured | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), City of Oulu; [source](https://api.ouka.fi/3d/index_en.html) | `cities/oulu/waterfront-model.json`, municipal mesh data in `public/cities/oulu/places/waterfront.json` |
+| City of Oulu legacy municipal 3D model, tile 212221, component 226; converted City Hall height and registration reference | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), City of Oulu; [source](https://api.ouka.fi/3d/Mallit/212221.html) | `cities/oulu/city-hall-model.json`, height reference in `public/cities/oulu/places/city-hall.json`; detailed facade/roof geometry is separately photo-interpreted |
 | City of Espoo 3D city model (CityGML LOD2 with 2024 photo textures), street areas, centrelines, trees, park register areas and districts | CC BY 4.0, © Espoon kaupunki | `public/data/extensions/espoo/` (except `osm-water.json`, `osm-landcover.json` and `surfaces/osm-*`) |
 | Traffic lights, speed limits and lane counts in the Espoo area from Digiroad (Väylävirasto) | CC BY 4.0 | `public/data/extensions/espoo/mobility.json` |
 | Sea and pond outlines in the Espoo area from OpenStreetMap | ODbL 1.0, © OpenStreetMap contributors | `public/data/extensions/espoo/osm-water.json` |

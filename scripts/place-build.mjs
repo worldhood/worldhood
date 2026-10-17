@@ -11,14 +11,58 @@ import {gunzipSync} from 'node:zlib';
 import {execFileSync} from 'node:child_process';
 import {pathToFileURL} from 'node:url';
 import proj4 from 'proj4';
+import polygonClipping from 'polygon-clipping';
 import {SpatialIndex,bounds} from '../src/geo.js';
 import {checkPanel} from '../src/photo-panels-data.js';
+import {marketStallRing} from '../src/oulu-square-data.js';
 import {matchPaving,speciesFamily,registerHeight,platformsFor,polesAlong,shelterFrom,ringArea,centroid,pointInRing,validatePlace} from '../src/place-data.js';
 
 export function buildPlace(cityId,place,{refresh=false,registry='public/cities/index.json'}={}){
  const ref=JSON.parse(fs.readFileSync(path.join('cities',cityId,`${place}-reference.json`)));
  const reg=JSON.parse(fs.readFileSync(registry)),city=reg.cities.find(c=>c.id===cityId);if(!city)throw Error(`No built city "${cityId}"`);
  const root=path.join('public',city.dataRoot),data=JSON.parse(gunzipSync(fs.readFileSync(path.join(root,'city.pack'))));
+ if(ref.adapter==='oulu-city-hall'){
+  const model=JSON.parse(fs.readFileSync(path.join('cities',cityId,ref.modelFile)));
+  const mapped=data.buildings.find(b=>b.id===model.building);if(!mapped)throw Error('City Hall footprint missing');
+  const source=`${model.attribution} Detailed appearance: original geometry guided by Estormiz CC0 photographs and owner photographs used with permission.`;
+  const out={schemaVersion:1,city:cityId,place,name:ref.name,centre:ref.centreLocal,radius:ref.radiusMetres,replaceTrees:false,trees:[],paving:[],landmarks:[],heights:{[model.building]:model.sourceHeight+12.4},hideBuildings:[model.building],source,ouluCityHall:{building:model.building,rings:mapped.rings,sourceHeight:model.sourceHeight,sourceBaseElevation:model.sourceBaseElevation,wall:ref.model.wall}};
+  out.sourceUrl=model.sourceUrl;out.licence=model.licence;out.licenceUrl='https://creativecommons.org/licenses/by/4.0/';
+  const errors=validatePlace(out);if(errors.length)throw Error(errors.join('; '));
+  fs.mkdirSync(path.join(root,'places'),{recursive:true});fs.writeFileSync(path.join(root,'places',`${place}.json`),JSON.stringify(out));
+  city.places=[...new Set([...(city.places||[]),place])];if(!city.attribution.includes(model.attribution))city.attribution+=` ${model.attribution}`;
+  fs.writeFileSync(registry,JSON.stringify(reg,null,1));return {cityHallBuildings:1,sourceHeight:model.sourceHeight,courtyards:mapped.rings.length-1};
+ }
+ if(ref.adapter==='municipal-model'){
+  const model=JSON.parse(fs.readFileSync(path.join('cities',cityId,ref.modelFile)));
+  const out={schemaVersion:1,city:cityId,place,name:ref.name,centre:ref.centreLocal,radius:ref.radiusMetres,replaceTrees:false,trees:[],paving:[],landmarks:[],heights:{},hideBuildings:model.models.map(m=>m.building),source:model.attribution,sourceUrl:model.sourceUrl,licence:model.licence,licenceUrl:'https://creativecommons.org/licenses/by/4.0/',municipalModels:model.models};
+  fs.mkdirSync(path.join(root,'places'),{recursive:true});fs.writeFileSync(path.join(root,'places',`${place}.json`),JSON.stringify(out));
+  city.places=[...new Set([...(city.places||[]),place])];if(!city.attribution.includes(model.attribution))city.attribution+=` ${model.attribution}`;
+  fs.writeFileSync(registry,JSON.stringify(reg,null,1));return {municipalBuildings:model.models.length};
+ }
+ if(ref.adapter==='authored-osm'){
+  const hall=data.buildings.find(b=>b.id===ref.hallBuilding),house=data.buildings.find(b=>b.id===ref.houseBuilding);
+  if(!hall||!house)throw Error(`${place}: missing mapped hall or house footprint`);
+  const out={schemaVersion:1,city:cityId,place,name:ref.name,centre:ref.centreLocal,radius:ref.radiusMetres,replaceTrees:false,extendPavement:true,trees:[],paving:ref.paving,landmarks:[],heights:{},hideBuildings:[ref.hallBuilding,ref.houseBuilding],source:ref.source,ouluMarket:{...ref.model,ring:hall.rings[0],building:ref.hallBuilding,houseRing:house.rings[0],houseBuilding:ref.houseBuilding}};
+  if(ref.squareFile){
+   const square=JSON.parse(fs.readFileSync(path.join('cities',cityId,ref.squareFile)));
+   square.buildings=square.buildings.map(b=>{const mapped=data.buildings.find(m=>m.id===b.building);if(!mapped)throw Error(`Square building missing: ${b.building}`);out.hideBuildings.push(b.building);out.heights[b.building]=b.eave+b.rise;return {...b,ring:mapped.rings[0]};});
+   // Keep the authored plaza surface off mapped roads, building interiors and earlier paving.
+   const excluded=[...data.buildings.map(b=>b.rings),...data.roads.filter(r=>r.kind==='Ajorata').map(r=>r.rings),...out.paving.map(p=>p.rings)];
+   const surfaces=polygonClipping.difference([square.paving.extent],...excluded);
+   out.paving=[...out.paving,...surfaces.map(rings=>({kind:square.paving.kind,rings}))];
+   out.gridAngle=32;out.ouluMarket.square=square;
+   const blockers=[...data.buildings,...data.roads.filter(r=>r.kind==='Ajorata')],stallRings=[];
+   for(const s of square.stalls){const ring=marketStallRing(s,.25),box=bounds([ring]);
+    const candidates=blockers.filter(b=>{const q=b.bbox;return q[0]<=box[2]&&q[2]>=box[0]&&q[1]<=box[3]&&q[3]>=box[1];});
+    if(candidates.some(b=>polygonClipping.intersection([ring],b.rings).length)||stallRings.some(r=>polygonClipping.intersection([ring],[r]).length))throw Error(`Summer stall overlaps mapped building, road or another stall: ${s.x}, ${s.z}`);
+    if(polygonClipping.difference([ring],[square.paving.extent]).length)throw Error('Summer stall lies outside the authored square');stallRings.push(ring);
+   }
+  }
+  const errors=validatePlace(out);if(errors.length)throw Error(errors.join('; '));
+  fs.mkdirSync(path.join(root,'places'),{recursive:true});fs.writeFileSync(path.join(root,'places',`${place}.json`),JSON.stringify(out));
+  const credit=`${ref.name}: ${ref.source}`;if(!city.attribution.includes(credit))city.attribution+=` ${credit}`;
+  city.places=[...new Set([...(city.places||[]),place])];fs.writeFileSync(registry,JSON.stringify(reg,null,1));return {landmarks:1,paving:out.paving.length};
+ }
  const trams=fs.existsSync(path.join(root,'trams.json'))?JSON.parse(fs.readFileSync(path.join(root,'trams.json'))):{paths:[]};
  const toLocal=proj4('EPSG:4326',city.projection),toWgs=proj4(city.projection,'EPSG:4326');
  const local=(lon,lat)=>{const [x,y]=toLocal.forward([lon,lat]);return [+x.toFixed(2),+(-y).toFixed(2)];};
@@ -107,7 +151,7 @@ export function buildPlace(cityId,place,{refresh=false,registry='public/cities/i
  return {paving:paving.length,heights:Object.keys(heights).length,trees:trees.length,platforms:platforms.length,shelters:shelters.length,masts:masts.length,landmarks:landmarks.length};
 }
 // Every place a city describes: cities/<id>/<place>-reference.json.
-export const placesOf=id=>fs.existsSync(path.join('cities',id))?fs.readdirSync(path.join('cities',id)).filter(f=>f.endsWith('-reference.json')).map(f=>f.replace(/-reference\.json$/,'')):[];
+export const placesOf=id=>fs.existsSync(path.join('cities',id))?fs.readdirSync(path.join('cities',id)).filter(f=>f.endsWith('-reference.json')&&!JSON.parse(fs.readFileSync(path.join('cities',id,f))).referenceOnly).map(f=>f.replace(/-reference\.json$/,'')):[];
 
 if(import.meta.url===pathToFileURL(process.argv[1]).href){
  const [id,place]=process.argv.slice(2).filter(a=>!a.startsWith('--'));if(!id)throw Error('Usage: npm run place:build -- <city> [place]');

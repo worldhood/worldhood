@@ -19,7 +19,7 @@ export function tileLevel(previous,distance,bands=LOD){
 // one draw per atlas without copying vertices around. Gaps (landmarks rendered elsewhere) split a run.
 export function mergedShellRanges(parts){
  const ranges=[];
- for(const p of parts){const last=ranges.at(-1);if(last&&last.texture===(p.texture||null)&&last.end===p.start)last.end=p.start+p.count;else ranges.push({texture:p.texture||null,start:p.start,end:p.start+p.count});}
+  for(const p of parts){const last=ranges.at(-1),color=p.facade?.wall;if(last&&last.texture===(p.texture||null)&&last.color===color&&last.end===p.start)last.end=p.start+p.count;else ranges.push({texture:p.texture||null,start:p.start,end:p.start+p.count,...(color?{color}:{})});}
  return ranges;
 }
 
@@ -28,7 +28,7 @@ export function createMergedShells(array,parts,textures){
   const data=array.slice(r.start*5,r.end*5),buffer=new THREE.InterleavedBuffer(data,5),geometry=new THREE.BufferGeometry();
   geometry.setAttribute('position',new THREE.InterleavedBufferAttribute(buffer,3,0));geometry.setAttribute('uv',new THREE.InterleavedBufferAttribute(buffer,2,3));geometry.computeVertexNormals();geometry.computeBoundingSphere();
   const texture=r.texture?textures.get(r.texture)||null:null;
-  const material=new THREE.MeshStandardMaterial({map:texture,color:texture?'#ffffff':'#aca79a',roughness:.86,side:THREE.DoubleSide});
+  const material=new THREE.MeshStandardMaterial({map:texture,color:texture?'#ffffff':r.color||'#aca79a',roughness:.86,side:THREE.DoubleSide});
   const mesh=new THREE.Mesh(geometry,material);mesh.castShadow=false;mesh.receiveShadow=true;
   // An empty box keeps the chase-camera occlusion fade from ever grabbing a whole tile.
   mesh.userData={lod:true,occlusion:{opacity:1,clearTime:1},box:new THREE.Box3(),triangles:(r.end-r.start)/3};

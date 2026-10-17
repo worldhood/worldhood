@@ -1,0 +1,104 @@
+{
+ "Kauppahalli": {
+  "source": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Hall_20250116.jpg",
+  "author": "Estormiz",
+  "licence": "CC0 1.0",
+  "captured": "2025-01-16",
+  "camera": [
+   25.465198,
+   65.013155
+  ],
+  "observations": [
+   "The visible hall has red-brick walls with pale trim and a raised pointed entrance gable.",
+   "Tall pointed-arch openings repeat along the visible side, with pale green window frames.",
+   "The pitched roof is dark metal, with a long raised glazed strip and a decorative ridge railing.",
+   "The visible entrance is framed by a large pale-trimmed arch; brick piers project at the corners.",
+   "The bronze Toripolliisi figure stands separately in the paved square to the right of the entrance in this view.",
+   "The square has visibly patterned stone paving. Furniture and construction fencing shown in this winter photograph are time-dependent."
+  ],
+  "gaps": [
+   "Original procedural hall and statue now implemented; exact curved gable, carved relief, measured heights, complete window counts and unseen annexes remain provisional.",
+   "Trees, paving bands, signs and furniture are photo-estimated; species, surveyed placement and small sign wording remain unverified."
+  ],
+  "implementation": "src/oulu-market.js; RANTAKATU-KAUPPATORI-DIFFERENCES.md"
+ },
+ "Oulun tuomiokirkko": {
+  "source": "https://commons.wikimedia.org/wiki/File:Oulun_tuomiokirkko_Oulun_vanha_monumentaalikeskus_ja_Franz%C3%A9nin_puisto_Oulu_2026-01-05_02.jpg",
+  "author": "Leonhard Lenz",
+  "licence": "CC0 1.0",
+  "captured": "2026-01-05",
+  "observations": [
+   "The visible front is warm yellow render with white cornices, pilasters and window trim.",
+   "The entrance tower has several stepped rectangular stages, a clock, and a dark tapering spire with a gold sphere and cross.",
+   "Two round white columns support the small triangular pediment over the entrance.",
+   "Stone entrance steps have dark handrails; tall arched openings are visible on the side wings."
+  ],
+  "gaps": [
+   "The draft extrusion does not reproduce the tower stages, clock, spire, entrance columns or front steps.",
+   "This front photograph does not establish dimensions or the appearance of hidden sides."
+  ]
+ },
+ "Oulun kaupungintalo": {
+  "source": "https://commons.wikimedia.org/wiki/File:Oulu_City_Hall_20250330_01.jpg",
+  "author": "Estormiz",
+  "licence": "CC0",
+  "captured": "2025-03-30",
+  "observations": [
+   "The visible main front has ochre walls, pale window surrounds and horizontal bands, and a dark roof.",
+   "Two prominent rounded roof pavilions carry thin decorative finials.",
+   "The projecting central front has three arched entrance openings, broad steps with dark railings, and tall pilasters framing the upper windows.",
+   "The garden foreground contains patterned paving, low planting beds and ornate multi-arm lamps."
+  ],
+  "gaps": [
+   "Fine relief, side and rear ornament, garden planting and exact architectural profiles remain simplified.",
+   "Elevated comparison pose and lens field of view remain estimates; municipal source provides LOD1 height, not detailed current roof measurements."
+  ],
+  "ownReference": {
+   "file": "own/Oulu city hall.jpg",
+   "id": "own_75bfb3fa4220",
+   "author": "zaw-ye-tun",
+   "captured": "2025-04-06",
+   "observations": [
+    "The owner photograph confirms ochre rendered walls, pale horizontal bands and trim, paired roof pavilions and dark roof covering.",
+    "Several upper and lower window styles differ; a regular invented grid would not match the central front."
+   ],
+   "applied": "Ochre wall appearance, twin-pavilion silhouette, central pilasters, entrance arches and stair proportions guide the custom model; all detailed geometry is interpreted."
+  },
+  "model": "city-hall-model.json"
+ },
+ "Isokatu 37": {
+  "source": "own-photo-sources.json",
+  "photos": [
+   "own_3772e8923a08"
+  ],
+  "author": "zaw-ye-tun",
+  "captured": "2025-10-22",
+  "observations": [
+   "The photographed front carries visible address number 37, matched to OSM way 871741305.",
+   "Visible upper walls have tan brick and pale continuous horizontal window bands; frames have a muted green edge.",
+   "The ground floor is glazed commercial frontage; parked vehicles obscure much of its lower detail."
+  ],
+  "applied": "Observed wall colour and material only.",
+  "gaps": [
+   "Photograph cuts the top of the building: total height and storeys are not established.",
+   "Exact window bands and shopfront geometry have not been authored; existing placeholder bays stay labelled provisional."
+  ]
+ },
+ "Oulu city buses": {
+  "source": "own-photo-sources.json",
+  "photos": [
+   "own_91444c5d9f11"
+  ],
+  "author": "zaw-ye-tun",
+  "captured": "2026-02-22",
+  "observations": [
+   "The photographed OSL bus has a pink body with dark front/side glazing and pale graphics.",
+   "Snow, ice and winter light alter the apparent paint colour."
+  ],
+  "applied": "Approximate pink paint; removed the shared HSL-style circle motif for Oulu city buses.",
+  "gaps": [
+   "Current shared bus body is generic, not an exact BYD body reconstruction.",
+   "Fleet-wide consistency has not been confirmed from a single bus photo."
+  ]
+ }
+}

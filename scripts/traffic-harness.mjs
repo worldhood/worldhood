@@ -1,6 +1,7 @@
 // Headless traffic flow check: steps cars, trams and buses together exactly as the game loop does
 // (no browser, seeded randomness) and reports vehicles that stop making progress, and why.
 import {readFileSync,existsSync} from 'node:fs';
+import {fileURLToPath} from 'node:url';
 import {gunzipSync} from 'node:zlib';
 import {Mobility} from '../src/mobility.js';
 import {TramSimulation} from '../src/tram-simulation.js';
@@ -29,7 +30,7 @@ export const FLOW_SPOTS={
   {name:'Kaupungintalo',x:-125,z:-237,heading:0},
  ],
 };
-const REPO=new URL('..',import.meta.url).pathname;
+const REPO=fileURLToPath(new URL('..',import.meta.url));
 export function cityRoot(id){return REPO+(id==='helsinki'?'public/data':`public/cities/${id}`);}
 const cache=new Map();
 // The same world the game builds for traffic (see boot() in main.js), minus decorative street furniture.

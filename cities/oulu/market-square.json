@@ -1,0 +1,36 @@
+{
+ "season": "summer",
+ "source": "OpenStreetMap footprints; Estormiz CC0 exterior references in market-sources.json. Colours, eaves, roof rises, shutters and summer trading layout are photo interpretations, not surveyed dimensions.",
+ "buildings": [
+  {"building":"osm-way-56645607","name":"Kemppaisen kenkäkauppa","kind":"warehouse","wall":"#9b4f3b","eave":6.1,"rise":2.8,"facing":[0.85,0.53],"door":"#28679c","label":"KENKÄKAUPPA","reference":"Kemppaisen_kenkäkauppa_Aittatori_2_Oulu_20260902.jpg"},
+  {"building":"osm-way-56645605","name":"1881 Uleåborg warehouse","kind":"warehouse","wall":"#994f3c","eave":6.1,"rise":2.8,"facing":[0.85,0.53],"door":"#383b34","label":"1881 ULEÅBORG","reference":"Warehouses_Aittatori_Oulu_20241005_01.jpg"},
+  {"building":"osm-way-56645603","name":"Aittatori 6 warehouse","kind":"warehouse","wall":"#914b39","eave":5.8,"rise":2.7,"facing":[0.85,0.53],"door":"#343731","reference":"Warehouses_Aittatori_Oulu_20241005_01.jpg"},
+  {"building":"osm-way-56645600","name":"Aittatori 9 warehouse","kind":"warehouse","wall":"#984d3a","eave":5.8,"rise":2.7,"facing":[0.85,0.53],"door":"#343731","reference":"Warehouses_Aittatori_Oulu_20241005_02.jpg"},
+  {"building":"osm-way-56645597","name":"Aittatori 7 warehouse","kind":"warehouse","wall":"#984e3c","eave":5.8,"rise":2.7,"facing":[0.85,0.53],"door":"#343731","reference":"Warehouses_Aittatori_Oulu_20241005_02.jpg"},
+  {"building":"osm-way-40004543","name":"Suola-Aitta","kind":"warehouse","wall":"#989d96","eave":4.5,"rise":2.1,"facing":[-0.85,-0.53],"door":"#414138","label":"SUOLA-AITTA","reference":"Aitta_23_Aittatori_Oulu_20200409.jpg"},
+  {"building":"osm-way-40004544","name":"Tervasoihtu","kind":"warehouse","wall":"#9da69c","eave":6.4,"rise":3.1,"facing":[-0.85,-0.53],"door":"#575345","shutterState":"open","label":"KAHVILA · RAVINTOLA","reference":"Warehouse_Restaurants_Oulu_20200409.jpg"},
+  {"building":"osm-way-40004542","name":"Aitta 22","kind":"warehouse","wall":"#a3a69a","eave":6.4,"rise":3.1,"facing":[-0.85,-0.53],"door":"#65513b","reference":"Warehouses_Oulu_Market_Square_20250104.jpg"},
+  {"building":"osm-way-40004546","name":"Yellow waterfront warehouse","kind":"warehouse","wall":"#d3bd7d","eave":6.4,"rise":3.1,"facing":[-0.85,-0.53],"door":"#65513b","shutterState":"open","reference":"Warehouse_Restaurants_Oulu_20171015.jpg"},
+  {"building":"osm-way-1174510309","name":"Torin Kippari","kind":"boat","wall":"#d9d8c9","eave":5.5,"rise":0,"facing":[-0.85,-0.53],"reference":"Torin_Kippari_Oulu_20260623_01.jpg"},
+  {"building":"osm-way-1174510310","name":"Hölökkyvä Hölli kiosk","kind":"kiosk","wall":"#515448","eave":2.9,"rise":0.25,"facing":[0.85,0.53],"label":"HÖLÖKKYVÄ HÖLLI","reference":"Oulu_Market_Square_20260605_01.jpg"},
+  {"building":"osm-way-1174727147","name":"Amira kiosk","kind":"kiosk","wall":"#b19a73","eave":2.8,"rise":0.25,"facing":[0.85,0.53],"reference":"Oulu_Market_Square_20260501_01.jpg"},
+  {"building":"osm-way-1174727148","name":"Fish kiosk","kind":"kiosk","wall":"#ccc9b6","eave":2.8,"rise":0.25,"facing":[0.85,0.53],"reference":"Oulu_Market_Square_20260501_01.jpg"},
+  {"building":"osm-way-1174793856","name":"Greek food kiosk","kind":"kiosk","wall":"#c4c0aa","eave":2.8,"rise":0.25,"facing":[0.85,0.53],"reference":"Oulu_Market_Square_20260501_01.jpg"},
+  {"building":"osm-way-1174793857","name":"Fish food kiosk","kind":"kiosk","wall":"#c9c5b1","eave":2.8,"rise":0.25,"facing":[0.85,0.53],"reference":"Oulu_Market_Square_20260501_01.jpg"}
+ ],
+ "stalls": [
+  {"x":-280,"z":-205,"yaw":1.01,"colour":"#e0daca","type":"produce"},
+  {"x":-285,"z":-217,"yaw":1.01,"colour":"#d8d3c4","type":"clothes"},
+  {"x":-270,"z":-220,"yaw":1.01,"colour":"#49618b","type":"produce","striped":true},
+  {"x":-280,"z":-235,"yaw":1.01,"colour":"#e0daca","type":"produce"},
+  {"x":-264,"z":-235,"yaw":1.01,"colour":"#b66457","type":"clothes"},
+  {"x":-273,"z":-249,"yaw":1.01,"colour":"#dad5c6","type":"produce"},
+  {"x":-292,"z":-193,"yaw":1.01,"colour":"#ded8c8","type":"clothes"},
+  {"x":-305,"z":-207,"yaw":1.01,"colour":"#ded8c8","type":"clothes"},
+  {"x":-295,"z":-220,"yaw":1.01,"colour":"#8b8aab","type":"produce"},
+  {"x":-258,"z":-222,"yaw":1.01,"colour":"#ded8c8","type":"clothes"},
+  {"x":-252,"z":-235,"yaw":1.01,"colour":"#52698d","type":"produce","striped":true},
+  {"x":-271,"z":-265,"yaw":1.01,"colour":"#ded8c8","type":"clothes"}
+ ],
+ "paving": {"kind":"oulu-square-granite","extent":[[-343,-206],[-278,-164],[-220,-252],[-285,-294],[-343,-206]],"note":"Photo-guided core square extent, clipped against mapped building footprints, roads, existing place paving and the stepped waterfront. Slab sizes and grey band spacing estimated from Oulu Market Square 20230629 01/02."}
+}

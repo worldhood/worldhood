@@ -1,0 +1,55 @@
+{
+ "schemaVersion": 1,
+ "attribution": "Appearance colours described from reference photographs by zaw-ye-tun, used with permission. Original photographs are not distributed as game assets.",
+ "buildings": {
+  "osm-relation-1303262": {
+   "appearanceOnly": true,
+   "wall": "#c69a60",
+   "material": "render",
+   "evidence": {
+    "photos": [
+     {
+      "id": "own_75bfb3fa4220",
+      "captured": "2025-04-06"
+     }
+    ],
+    "confidence": 0.75,
+    "source": "own-photo-sources.json",
+    "scope": "Visible facade colour/material only; heights, window positions, hidden sides and landmark geometry remain provisional."
+   }
+  },
+  "osm-way-871741305": {
+   "appearanceOnly": true,
+   "wall": "#b79b78",
+   "material": "brick",
+   "evidence": {
+    "photos": [
+     {
+      "id": "own_3772e8923a08",
+      "captured": "2025-10-22"
+     }
+    ],
+    "confidence": 0.75,
+    "source": "own-photo-sources.json",
+    "scope": "Visible facade colour/material only; heights, window positions, hidden sides and landmark geometry remain provisional."
+   }
+  },
+  "osm-way-94507906": {
+   "appearanceOnly": true,
+   "wall": "#c89192",
+   "material": "timber",
+   "evidence": {
+    "photos": [
+     {
+      "id": "own_41645f59d53e",
+      "captured": "2025-06-24"
+     }
+    ],
+    "confidence": 0.7,
+    "source": "own-photo-sources.json",
+    "scope": "Pink visible facade only; window rhythm, roof geometry and heights remain provisional."
+   }
+  }
+ },
+ "views": []
+}

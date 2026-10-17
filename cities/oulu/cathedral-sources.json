@@ -1,0 +1,19 @@
+{
+ "photos": [
+  {
+   "source": "commons",
+   "id": "199558409",
+   "file": "commons/199558409.jpg",
+   "title": "Oulun tuomiokirkko Oulun vanha monumentaalikeskus ja Franzénin puisto Oulu 2026-01-05 02.jpg",
+   "category": "Oulu Cathedral",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulun_tuomiokirkko_Oulun_vanha_monumentaalikeskus_ja_Franz%C3%A9nin_puisto_Oulu_2026-01-05_02.jpg",
+   "author": "Leonhard Lenz",
+   "licence": "CC0",
+   "captured": "2026-01-05",
+   "x": 211.9,
+   "z": -355.3,
+   "textures": false,
+   "use": "Observed appearance notes and draft game comparison; no image pixels used as runtime textures."
+  }
+ ]
+}
