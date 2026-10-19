@@ -1,18 +1,17 @@
 import {createLoadingScreen} from './loading-screen.js';
 
-// Browser noise that never means the game broke: an embedding page's Permissions-Policy
-// refusing motion sensors, an optional asset that failed to load, a ResizeObserver hiccup.
+// Browser noise that never means the game broke: motion-sensor permission refused (tilt steering),
+// an optional asset that failed to load, a ResizeObserver hiccup.
 // Matched narrowly so real crashes (TypeErrors in the frame loop, WebGL failures) still stop the game.
 const SENSOR=/accelerometer|gyroscope|magnetometer|orientation|devicemotion|motion sensor|sensor/i;
 const BENIGN=[
- /permissions?[- ]policy|feature[- ]policy/i,
  /failed to load resource/i,
  /ResizeObserver loop/i,
 ];
 export function isBenignError(error,message=''){
  const text=`${error?.name||''} ${error?.message||''} ${typeof error==='string'?error:''} ${message||''}`;
  if(BENIGN.some(p=>p.test(text)))return true;
- // NotAllowedError/SecurityError for sensors inside an iframe without allow="accelerometer; gyroscope".
+ // NotAllowedError/SecurityError when motion-sensor access is refused (e.g. tilt steering declined).
  return /NotAllowedError|SecurityError|permission/i.test(text)&&SENSOR.test(text);
 }
 
