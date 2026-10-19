@@ -4,7 +4,8 @@
 // city square, smoothed so streets are drivable, bridges spanned as straight decks between their banks and
 // every mapped water body given a flat surface (steps kept where the river drops over a dam).
 // Output: public/cities/<id>/terrain.pack (src/terrain.js format) and a `terrain` entry in the city registry.
-// Raw tiles are cached in data/raw/cities/<id>/terrain/ (ignored by git).
+// Raw tiles are cached in data/raw/cities/<id>/terrain/ (ignored by git). Tile zoom: city.json "terrainZoom"
+// (default 15); where the source has no tiles at that zoom the next coarser one is used.
 import fs from 'node:fs';
 import path from 'node:path';
 import {gzipSync,inflateSync,gunzipSync} from 'node:zlib';
@@ -13,7 +14,8 @@ import {pathToFileURL} from 'node:url';
 import proj4 from 'proj4';
 import {encodeTerrain} from '../src/terrain.js';
 
-const ZOOM=15,TILE=512,CELL=3;
+const TILE=512,CELL=3;
+export const TERRAIN_ZOOM=15,MIN_TERRAIN_ZOOM=10,MAX_TERRAIN_ZOOM=18;
 export const TERRAIN_SOURCES={
  fi:'Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com).',
  default:'Elevation: Mapterhorn terrain tiles (mapterhorn.com); see mapterhorn.com/attribution for the sources and licences of your area.'
@@ -262,21 +264,50 @@ function rasterise(polys,size,cell,extent){
  return mask;
 }
 
-export async function buildTerrain(id,{refresh=false}={}){
- const def=JSON.parse(fs.readFileSync(path.join('cities',id,'city.json'))),OUT=path.join('public/cities',id),RAW=path.join('data/raw/cities',id,'terrain');
+// Tile zoom from city.json "terrainZoom", and the zooms to try in order when the source lacks the finer ones.
+export function terrainZoom(def={}){
+ const z=def.terrainZoom??TERRAIN_ZOOM;
+ if(!Number.isInteger(z)||z<MIN_TERRAIN_ZOOM||z>MAX_TERRAIN_ZOOM)throw Error(`city.json "terrainZoom" must be a whole number from ${MIN_TERRAIN_ZOOM} to ${MAX_TERRAIN_ZOOM}`);
+ return z;
+}
+export const zoomLadder=(want,min=MIN_TERRAIN_ZOOM)=>Array.from({length:Math.max(1,want-min+1)},(_,i)=>want-i);
+// Web Mercator pixel coordinates at `zoom`, and the tiles (with a one-tile margin) covering lon/lat `corners`.
+export const tilePixels=zoom=>{const n=2**zoom;return {px:lon=>(lon+180)/360*n*TILE,py:lat=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n*TILE;}};};
+export function tilesCovering(corners,zoom){
+ const {px,py}=tilePixels(zoom),xs=corners.map(c=>Math.floor(px(c[0])/TILE)),ys=corners.map(c=>Math.floor(py(c[1])/TILE)),out=[];
+ for(let ty=Math.min(...ys)-1;ty<=Math.max(...ys)+1;ty++)for(let tx=Math.min(...xs)-1;tx<=Math.max(...xs)+1;tx++)out.push([tx,ty]);
+ return out;
+}
+// The first zoom in `zooms` at which every tile is available. `get(z,x,y)` resolves true when the tile is there
+// (cached or downloaded), false when the source has no such tile (HTTP 404), and throws on any other failure.
+export async function pickTiles(zooms,tilesAt,get,log=()=>{}){
+ for(const z of zooms){const tiles=tilesAt(z);let missing=null;
+  for(const [x,y] of tiles)if(!await get(z,x,y)){missing=[x,y];break;}
+  if(!missing)return {zoom:z,tiles};
+  log(`terrain: no z${z} tile at ${missing.join('/')} in the source${z>zooms.at(-1)?`, trying z${z-1}`:''}`);
+ }
+ throw Error(`no terrain tiles for this area from z${zooms[0]} down to z${zooms.at(-1)}`);
+}
+// Registry entry ← terrain summary (and its source credit).
+export function registerTerrain(entry,summary){entry.terrain=summary;if(!entry.attribution?.includes(summary.source))entry.attribution=`${entry.attribution||''} ${summary.source}`.trim();return entry;}
+
+// `out`: folder holding the built city (city.build passes its staging folder); `register`: write the registry entry.
+export async function buildTerrain(id,{refresh=false,out=null,register=true,fetchTile=fetch}={}){
+ const def=JSON.parse(fs.readFileSync(path.join('cities',id,'city.json'))),OUT=out||path.join('public/cities',id),RAW=path.join('data/raw/cities',id,'terrain');
  const [lon0,lat0]=def.origin,EXTENT=Math.round(def.radiusMetres*1.25),size=Math.round(2*EXTENT/CELL)+1;
  const projection=`+proj=tmerc +lat_0=${lat0} +lon_0=${lon0} +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`,toWgs=proj4(projection,'EPSG:4326'),toLocal=proj4('EPSG:4326',projection);
- const n=2**ZOOM,px=lon=>(lon+180)/360*n*TILE,py=lat=>{const r=lat*Math.PI/180;return (1-Math.log(Math.tan(r)+1/Math.cos(r))/Math.PI)/2*n*TILE;};
  const corners=[[-EXTENT,-EXTENT],[EXTENT,-EXTENT],[EXTENT,EXTENT],[-EXTENT,EXTENT]].map(([x,z])=>toWgs.forward([x,-z]));
- const tx0=Math.floor(Math.min(...corners.map(c=>px(c[0])))/TILE)-1,tx1=Math.floor(Math.max(...corners.map(c=>px(c[0])))/TILE)+1,ty0=Math.floor(Math.min(...corners.map(c=>py(c[1])))/TILE)-1,ty1=Math.floor(Math.max(...corners.map(c=>py(c[1])))/TILE)+1;
- fs.mkdirSync(RAW,{recursive:true});const files=[];
- for(let ty=ty0;ty<=ty1;ty++)for(let tx=tx0;tx<=tx1;tx++){const f=path.join(RAW,`${ZOOM}-${tx}-${ty}.webp`);files.push(f);
-  if(fs.existsSync(f)&&!refresh)continue;
-  const r=await fetch(`https://tiles.mapterhorn.com/${ZOOM}/${tx}/${ty}.webp`,{headers:{'User-Agent':'city-terrain build script'}});
-  if(!r.ok)throw Error(`Mapterhorn tile ${ZOOM}/${tx}/${ty}: HTTP ${r.status}`);fs.writeFileSync(f,Buffer.from(await r.arrayBuffer()));fs.rmSync(f.replace(/\.webp$/,'.png'),{force:true});}
+ fs.mkdirSync(RAW,{recursive:true});
+ const tileFile=(z,x,y)=>path.join(RAW,`${z}-${x}-${y}.webp`);
+ const get=async(z,x,y)=>{const f=tileFile(z,x,y);if(fs.existsSync(f)&&!refresh)return true;
+  const r=await fetchTile(`https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`,{headers:{'User-Agent':'city-terrain build script'}});
+  if(r.status===404)return false;if(!r.ok)throw Error(`Mapterhorn tile ${z}/${x}/${y}: HTTP ${r.status}`);
+  fs.writeFileSync(f,Buffer.from(await r.arrayBuffer()));fs.rmSync(f.replace(/\.webp$/,'.png'),{force:true});return true;};
+ const {zoom:ZOOM,tiles}=await pickTiles(zoomLadder(terrainZoom(def)),z=>tilesCovering(corners,z),get,console.log);
+ const n=2**ZOOM,{px,py}=tilePixels(ZOOM),files=tiles.map(([x,y])=>tileFile(ZOOM,x,y));
  console.log(`terrain: ${files.length} Mapterhorn tiles at z${ZOOM} (${(40075016*Math.cos(lat0*Math.PI/180)/n/TILE).toFixed(2)} m pixels)`);
  const decoded=await decodeWebp(files);
- const elevation=(x,y)=>{const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE),t=decoded.get(path.join(RAW,`${ZOOM}-${tx}-${ty}.webp`)),i=((Math.floor(y)-ty*TILE)*TILE+(Math.floor(x)-tx*TILE))*3;return t.rgb[i]*256+t.rgb[i+1]+t.rgb[i+2]/256-32768;};
+ const elevation=(x,y)=>{const tx=Math.floor(x/TILE),ty=Math.floor(y/TILE),t=decoded.get(tileFile(ZOOM,tx,ty)),i=((Math.floor(y)-ty*TILE)*TILE+(Math.floor(x)-tx*TILE))*3;return t.rgb[i]*256+t.rgb[i+1]+t.rgb[i+2]/256-32768;};
  const sample=(x,y)=>{x-=.5;y-=.5;const i=Math.floor(x),j=Math.floor(y),a=x-i,b=y-j;return (elevation(i,j)*(1-a)+elevation(i+1,j)*a)*(1-b)+(elevation(i,j+1)*(1-a)+elevation(i+1,j+1)*a)*b;};
 
  // Raw elevation on the local grid (x east, z south).
@@ -313,9 +344,9 @@ export async function buildTerrain(id,{refresh=false}={}){
  const source=def.terrainSource||(lon0>19&&lon0<32&&lat0>59.5&&lat0<70.2?TERRAIN_SOURCES.fi:TERRAIN_SOURCES.default);
  const packed=gzipSync(encodeTerrain({size,cell:CELL,extent:EXTENT,base,ground,water,lake,source}),{level:9});
  fs.writeFileSync(path.join(OUT,'terrain.pack'),packed);
- const regFile='public/cities/index.json',reg=JSON.parse(fs.readFileSync(regFile)),entry=reg.cities.find(c=>c.id===id);
- const summary={file:'terrain.pack',cell:CELL,base,min:+lo.toFixed(1),max:+hi.toFixed(1),bridges:chains.length,gradeSpikes:spikes.length,source};
- if(entry){entry.terrain=summary;if(!entry.attribution.includes(source))entry.attribution=`${entry.attribution} ${source}`;fs.writeFileSync(regFile,JSON.stringify(reg,null,1));}
+ const summary={file:'terrain.pack',cell:CELL,zoom:ZOOM,base,min:+lo.toFixed(1),max:+hi.toFixed(1),bridges:chains.length,gradeSpikes:spikes.length,source};
+ const regFile='public/cities/index.json',reg=register&&fs.existsSync(regFile)?JSON.parse(fs.readFileSync(regFile)):null,entry=reg?.cities.find(c=>c.id===id);
+ if(entry){registerTerrain(entry,summary);fs.writeFileSync(regFile,JSON.stringify(reg,null,1));}
  console.log(`terrain: ${size}×${size} cells of ${CELL} m, ${(packed.length/1024).toFixed(0)} kB; ground ${lo.toFixed(1)}–${hi.toFixed(1)} m in the playable circle (base ${base} m); ${chains.length} bridges; ${mask.reduce((a,b)=>a+b,0)} water cells, ${lakeCells(lake)} lake cells`);
  return summary;
 }

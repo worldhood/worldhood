@@ -99,7 +99,14 @@ Open `http://localhost:5173/?city=<id>`.
 | Command | What it does |
 | --- | --- |
 | `city:new` | Finds the city by name (OpenStreetMap Nominatim) and writes `cities/<id>/city.json`: centre, radius, empty `starts` and `maintainers` |
-| `city:build` | Downloads OpenStreetMap data around the centre and builds the game data in `public/cities/<id>/`, registering it in `public/cities/index.json` |
+| `city:build` | Downloads OpenStreetMap data around the centre and builds the game data in `public/cities/<id>/`, registering it in `public/cities/index.json` and the README cities table |
+
+`city:build` builds into a staging folder (`public/cities/.<id>.staging`) and swaps it in only when
+everything, terrain included, has succeeded and passed a check (`city.pack` and `mobility.json` present,
+every file under 24 MiB for static hosting). If a download or step fails, the city you had stays playable
+and the staging folder is removed; just run the command again. What other commands added to the city
+(extension regions, place photo textures, Mapillary furniture) is carried into the rebuild with its credits. Downloads are cached in
+`data/raw/cities/<id>/`, so a rerun only fetches what is missing (`--refresh` fetches everything again).
 
 What `city:build` produces:
 - **Buildings:** 3D, at their tagged height or `building:levels`, otherwise a typical height for the building type.
@@ -119,8 +126,34 @@ Check:
 If a start lands somewhere odd, add your own in `cities/<id>/city.json` and rebuild:
 
 ```json
-"starts": [{"name": "Keskustori", "at": [23.7608, 61.4980]}]
+"starts": [
+ {"name": "Keskustori", "at": [23.7608, 61.4980]},
+ {"name": "Railway station", "position": [23.7735, 61.4985], "heading": 270, "district": "Keskusta", "street": "Rautatienkatu"}
+],
+"defaultStart": "Keskustori"
 ```
+
+| Field | Meaning |
+| --- | --- |
+| `name` | Shown in the start picker and used in `?start=` links; must be unique |
+| `at` | `[lon, lat]`, moved onto the nearest drivable street |
+| `position` | `[lon, lat]` used exactly as given (instead of `at`), e.g. a car park or a square the snap misses |
+| `heading` | Optional: the direction the car faces, compass degrees (0 = north, 90 = east); default along the nearest street |
+| `district`, `street` | Optional labels; default the city name and the nearest street's name |
+| `defaultStart` | Optional, top level: the start the game opens at; default the first start |
+
+Your starts come first, then the best-known places, up to 8 in all.
+
+**Slow or busy Overpass servers.** Downloads retry across several public Overpass servers with a
+growing wait, and public transport is fetched one route type at a time in batches, so large radii work.
+For a big city, tune it in `city.json`:
+
+```json
+"overpass": {"timeout": 600, "attempts": 8, "backoffSeconds": 20, "transitBatch": 20, "transitTypes": ["tram", "light_rail", "bus"]}
+```
+
+`timeout` is seconds per query, `transitBatch` the number of routes per request; `transitTypes` defaults
+to tram, light rail, trolleybus and bus.
 
 ## Stage 2: make the data right
 
@@ -178,6 +211,11 @@ can also run on its own after any rebuild:
 
 Check: drive the steepest street you know, look at the main bridge from the water, and see that lakes
 sit at their own levels. Put `"terrain": false` in `cities/<id>/city.json` to keep a city flat.
+
+Tiles are read at zoom 15 (about 2–3 m pixels at northern latitudes). Set `"terrainZoom"` (10–18) in
+`city.json` for finer or coarser tiles; where Mapterhorn has no tiles at that zoom for your area, the build
+steps down a zoom at a time and says so. A terrain failure stops `city:build` and keeps the previous
+version, so a hilly city is never replaced by a flat one by accident.
 
 ### Street furniture from Mapillary detections
 

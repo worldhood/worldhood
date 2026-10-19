@@ -7,6 +7,7 @@ import {execFileSync} from 'node:child_process';
 
 const [id,query,radius='1500']=process.argv.slice(2);
 if(!/^[a-z0-9-]+$/.test(id||'')||!query)throw Error('Usage: npm run city:new -- <id> "<place name>" [radiusMetres]');
+if(!(+radius>=200&&+radius<=10000))throw Error(`radiusMetres must be a number from 200 to 10000, not “${radius}”`);
 const file=path.join('cities',id,'city.json');
 if(fs.existsSync(file))throw Error(`${file} already exists`);
 const url=`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(query)}&format=json&limit=1&addressdetails=1`;
@@ -16,7 +17,7 @@ const lon=+(+place.lon).toFixed(5),lat=+(+place.lat).toFixed(5);
 const city={schemaVersion:1,id,name:place.name||query,country:place.address?.country||'',
  origin:[lon,lat],radiusMetres:+radius,
  maintainers:[],status:'draft',
- note:'Origin and radius define the playable circle. Starts are chosen automatically from well-known named places; add your own in "starts".',
+ note:'Origin and radius define the playable circle. Starts are chosen automatically from well-known named places; add your own in "starts" ({"name", "at": [lon, lat]} snaps to the nearest street, "position" instead of "at" is exact; optional "heading" in compass degrees, "district", "street") and pick the first one with "defaultStart". See docs/BUILD_YOUR_CITY.md.',
  starts:[],
  source:{geocoder:'Nominatim / OpenStreetMap',displayName:place.display_name}};
 fs.mkdirSync(path.dirname(file),{recursive:true});

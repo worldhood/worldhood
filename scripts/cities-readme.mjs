@@ -1,7 +1,7 @@
 // npm run cities:readme
 // Rewrites the cities table in README.md (between the CITIES markers) from
 // src/cities.js (built-in Helsinki) and public/cities/index.json (built cities).
-// city:build runs this automatically, so a new city shows up in the README.
+// city:build runs this automatically at its end, so a new city shows up in the README.
 import fs from 'node:fs';
 import {execFileSync} from 'node:child_process';
 

@@ -1,11 +1,12 @@
-import {surfaceRecord} from '../src/surface-streaming.js';
 // npm run city:build -- <id> [--refresh]
 // Builds a playable city from OpenStreetMap (ODbL) around cities/<id>/city.json:
 // footprint-extruded 3D buildings, road and pavement polygons, water, parks,
 // trees, a routable traffic graph with signals, and named start points.
 // Output: public/cities/<id>/ in the same formats as Helsinki's public/data,
-// plus a registry entry in public/cities/index.json. Raw downloads are cached
-// in data/raw/cities/<id>/ (ignored by git).
+// plus a registry entry in public/cities/index.json and the README cities table.
+// Raw downloads are cached in data/raw/cities/<id>/ (ignored by git). The city is
+// built in a staging folder and replaces the playable one only once complete
+// (terrain included), so a failed run leaves the previous version in place.
 import fs from 'node:fs';
 import path from 'node:path';
 import {gzipSync} from 'node:zlib';
@@ -19,43 +20,41 @@ import {surfaceChunks} from './world-formats.mjs';
 import {usableBusPaths} from '../src/bus-simulation.js';
 import {addBusLanes} from './bus-lanes.mjs';
 import {routePoint} from '../src/mobility.js';
+import {surfaceRecord} from '../src/surface-streaming.js';
+import {buildArgs,overpass as overpassQuery,overpassSettings,fetchTransit,beginStage,carryOver,keepRegistered,parseStarts,placeStart,defaultStartName} from './city-build-tools.mjs';
 
-const id=process.argv[2],refresh=process.argv.includes('--refresh');
-if(!/^[a-z0-9-]+$/.test(id||''))throw Error('Usage: npm run city:build -- <id>');
-const def=JSON.parse(fs.readFileSync(path.join('cities',id,'city.json')));
-const RAW=path.join('data/raw/cities',id),OUT=path.join('public/cities',id),URL_DIR=`/cities/${id}`;
-fs.mkdirSync(RAW,{recursive:true});fs.rmSync(OUT,{recursive:true,force:true});for(const d of ['buildings3d','surfaces'])fs.mkdirSync(path.join(OUT,d),{recursive:true});
+const {id,refresh}=buildArgs(process.argv.slice(2));
+const def=JSON.parse(fs.readFileSync(path.join('cities',id,'city.json'))),settings=overpassSettings(def);
+const RAW=path.join('data/raw/cities',id),URL_DIR=`/cities/${id}`;
 const [lon0,lat0]=def.origin,R=def.radiusMetres,EXTENT=Math.round(R*1.25);
 const projection=`+proj=tmerc +lat_0=${lat0} +lon_0=${lon0} +k=1 +x_0=0 +y_0=0 +ellps=GRS80 +units=m +no_defs`;
 const toLocal=proj4('EPSG:4326',projection),round=n=>Math.round(n*100)/100;
 const local=(lon,lat)=>{const [x,y]=toLocal.forward([lon,lat]);return [round(x),round(-y)];};
 const square=[[[-EXTENT,-EXTENT],[EXTENT,-EXTENT],[EXTENT,EXTENT],[-EXTENT,EXTENT],[-EXTENT,-EXTENT]]];
+const manualStarts=parseStarts(def,local); // checked before any download
+// Everything is written to the staging folder; it is removed on any failure (or Ctrl+C) and swapped in at the end.
+fs.mkdirSync(RAW,{recursive:true});
+const stage=beginStage('public/cities',id),OUT=stage.stage;
+process.on('exit',()=>stage.abort());process.on('SIGINT',()=>process.exit(130));
+for(const d of ['buildings3d','surfaces'])fs.mkdirSync(path.join(OUT,d),{recursive:true});
 
-// ---------- Overpass (cached; falls back to a mirror when the main server is busy) ----------
-const ENDPOINTS=['https://overpass-api.de/api/interpreter','https://overpass.private.coffee/api/interpreter','https://overpass.kumi.systems/api/interpreter','https://maps.mail.ru/osm/tools/overpass/api/interpreter'];
-function overpass(name,body){
+// ---------- Overpass (cached; retries rotate over mirrors with a growing wait; city.json "overpass" tunes it) ----------
+async function overpass(name,body){
  const file=path.join(RAW,name+'.json');if(fs.existsSync(file)&&!refresh)return JSON.parse(fs.readFileSync(file));
- const q=`[out:json][timeout:240];${body}`;
- for(let attempt=0;attempt<6;attempt++){
-  const endpoint=ENDPOINTS[attempt%ENDPOINTS.length];
-  try{const text=execFileSync('curl',['-sS','-f','--max-time','300','-A','worldhood/0.1 (city build)','--data-urlencode',`data=${q}`,endpoint],{encoding:'utf8',maxBuffer:1<<30});
-   const json=JSON.parse(text);fs.writeFileSync(file,text);console.log(`  ${name}: ${json.elements.length} elements`);return json;}
-  catch(error){console.log(`  ${name}: retry ${attempt+1} (${String(error.message).slice(0,80)})`);execFileSync('sleep',[String(10+attempt*10)]);}
- }
- throw Error(`Overpass failed for ${name}`);
+ const json=await overpassQuery(body,{name,...settings});fs.writeFileSync(file,JSON.stringify(json));console.log(`  ${name}: ${json.elements.length} elements`);return json;
 }
 const around=`(around:${Math.round(EXTENT*1.42)},${lat0},${lon0})`;
 console.log(`Fetching OpenStreetMap around ${def.name}…`);
-const areas=overpass('areas',`(way["building"]${around};relation["building"]["type"="multipolygon"]${around};way["natural"="water"]${around};relation["natural"="water"]${around};way["waterway"="riverbank"]${around};way["leisure"~"^(park|garden|playground|pitch)$"]${around};relation["leisure"="park"]${around};way["landuse"~"^(grass|forest|recreation_ground|meadow|cemetery|village_green)$"]${around};way["natural"~"^(wood|scrub|grassland)$"]${around};way["area:highway"]${around};way["highway"="pedestrian"]["area"="yes"]${around};);out geom tags;`);
-const ways=overpass('highways',`(way["highway"]${around};);out body;>;out skel qt;`);
+const areas=await overpass('areas',`(way["building"]${around};relation["building"]["type"="multipolygon"]${around};way["natural"="water"]${around};relation["natural"="water"]${around};way["waterway"="riverbank"]${around};way["leisure"~"^(park|garden|playground|pitch)$"]${around};relation["leisure"="park"]${around};way["landuse"~"^(grass|forest|recreation_ground|meadow|cemetery|village_green)$"]${around};way["natural"~"^(wood|scrub|grassland)$"]${around};way["area:highway"]${around};way["highway"="pedestrian"]["area"="yes"]${around};);out geom tags;`);
+const ways=await overpass('highways',`(way["highway"]${around};);out body;>;out skel qt;`);
 // Two light queries rather than one heavy one: public Overpass servers time out on large mixed requests.
-const nodePoints=overpass('nodes',`(node["natural"="tree"]${around};node["highway"="traffic_signals"]${around};);out;`);
-const places=overpass('places',`(nwr["name"]["tourism"~"^(attraction|museum|viewpoint|gallery)$"]${around};nwr["name"]["place"="square"]${around};nwr["name"]["amenity"~"^(townhall|theatre|concert_hall|library|place_of_worship)$"]${around};nwr["name"]["railway"="station"]${around};nwr["name"]["historic"~"^(monument|memorial|castle|building|church)$"]${around};);out center tags;`);
+const nodePoints=await overpass('nodes',`(node["natural"="tree"]${around};node["highway"="traffic_signals"]${around};);out;`);
+const places=await overpass('places',`(nwr["name"]["tourism"~"^(attraction|museum|viewpoint|gallery)$"]${around};nwr["name"]["place"="square"]${around};nwr["name"]["amenity"~"^(townhall|theatre|concert_hall|library|place_of_worship)$"]${around};nwr["name"]["railway"="station"]${around};nwr["name"]["historic"~"^(monument|memorial|castle|building|church)$"]${around};);out center tags;`);
 const points={elements:[...nodePoints.elements,...places.elements]};
 // Public transport: route relations with geometry clipped to the city box, plus named stops.
 const box=(()=>{const inv=proj4(projection,'EPSG:4326');const [w,sLat]=inv.forward([-EXTENT,-EXTENT]),[e,n]=inv.forward([EXTENT,EXTENT]);return [sLat,w,n,e].map(v=>+v.toFixed(5));})();
-const transit=overpass('transit',`(relation["type"="route"]["route"~"^(tram|bus|trolleybus|light_rail)$"](${box.join(',')}););out geom(${box.join(',')});`);
-const stopNodes=overpass('stops',`(node["railway"="tram_stop"]${around};node["public_transport"="stop_position"]${around};node["highway"="bus_stop"]${around};);out;`);
+const transit=await fetchTransit(overpass,{bbox:box.join(','),types:settings.types,batch:settings.batch});
+const stopNodes=await overpass('stops',`(node["railway"="tram_stop"]${around};node["public_transport"="stop_position"]${around};node["highway"="bus_stop"]${around};);out;`);
 
 // ---------- Geometry helpers ----------
 const key=p=>`${p[0].toFixed(2)},${p[1].toFixed(2)}`;
@@ -268,16 +267,18 @@ const buildingIndex=new SpatialIndex(city.buildings);
 const fame=t=>(t.wikidata?3:0)+(t.wikipedia?2:0)+(t.tourism?2:0)+(t.place==='square'?3:0)+(t.amenity==='townhall'||t.railway==='station'?3:0)+(t.historic?1:0);
 const seen=new Set(),candidates=points.elements.filter(e=>e.tags?.name&&(e.lat||e.center)).map(e=>{const c=e.center||e;return {name:e.tags.name,p:local(c.lon,c.lat),score:fame(e.tags)};})
  .filter(c=>Math.hypot(...c.p)<R-60).sort((a,b)=>b.score-a.score||Math.hypot(...a.p)-Math.hypot(...b.p));
-const drivable=city.roads.filter(r=>!/muu/.test(r.kind)),manual=(def.starts||[]).map(s=>({name:s.name,p:local(...s.at),score:99}));
+const drivable=city.roads.filter(r=>!/muu/.test(r.kind)),manual=manualStarts.map(s=>({...s,manual:true}));
+// Face along the nearest car edge unless the start gives its own heading.
+const headingAt=(x,z)=>{let best=null;for(const e of mobility.roads.edges)for(let i=1;i<e.points.length;i++){const a=e.points[i-1],b=e.points[i],dx=b[0]-a[0],dz=b[1]-a[1],l=dx*dx+dz*dz;if(!l)continue;const t=Math.max(0,Math.min(1,((x-a[0])*dx+(z-a[1])*dz)/l)),d=Math.hypot(a[0]+dx*t-x,a[1]+dz*t-z);if(!best||d<best.d)best={d,dx,dz};}
+ return best?+Math.atan2(-best.dx,-best.dz).toFixed(4):0;};
+const snap=p=>nearestRoadPoint(p[0],p[1],drivable,buildingIndex);
 for(const c of [...manual,...candidates]){
  if(city.landmarks.length>=8)break;if(seen.has(c.name))continue;
- try{const p=nearestRoadPoint(c.p[0],c.p[1],drivable,buildingIndex);
-  // Face along the nearest car edge.
-  let best=null;for(const e of mobility.roads.edges)for(let i=1;i<e.points.length;i++){const a=e.points[i-1],b=e.points[i],dx=b[0]-a[0],dz=b[1]-a[1],l=dx*dx+dz*dz;if(!l)continue;const t=Math.max(0,Math.min(1,((p.x-a[0])*dx+(p.z-a[1])*dz)/l)),d=Math.hypot(a[0]+dx*t-p.x,a[1]+dz*t-p.z);if(!best||d<best.d)best={d,dx,dz};}
-  city.landmarks.push({name:c.name,district:def.name,street:p.name||'',x:p.x,z:p.z,heading:best?+Math.atan2(-best.dx,-best.dz).toFixed(4):0});seen.add(c.name);
- }catch{}
+ try{city.landmarks.push(placeStart(c,{snap,headingAt,district:def.name}));seen.add(c.name);}
+ catch(error){if(c.manual)console.log(`start ${c.name}: no drivable street nearby, skipped (use "position" to place it exactly): ${error.message}`);}
 }
 if(!city.landmarks.length)throw Error('No drivable start point found; add one under "starts" in city.json');
+const defaultStart=defaultStartName(def,city.landmarks);
 
 // ---------- Write ----------
 fs.writeFileSync(path.join(OUT,'city.pack'),gzipSync(Buffer.from(JSON.stringify(city)),{level:9}));
@@ -326,21 +327,31 @@ fs.writeFileSync(path.join(OUT,'bus-corridors.json'),JSON.stringify({source:'Ope
 fs.writeFileSync(path.join(OUT,'landcover.json'),JSON.stringify({polygons:[]}));
 // Emit an empty catalog too: static hosts may serve the homepage for missing
 // JSON paths, so a city without extensions must not rely on a 404 response.
+carryOver(stage.out,OUT); // extensions, place textures and furniture made by other commands
 fs.mkdirSync(path.join(OUT,'extensions'),{recursive:true});
 const extensionCatalog=path.join(OUT,'extensions/index.json');
 if(!fs.existsSync(extensionCatalog))fs.writeFileSync(extensionCatalog,JSON.stringify({schemaVersion:1,extensions:[]}));
 const counts={official:officialCount,buildings:registry,roads:city.roads.length,pavement:city.pavement.length,parks:city.parks.length,water:city.water.length,trees:city.trees.length,roadEdges:mobility.roads.edges.length,walkEdges:mobility.walks.edges.length,signals:signals.length,starts:city.landmarks.length,tramRoutes:tramPaths.length,tramLines:[...new Set(tramPaths.map(p=>p.line))].join(' '),busRoutes:busPaths.length,busCorridors:usableBuses.length,stops:transitStops.length};
+const entry={id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,police:def.police||undefined,
+ attribution:'Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright).'+(def.official?` ${def.official.attribution}.`:'')+' Building heights from OSM tags or estimated by building type.',fetchedAt:city.fetchedAt,counts};
+// Hills: ground elevation from open terrain tiles (scripts/city-terrain.mjs); "terrain": false in city.json keeps the city flat.
+// A terrain failure stops the build, so a hilly city is never replaced by a flat one.
+if(def.terrain!==false){const terrain=await import('./city-terrain.mjs');
+ try{terrain.registerTerrain(entry,await terrain.buildTerrain(id,{refresh,out:OUT,register:false}));}
+ catch(error){throw Error(`terrain failed (${error.message}); the previous version stays. Retry, or set "terrain": false in city.json to build the city flat`);}}
+// Complete: swap the new city in, then register it.
+stage.commit();
 const regFile='public/cities/index.json',registryFile=fs.existsSync(regFile)?JSON.parse(fs.readFileSync(regFile)):{schemaVersion:1,cities:[]};
-registryFile.cities=[...registryFile.cities.filter(c=>c.id!==id),{id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart:city.landmarks[0].name,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,police:def.police||undefined,
- attribution:'Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright).'+(def.official?` ${def.official.attribution}.`:'')+' Building heights from OSM tags or estimated by building type.',fetchedAt:city.fetchedAt,counts}];
+registryFile.cities=[...registryFile.cities.filter(c=>c.id!==id),keepRegistered(registryFile.cities.find(c=>c.id===id),entry)];
 fs.writeFileSync(regFile,JSON.stringify(registryFile,null,1));
 (await import('./facades.mjs')).shipFacades(id); // façades described from street-level photos, if any (cities/<id>/facades.json)
 // Photo-matched places (cities/<id>/<place>-reference.json): square paving, tram stops, species trees, landmarks.
 {const places=await import('./place-build.mjs');for(const p of places.placesOf(id))console.log(`place ${p}:`,JSON.stringify(places.buildPlace(id,p,{refresh})));}
-// Hills: ground elevation from open terrain tiles (scripts/city-terrain.mjs); "terrain": false in city.json keeps the city flat.
-if(def.terrain!==false)try{await (await import('./city-terrain.mjs')).buildTerrain(id,{refresh});}catch(error){console.log(`terrain skipped, the city stays flat: ${error.message}`);}
-console.log(JSON.stringify({city:def.name,counts,starts:city.landmarks.map(l=>`${l.name} (${l.street})`)},null,1));
+console.log(JSON.stringify({city:def.name,counts,starts:city.landmarks.map(l=>`${l.name} (${l.street})`),defaultStart},null,1));
 
 // ---------- Street furniture from Mapillary detections (optional: runs when MAPILLARY_TOKEN is set) ----------
 // Lamps, signals, signs, bins and boxes at their photographed positions; see scripts/mapillary-features.mjs.
 if((await import('./env.mjs')).env('MAPILLARY_TOKEN'))await (await import('./mapillary-features.mjs')).buildFurniture(id,{refresh});
+// The README cities table and map (scripts/cities-readme.mjs). Run from here, not chained in package.json,
+// because npm passes `-- <id>` only to the last command of a script.
+execFileSync(process.execPath,['scripts/cities-readme.mjs'],{stdio:'inherit'});

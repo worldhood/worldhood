@@ -18,3 +18,7 @@ docs/RELEASE_REVIEW.md
 # Blender working files: rebuild with scripts/build-senate-assets.py (they record local paths)
 *.blend
 *.blend1
+
+# Staging folders of an interrupted city:build (scripts/city-build-tools.mjs)
+public/cities/.*.staging/
+public/cities/.*.previous/

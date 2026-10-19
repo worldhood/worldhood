@@ -9,7 +9,9 @@ The URL selects a city: `?city=helsinki&start=seurasaari-bridge` or `?city=tampe
 ## Step 1: register the city
 
 `npm run city:build -- <id>` writes the city's entry to `public/cities/index.json`, which the game
-reads at startup. Helsinki is the one built-in exception, listed in `src/cities.js`.
+reads at startup. Helsinki is the one built-in exception, listed in `src/cities.js`. The entry's
+`defaultStart` is `"defaultStart"` from `cities/<id>/city.json`, else the first start (see
+[start points](BUILD_YOUR_CITY.md#stage-1-a-drivable-city-about-10-minutes)).
 
 | Field | Meaning |
 | --- | --- |
