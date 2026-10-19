@@ -100,7 +100,7 @@ import {createParkedMicromobility} from './parked-micromobility.js';
 import {Finale} from './finale.js';
 import {createRoadblock} from './roadblock.js';
 import {createMappedFurniture} from './mapped-furniture.js';
-import {createPlace} from './place-scene.js';
+import {createPlace,loadPlaceModels} from './place-scene.js';
 import {createSpeciesTrees} from './tree-species.js';
 import {createTreeTrunks} from './tree-trunks.js';
 import {PlayerTravel,TRAVEL_MODES} from './player-travel.js';
@@ -902,18 +902,18 @@ async function boot(){
    knockables=combineKnockables([knockables,breakableSigns]);
    return {streetObstacles,ads,crossingSigns,routeCrossingSigns,roadworks,senateProps,furniture,micromobility,market,kaivokatuDetails};
    }
-   function genericScenery(){
+   function genericScenery(placeModels){
     const empty=()=>({group:new THREE.Group(),userData:{},obstacles:[]});
     const life=()=>({group:new THREE.Group(),people:[],update(){},reset(){},snapshot:()=>({})});
     marketLife=life();universityLife=life();terminalLife=life();detailPeople=[];
     harbour={group:new THREE.Group(),obstacles:[],knockables:null};knockables=combineKnockables([breakableSigns]); // traffic-signal posts bend when hit, in every city
     finale.zone=null; // station tram scheduling is Helsinki-specific
-    const streetObstacles=[];for(const pl of places){const p=createPlace(pl,{textureUrl:dataUrl});cityModel.add(settleObject(p.group,{skip:o=>o.userData.municipalElevation||o.userData.fixedElevation}));streetObstacles.push(...p.obstacles);}
+    const streetObstacles=[];for(const pl of places){const p=createPlace(pl,{textureUrl:dataUrl,models:placeModels});cityModel.add(settleObject(p.group,{skip:o=>o.userData.municipalElevation||o.userData.fixedElevation}));streetObstacles.push(...p.obstacles);}
     return {streetObstacles,ads:empty(),crossingSigns:empty(),routeCrossingSigns:empty(),roadworks:empty(),senateProps:empty(),furniture:empty(),
      micromobility:{...empty(),knockables:{snapshot:()=>({})}},market:empty(),kaivokatuDetails:empty()};
    }
    progress(30,`Loading ${city.name} streets`);
-   const {streetObstacles,ads,crossingSigns,routeCrossingSigns,roadworks,senateProps,furniture,micromobility,market,kaivokatuDetails}=helsinki?await buildHelsinkiScenery():genericScenery();
+   const {streetObstacles,ads,crossingSigns,routeCrossingSigns,roadworks,senateProps,furniture,micromobility,market,kaivokatuDetails}=helsinki?await buildHelsinkiScenery():genericScenery(await loadPlaceModels(places));
    staticCars=[...(furniture.enterableCars||[]),...(harbour.enterableCars||[]),...(stationStreetLife?.enterableCars||[])];
    // Detected street furniture: solid boxes join the obstacles; posts, bins and barriers can be knocked down.
    const mapped=furnitureData&&await furnitureData;let mappedFurniture=null;

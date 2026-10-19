@@ -284,7 +284,9 @@ const headingAt=(x,z)=>{let best=null;for(const e of mobility.roads.edges)for(le
 const snap=p=>nearestRoadPoint(p[0],p[1],drivable,buildingIndex);
 for(const c of [...manual,...candidates]){
  if(city.landmarks.length>=8)break;if(seen.has(c.name))continue;
- try{city.landmarks.push(placeStart(c,{snap,headingAt,district:def.name}));seen.add(c.name);}
+ try{const start=placeStart(c,{snap,headingAt,district:def.name});
+  if(!c.manual&&city.landmarks.some(l=>Math.hypot(l.x-start.x,l.z-start.z)<40))continue; // one start per spot
+  city.landmarks.push(start);seen.add(c.name);}
  catch(error){if(c.manual)console.log(`start ${c.name}: no drivable street nearby, skipped (use "position" to place it exactly): ${error.message}`);}
 }
 if(!city.landmarks.length)throw Error('No drivable start point found; add one under "starts" in city.json');
@@ -342,7 +344,7 @@ fs.mkdirSync(path.join(OUT,'extensions'),{recursive:true});
 const extensionCatalog=path.join(OUT,'extensions/index.json');
 if(!fs.existsSync(extensionCatalog))fs.writeFileSync(extensionCatalog,JSON.stringify({schemaVersion:1,extensions:[]}));
 const counts={official:officialCount,buildings:registry,roads:city.roads.length,pavement:city.pavement.length,parks:city.parks.length,water:city.water.length,trees:city.trees.length,roadEdges:mobility.roads.edges.length,walkEdges:mobility.walks.edges.length,signals:signals.length,starts:city.landmarks.length,tramRoutes:tramPaths.length,tramLines:[...new Set(tramPaths.map(p=>p.line))].join(' '),busRoutes:busPaths.length,busCorridors:usableBuses.length,stops:transitStops.length};
-const entry={id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,police:def.police||undefined,
+const entry={id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,police:def.police||undefined,helpWanted:def.helpWanted||undefined,
  attribution:'Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright).'+(def.official?` ${def.official.attribution}.`:'')+' Building heights from OSM tags or estimated by building type.',fetchedAt:city.fetchedAt,counts};
 // Hills: ground elevation from open terrain tiles (scripts/city-terrain.mjs); "terrain": false in city.json keeps the city flat.
 // A terrain failure stops the build, so a hilly city is never replaced by a flat one.

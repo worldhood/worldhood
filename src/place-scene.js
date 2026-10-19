@@ -2,10 +2,6 @@ import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {createPlaceLandmarks} from './place-landmarks.js';
 import {createPhotoPanels} from './photo-panels.js';
-import {createOuluMarket} from './oulu-market.js';
-import {createMunicipalWaterfront} from './municipal-waterfront.js';
-import {createOuluCityHall} from './oulu-city-hall.js';
-import {createOuluCathedral} from './oulu-cathedral.js';
 
 // Draws a photo-matched place built by scripts/place-build.mjs (public/cities/<id>/places/<place>.json):
 // paving with the real materials and patterns, raised tram platforms with kerbs and warning strips,
@@ -125,7 +121,19 @@ function lampMastGeometry(H,colour,globe,B,G){
  for(const [x,z] of [[1,0],[-1,0],[0,1],[0,-1]]){const d=new THREE.SphereGeometry(.38,12,6,0,Math.PI*2,0,Math.PI/2);d.translate(x,H-.42,z);G.add(d,globe);B.add(cyl(.05,.05,.3,x,H-.45,z,6),colour);}
 }
 
-export function createPlace(place,{textureUrl=f=>f}={}){
+// Bespoke landmark models a place can carry (place.<key>). Each module is fetched only when a loaded
+// place uses it, so one city's landmarks never load in another: await loadPlaceModels(places) and
+// pass the result to createPlace.
+const PLACE_MODELS={
+ ouluMarket:()=>import('./oulu-market.js').then(m=>m.createOuluMarket),
+ municipalModels:()=>import('./municipal-waterfront.js').then(m=>specs=>({group:m.createMunicipalWaterfront(specs),obstacles:[]})),
+ ouluCityHall:()=>import('./oulu-city-hall.js').then(m=>m.createOuluCityHall),
+ ouluCathedral:()=>import('./oulu-cathedral.js').then(m=>m.createOuluCathedral),
+};
+export async function loadPlaceModels(places){
+ const out={};await Promise.all(Object.entries(PLACE_MODELS).filter(([k])=>places.some(p=>p?.[k])).map(async([k,load])=>{out[k]=await load();}));return out;
+}
+export function createPlace(place,{textureUrl=f=>f,models={}}={}){
  const group=new THREE.Group();group.name=`Place: ${place.name}`;const angle=(place.gridAngle||0)*Math.PI/180,col={...place.colours};
  const obstacles=[],B=new Batch(),G=new Batch(),glass=new Batch();
  // Paving: one mesh per kind.
@@ -188,10 +196,10 @@ export function createPlace(place,{textureUrl=f=>f}={}){
  const lamps=G.mesh(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.4,emissive:'#fffbe8',emissiveIntensity:.25}),'Place lamp globes');if(lamps)group.add(lamps);
  const glassMesh=glass.mesh(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.08,metalness:.1,transparent:true,opacity:.32,depthWrite:false,side:THREE.DoubleSide}),'Place glass');if(glassMesh){glassMesh.castShadow=false;glassMesh.renderOrder=4;group.add(glassMesh);}
  const landmarks=createPlaceLandmarks(place.landmarks||[],{heights:place.heights});group.add(landmarks.group);obstacles.push(...landmarks.obstacles);
- if(place.ouluMarket){const market=createOuluMarket(place.ouluMarket);group.add(market.group);obstacles.push(...market.obstacles);}
- if(place.municipalModels)group.add(createMunicipalWaterfront(place.municipalModels));
- if(place.ouluCityHall){const hall=createOuluCityHall(place.ouluCityHall);group.add(hall.group);obstacles.push(...hall.obstacles);}
- if(place.ouluCathedral){const cathedral=createOuluCathedral(place.ouluCathedral);group.add(cathedral.group);obstacles.push(...cathedral.obstacles);}
+ for(const key of Object.keys(PLACE_MODELS))if(place[key]){
+  if(!models[key])throw Error(`${place.place}: ${key} model not loaded (loadPlaceModels)`);
+  const model=models[key](place[key]);group.add(model.group);obstacles.push(...model.obstacles);
+ }
  const panels=createPhotoPanels(place.photoPanels||[],{ringOf:p=>p.ring,urlOf:p=>textureUrl(p.texture),loader:typeof document==='undefined'?null:new THREE.TextureLoader()});group.add(panels);
  group.userData={place:place.place,paving:place.paving?.length||0,platforms:place.platforms?.length||0,shelters:place.shelters?.length||0,masts:place.masts?.length||0,lamps:place.lamps?.length||0,landmarks:landmarks.group.userData,photoPanels:panels.userData.panels};
  return {group,obstacles};

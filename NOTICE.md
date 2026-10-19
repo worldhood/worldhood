@@ -15,6 +15,7 @@ that the notices match the locked runtime packages and bundled fonts.
 | Source code, scripts, tests, docs | MIT | `src/`, `scripts/`, `tests/`, `docs/` |
 | Original assets made for this project (procedural models, `senate-pavilions` model and source) | MIT | `public/models/senate-pavilions.glb`, `assets/source/` |
 | City of Helsinki map, 3D and imagery data | CC BY 4.0 | most of `public/data/` |
+| Oulu place and façade notes written from CC0 Wikimedia Commons photos (Estormiz, Leonhard Lenz, Alphaios) and from photographs by zaw-ye-tun; no photos distributed | Contributed under the project's terms; the Commons sources are CC0 (see the Oulu section below) | Descriptive notes in `cities/oulu/*.json` and `public/cities/oulu/facades.json` |
 | City of Oulu legacy municipal 3D model, tile 212221 (2017); two building shells converted, clipped and recoloured | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), City of Oulu; [source](https://api.ouka.fi/3d/index_en.html) | `cities/oulu/waterfront-model.json`, municipal mesh data in `public/cities/oulu/places/waterfront.json` |
 | City of Oulu legacy municipal 3D model, tile 212221, component 226; converted City Hall height and registration reference | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), City of Oulu; [source](https://api.ouka.fi/3d/Mallit/212221.html) | `cities/oulu/city-hall-model.json`, height reference in `public/cities/oulu/places/city-hall.json`; detailed facade/roof geometry is separately photo-interpreted |
 | City of Espoo 3D city model (CityGML LOD2 with 2024 photo textures), street areas, centrelines, trees, park register areas and districts | CC BY 4.0, © Espoon kaupunki | `public/data/extensions/espoo/` (except `osm-water.json`, `osm-landcover.json` and `surfaces/osm-*`) |
@@ -25,8 +26,8 @@ that the notices match the locked runtime packages and bundled fonts.
 | OpenStreetMap-derived route outlines and landmark positions | ODbL 1.0 | `extensions/*/route.json`, `knownFor[].at` in `extensions/*/extension.json` |
 | Cities built from OpenStreetMap (`npm run city:build`) | ODbL 1.0, © OpenStreetMap contributors | `public/cities/**`, `cities/*/city.json` |
 | Street furniture positions extracted by Mapillary (`npm run city:furniture`) | Mapillary Terms of Use; downstream dataset redistribution rights need confirmation | Mapillary-derived entries in `public/cities/*/furniture.json` |
-| Façade descriptions written from Mapillary street-level photos (`npm run facades:photos`) | CC BY-SA 4.0, © Mapillary contributors | `cities/*/facades.json`, `public/cities/*/facades.json` |
-| Place descriptions written from current photos on Wikimedia Commons and Mapillary (`npm run photos:fetch`) | CC BY-SA 4.0 (the photos' licences: CC BY-SA 3.0/4.0) | `cities/*/*-reference.json`, `cities/*/*-sources.json` |
+| Façade descriptions written from Mapillary street-level photos (`npm run facades:photos`) | CC BY-SA 4.0, © Mapillary contributors | `cities/*/facades.json`, `public/cities/*/facades.json` (Oulu: see the Oulu rows) |
+| Place descriptions written from current photos on Wikimedia Commons and Mapillary (`npm run photos:fetch`) | CC BY-SA 4.0 (the photos' licences: CC BY-SA 3.0/4.0) | `cities/*/*-reference.json`, `cities/*/*-sources.json` (Oulu: see the Oulu rows) |
 | Rectified photo textures of walls and paving (`npm run place:textures`), derived from the CC BY-SA 4.0 photos listed in the sources file | CC BY-SA 4.0, © the photographers (JIP, kallerna, MOs810 on Wikimedia Commons) | `public/cities/*/places/*/*.jpg` |
 | City of Tampere open data (3D building parts, street parts, tree register, stops) used by `npm run place:build` | CC BY 4.0 | `public/cities/tampere/places/*.json` |
 | Traffic signs, traffic lights, stops and regulation stretches from Digiroad (Finnish Transport Infrastructure Agency, Väylävirasto), used by `npm run city:furniture` for Finnish cities | CC BY 4.0 | `public/cities/*/furniture.json` |
@@ -125,6 +126,26 @@ city's data under its licence, and update this file and the in-game Sources pane
 - **City of Tampere open data** for places: 3D building parts (heights), street parts (paving areas),
   the tree register (species, height class, girth) and public transport stops from
   geodata.tampere.fi, © City of Tampere, [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/).
+
+- **Oulu (draft city):**
+  - Map data, building footprints and landmark positions: © OpenStreetMap contributors,
+    [ODbL 1.0](https://www.openstreetmap.org/copyright).
+  - Elevation: © National Land Survey of Finland, Elevation model 2 m,
+    [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), via Mapterhorn terrain tiles (see above).
+  - Theatre and Central Library Saari shells and the City Hall height reference: City of Oulu legacy
+    municipal 3D model, tile 212221 (2017), © City of Oulu,
+    [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), from
+    [api.ouka.fi/3d](https://api.ouka.fi/3d/index_en.html); converted, clipped and recoloured.
+  - Reference photos for the Market Hall, Kauppatori, Torinranta, City Hall, Cathedral, theatre and
+    library: Wikimedia Commons photos by Estormiz, Leonhard Lenz and Alphaios, each released under
+    [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/). Every photo used is listed in
+    `cities/oulu/*-sources.json`. The photos are not distributed; the geometry and colours are
+    described in our own words.
+  - Notes derived from photographs by zaw-ye-tun (City Hall, Isokatu 37 and Rantakatu façade colours,
+    city bus paint), contributed under the project's terms; the photos are not distributed. See
+    `cities/oulu/own-photo-sources.json`.
+  - The 56.5 m cathedral tower height comes from the City of Oulu high-rise report (2014); other
+    dimensions are estimates. The Toripolliisi sculpture is deliberately not reproduced.
 
 ## Assets
 

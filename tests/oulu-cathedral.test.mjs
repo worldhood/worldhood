@@ -1,12 +1,13 @@
 import test from 'node:test';import assert from 'node:assert/strict';import fs from 'node:fs';import {gunzipSync} from 'node:zlib';import * as THREE from 'three';
-import {createOuluCathedral} from '../src/oulu-cathedral.js';import {createPlace} from '../src/place-scene.js';import {footprintFrame} from '../src/place-landmarks.js';import {SpatialIndex,bounds} from '../src/geo.js';import {setTerrain,decodeTerrain,groundAt} from '../src/terrain.js';
+import {createOuluCathedral} from '../src/oulu-cathedral.js';import {createPlace,loadPlaceModels} from '../src/place-scene.js';import {footprintFrame} from '../src/place-landmarks.js';import {SpatialIndex,bounds} from '../src/geo.js';import {setTerrain,decodeTerrain,groundAt} from '../src/terrain.js';
 const place=JSON.parse(fs.readFileSync('public/cities/oulu/places/cathedral.json')),spec=place.ouluCathedral;
-test('Cathedral replaces exactly its mapped outline with a bounded source-height landmark',()=>{
+test('Cathedral replaces exactly its mapped outline with a bounded source-height landmark',async()=>{
  const data=JSON.parse(gunzipSync(fs.readFileSync('public/cities/oulu/city.pack'))),original=data.buildings.find(b=>b.id===spec.building);
  assert.deepEqual(spec.rings,original.rings);assert.deepEqual(place.hideBuildings,[original.id]);assert.equal(place.heights[original.id],56.5);
  const {group}=createOuluCathedral(spec),box=new THREE.Box3().setFromObject(group);assert.ok(Math.abs(box.max.y-56.5)<.01);assert.equal(group.userData.clockFaces,4);assert.equal(group.userData.fixedElevation,true);
  let meshes=0,triangles=0;group.traverse(o=>{if(!o.isMesh)return;meshes++;triangles+=o.geometry.attributes.position.count/3;for(const n of o.geometry.attributes.position.array)assert.ok(Number.isFinite(n));});assert.equal(meshes,2);assert.ok(triangles<60000);
- assert.ok(createPlace(place).group.getObjectByName('Oulun tuomiokirkko'));
+ assert.ok(createPlace(place,{models:await loadPlaceModels([place])}).group.getObjectByName('Oulun tuomiokirkko'));
+ assert.throws(()=>createPlace(place),/not loaded/);
 });
 test('Cathedral clock faces and dome are visible outside their supporting walls',()=>{
  const {group}=createOuluCathedral(spec),F=footprintFrame(spec.rings[0],[-.85,-.53]);group.updateMatrixWorld(true);

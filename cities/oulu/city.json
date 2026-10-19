@@ -13,6 +13,7 @@
   "zaw-ye-tun"
  ],
  "status": "draft",
+ "helpWanted": 68,
  "note": "Origin and radius define the playable circle. Starts are chosen automatically from well-known named places; add your own in \"starts\".",
  "starts": [
   {

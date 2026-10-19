@@ -2,7 +2,7 @@ import {test} from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {createOuluMarket} from '../src/oulu-market.js';
-import {createPlace} from '../src/place-scene.js';
+import {createPlace,loadPlaceModels} from '../src/place-scene.js';
 import {validatePlace} from '../src/place-data.js';
 import * as THREE from 'three';
 import {SpatialIndex,bounds} from '../src/geo.js';
@@ -22,10 +22,10 @@ test('Oulu market geometry is finite, bounded and keeps the mapped collision foo
  const barrier=obstacles.find(o=>o.id==='oulu-torinranta-terrace');assert.deepEqual(barrier.rings[0][0],barrier.rings[0].at(-1));
  assert.equal(place.ouluMarket.quay.steps.length,4,'four mapped stair access points are retained');
 });
-test('complete Oulu place renders its paving and rejects missing map coordinates',()=>{
+test('complete Oulu place renders its paving and rejects missing map coordinates',async()=>{
  const place=JSON.parse(fs.readFileSync('public/cities/oulu/places/market.json'));
  assert.ok(place.paving.every(s=>s.rings.every(r=>r.every(p=>p?.every(Number.isFinite)))));
- const {group}=createPlace(place);group.traverse(o=>{if(o.isMesh)for(const n of o.geometry.attributes.position.array)assert.ok(Number.isFinite(n));});
+ const {group}=createPlace(place,{models:await loadPlaceModels([place])});group.traverse(o=>{if(o.isMesh)for(const n of o.geometry.attributes.position.array)assert.ok(Number.isFinite(n));});
  const bad=structuredClone(place);bad.paving[0].rings[0][0]=null;assert.ok(validatePlace(bad).some(s=>s.includes('finite coordinate')));
 });
 test('square replacements retain OSM outlines and replace oversized kiosk heights',()=>{
