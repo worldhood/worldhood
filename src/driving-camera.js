@@ -8,6 +8,15 @@ export function overviewCameraPose(car,heading,zoom=240,high=false){
  const y=car.y??groundAt(car.x,car.z),px=car.x+Math.sin(heading)*behind,pz=car.z+Math.cos(heading)*behind;
  return {position:[px,Math.max(y+height,groundAt(px,pz)+1.5),pz],target:[car.x-Math.sin(heading)*ahead,y+1.15,car.z-Math.cos(heading)*ahead]};
 }
+// Welcome-card camera: high over the start. Height is measured from the ground under the focus,
+// and the lens is kept above every slope between it and the focus (Tampere's ridges, Pyynikki).
+export function welcomeCameraPose(focus,heading,height,behind,ground=groundAt,clearance=6){
+ const g=ground(focus.x,focus.z),px=focus.x+Math.sin(heading)*behind,pz=focus.z+Math.cos(heading)*behind;
+ let y=g+height;
+ // At fraction t of the way out the sight line is at g+(y-g)*t; lift y until it clears the slope there.
+ for(let i=2;i<=16;i++){const t=i/16,h=ground(focus.x+(px-focus.x)*t,focus.z+(pz-focus.z)*t)+clearance;y=Math.max(y,g+(h-g)/t);}
+ return {position:[px,y,pz],target:[focus.x,g,focus.z]};
+}
 export function drivingCameraPose(car,heading,zoom=240,look=0,buildings=null){
  // Close and low, more behind the car than above it, so the street ahead reads
  // on a phone screen (arcade-style: ~8.3 m back, 3.3 m up at the default zoom 150). Zoom (36–240) still pulls it back.
@@ -48,8 +57,16 @@ function spring(value,vel,target,dt,omega,zeta){
 // separately as `rumble` so capture mode can keep it while zeroing impact
 // shake; the roll is folded into `roll`. CAMERA_RUMBLE is a final scale.
 export const CAMERA_RUMBLE={bob:1,roll:1};
+// Re-aim the camera at a new body (the rider thrown off a bike or scooter): its heading, not the ride's.
+export function followBody(state,body){
+ Object.assign(state,{heading:body.heading,headingVel:0,lastX:body.x,lastZ:body.z,lastSpeed:body.speed||0,subject:body});
+ return state;
+}
 export function stepDriveCamera(state,car,dt,{lookTarget=0,drive=true,maxSpeed=140/3.6,rumble=null}={}){
  dt=Math.max(0,Math.min(dt,.25));
+ // A knock-down swaps the player's body; follow the one on the ground, not the old ride's heading.
+ if(state.subject&&state.subject!==car&&car.knockdown)followBody(state,car);
+ state.subject=car;
  const speed=car.speed||0,teleported=state.lastX!==null&&Math.hypot(car.x-state.lastX,car.z-state.lastZ)>25;
  if(teleported){state.heading=car.heading;state.headingVel=0;state.shake=0;}
  state.lastX=car.x;state.lastZ=car.z;

@@ -28,14 +28,28 @@ export function aheadPoint(car,seconds=4,max=160){
 }
 export function tilePriority(t,focus,ahead){const d=tileDistanceTo(t,focus);return ahead?Math.min(d,tileDistanceTo(t,ahead)):d;}
 
+// Logs each distinct message once: a tile that keeps failing must not flood the console every frame.
+export function logOnce(log=console.error,limit=50){
+ const seen=new Set();
+ return (error,...context)=>{const key=String(error?.message||error);if(seen.has(key)||seen.size>=limit)return false;seen.add(key);log(...context,error);return true;};
+}
+
 // Jobs that create GPU resources (texture init, a building's meshes) run a couple per frame.
-export function createFrameQueue({maxJobs=2,budgetMs=2.5}={}){
- const jobs=[];
+// One failing job (a lost texture, a bad mesh) is logged and skipped; the frame and the rest of the queue go on.
+export function createFrameQueue({maxJobs=2,budgetMs=2.5,onError=logOnce()}={}){
+ const jobs=[];let failures=0;
  return {
   push(job){jobs.push(job);},
   get size(){return jobs.length;},
-  step(){const t=performance.now();let n=0;while(jobs.length&&n<maxJobs&&(n===0||performance.now()-t<budgetMs)){jobs.shift()();n++;}return n;}
+  get failures(){return failures;},
+  step(){const t=performance.now();let n=0;while(jobs.length&&n<maxJobs&&(n===0||performance.now()-t<budgetMs)){const job=jobs.shift();n++;try{job();}catch(e){failures++;try{onError(e,'Skipped a scenery upload:');}catch{}}}return n;}
  };
+}
+
+// Resolves once every queued upload has run, one frame at a time, so a place is shown whole.
+// Rejects if the game stops meanwhile, rather than waiting forever.
+export async function waitForUploads(queue,{stopped=()=>false,nextFrame=()=>new Promise(requestAnimationFrame)}={}){
+ while(queue.size){if(stopped())throw Error('The game stopped while loading this place');await nextFrame();}
 }
 
 // Detail work goes to the worker nearest-first, a bounded number of tiles in flight. A tile that

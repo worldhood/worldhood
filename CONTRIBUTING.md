@@ -32,6 +32,13 @@ New to open source? Work in your own fork and branch so you can experiment:
    git checkout -b weather-director     # any short name
    npm ci && npm run dev                # play at http://localhost:5173
    ```
+   Working in a fork for a while (your own city, your own experiments)? Point the GitHub CLI
+   and other tools at it, so pull requests open against your fork by default:
+   ```sh
+   gh repo set-default <you>/worldhood
+   ```
+   Open pull requests to `worldhood/worldhood` only for focused changes meant for everyone:
+   one fix or feature per pull request, not your fork's whole history.
 4. **Make the change.** Keep it small and focused, then run `npm test` and `npm run build`.
 5. **Push and open a pull request** from your branch:
    - Fill in the template.

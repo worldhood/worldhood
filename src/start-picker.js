@@ -32,6 +32,9 @@ export function swipeStep(dx,dy,{min=40,ms=0,maxMs=700}={}){
  return dx<0?1:-1;
 }
 
+// The HUD's area label for a start. Community cities' starts may have no district: fall back to the city, then the start's name.
+export const districtLabel=(start,cityName='')=>String(start?.district||cityName||start?.name||'').toUpperCase();
+
 export const startPosition=(index,length)=>`${index+1} / ${length}`;
 
 export function createStartPicker({doc=document,starts,current,onChange}){

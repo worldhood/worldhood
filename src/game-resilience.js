@@ -1,5 +1,21 @@
 import {createLoadingScreen} from './loading-screen.js';
 
+// Browser noise that never means the game broke: an embedding page's Permissions-Policy
+// refusing motion sensors, an optional asset that failed to load, a ResizeObserver hiccup.
+// Matched narrowly so real crashes (TypeErrors in the frame loop, WebGL failures) still stop the game.
+const SENSOR=/accelerometer|gyroscope|magnetometer|orientation|devicemotion|motion sensor|sensor/i;
+const BENIGN=[
+ /permissions?[- ]policy|feature[- ]policy/i,
+ /failed to load resource/i,
+ /ResizeObserver loop/i,
+];
+export function isBenignError(error,message=''){
+ const text=`${error?.name||''} ${error?.message||''} ${typeof error==='string'?error:''} ${message||''}`;
+ if(BENIGN.some(p=>p.test(text)))return true;
+ // NotAllowedError/SecurityError for sensors inside an iframe without allow="accelerometer; gyroscope".
+ return /NotAllowedError|SecurityError|permission/i.test(text)&&SENSOR.test(text);
+}
+
 // This lives outside main.js so failures while importing or creating the renderer
 // can still show a usable recovery screen. Recovery is always the player's choice.
 export function createGameResilience({win=window,doc=document,screen=createLoadingScreen(doc),reload=()=>win.location.reload(),log=console.error}={}){
@@ -29,8 +45,8 @@ export function createGameResilience({win=window,doc=document,screen=createLoadi
  listen(canvas,'webglcontextrestored',()=>{
   if(kind==='graphics-lost')screen.error('Graphics is available again. Reload to restart the game.',{title:'Ready to restart'});
  });
- listen(win,'error',event=>{if(event.error)fail(event.error);}); // Ignore optional image/font resource events.
- listen(win,'unhandledrejection',event=>fail(event.reason));
+ listen(win,'error',event=>{if(event.error&&!isBenignError(event.error,event.message))fail(event.error);}); // Ignore optional image/font resource events.
+ listen(win,'unhandledrejection',event=>{if(isBenignError(event.reason))log('Ignored a harmless browser error:',event.reason);else fail(event.reason);});
  // These capture listeners precede gameplay handlers, including the existing
  // start button handler. A failure cannot accidentally start the world again.
  listen(win,'click',event=>{

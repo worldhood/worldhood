@@ -11,7 +11,7 @@ import {loadExtensionIndex,loadExtension,applyExtensions,mapViewFor,activateExte
 import {setTramLivery} from './tram-model.js';
 import {setBusLivery} from './bus-renderer.js';
 import {selectCity,useCity,pickStart,startUrl,dataUrl,registerCities} from './cities.js';
-import {createStartPicker,pickerStep} from './start-picker.js';
+import {createStartPicker,pickerStep,districtLabel} from './start-picker.js';
 import {createAdaptiveResolution} from './adaptive-quality.js';
 import {makeCar,driveStep,simulationSteps,PLAYER_MAX_SPEED,displayedSpeedKmh} from './physics.js';
 import {animateVehicle} from './vehicles.js';
@@ -20,7 +20,7 @@ import {createStreetLife} from './street-life.js';
 import {buildTileInWorker,materialiseBuilding,createSourceShell} from './building-loader.js';
 import {attachFacades,applyFacadeHeights} from './facade-data.js';
 import {tileLevel,applyTileLod,createMergedShells,freezeTileGroup,freezeMesh,applyTreeLod,createStaticShadowCuller} from './tile-lod.js';
-import {loadTileImages,aheadPoint,tilePriority,createFrameQueue,createDetailScheduler} from './tile-streaming.js';
+import {loadTileImages,aheadPoint,tilePriority,createFrameQueue,createDetailScheduler,waitForUploads} from './tile-streaming.js';
 import {createSurfaceStreamer} from './surface-streaming.js';
 import {createCathedral,createSenateSquare,loadSenateMaterials} from './cathedral.js';
 import {USPENSKI,createUspenskiCathedral} from './uspenski-cathedral.js';
@@ -31,7 +31,7 @@ import {createLandcover} from './landcover.js';
 import {TramSimulation} from './tram-simulation.js';
 import {createTramRenderer} from './trams.js';
 import {createHarbour} from './harbour.js';
-import {drivingCameraPose,overviewCameraPose,createDriveCameraState,stepDriveCamera,DRIVE_FOV} from './driving-camera.js';
+import {drivingCameraPose,overviewCameraPose,welcomeCameraPose,createDriveCameraState,stepDriveCamera,followBody,DRIVE_FOV} from './driving-camera.js';
 import {surfaceDetailAt,rumbleFor,createRumbleState} from './road-surface.js';
 import {createSkyEnvironment} from './environment.js';
 import {correctHarbourLanes,olympiaTramOnlySurfaces,harbourCorridor,HARBOUR_CORRIDOR_CARS} from './road-safety.js';
@@ -437,7 +437,7 @@ async function visitStart(destination,button){
   const near=roofIndex.tiles.filter(t=>tileDistance(t,destination)<430).sort((a,b)=>tileDistance(a,destination)-tileDistance(b,destination));
   await Promise.all([surfaceStreamer.ensure(destination,{radius:900}),pool(near,4,t=>loadRoof(t,destination))]);
   // GPU uploads are spread across frames, including while this dialog is open.
-  while(uploads.size){if(gameIsStopped())throw Error('The game stopped while loading this place');await new Promise(requestAnimationFrame);}
+  await waitForUploads(uploads,{stopped:gameIsStopped});
   if(version!==startVisitVersion||!$('map-dialog').open)return; // Closing the map cancels the jump, while its downloads remain useful.
   closeDialogs();setStart(destination);history.replaceState(null,'',startUrl(location,city,destination));
   if(!started)start();else toast(`Starting at ${destination.name}.`);
@@ -546,6 +546,8 @@ async function previewStart(destination){
   const near=roofIndex.tiles.filter(t=>tileDistance(t,destination)<430).sort((a,b)=>tileDistance(a,destination)-tileDistance(b,destination));
   await Promise.all([surfaceStreamer.ensure(destination,{radius:900}),pool(near,4,t=>loadRoof(t,destination))]);
   if(version!==previewVersion||started)return;
+  await waitForUploads(uploads,{stopped:gameIsStopped}); // switch only once the place is whole, not half-uploaded
+  if(version!==previewVersion||started)return;
   setStart(destination);history.replaceState(null,'',startUrl(location,city,destination));
  }catch(error){
   console.error(error);if(version!==previewVersion)return;
@@ -554,7 +556,7 @@ async function previewStart(destination){
   if(version===previewVersion){previewing=false;startPicker.busy(false);if(startAfterPreview){startAfterPreview=false;start();}}
  }
 }
-function setStart(l){mobileControls?.release();peopleInteraction?.reset(world);marketShop?.reset();gullEncounter.reset();birds?.clearEncounter();cameraTransition=null;impacts.reset();crowd?.reset();finale.reset();startPoint=l;car=makeCar(l.x,l.z,l.heading??(l.name==='Senate Square'?0:-Math.PI/2+.17));car.distance=distance;if(travel)travel.reset(car,world);else travel=new PlayerTravel(car,world,{cars:()=>[...staticCars,...trafficCars],rides:()=>[...(knockables?.rideSources||[]),...(cyclists?.rideSources||[]),...(npcScooters?.rideSources||[])],obstacles:travelObstacles});peopleInteraction??=new PeopleInteraction(world,{context:()=>({cityName:city.name,landmarks:data?.landmarks||[]}),voiceEnabled:sound});playerCars.sync(travel);focus.set(car.x,0,car.z);cameraHeading=car.heading;tramSim?.reset(car);buses?.reset(car,tramSim?.obstacles);if(mobility){mobility.externalBodies=transitBodies();mobility.reset(car);}npcScooters?.reset(car);roadblock?.reset();police?.reset();marketLife?.reset();universityLife?.reset();terminalLife?.reset();$('district-label').textContent=l.district.toUpperCase();carGroup.position.set(car.x,.1+groundAt(car.x,car.z),car.z);carGroup.rotation.y=car.heading;if(ready)updateTiles().catch(handleTileError);drawMinimap();}
+function setStart(l){mobileControls?.release();peopleInteraction?.reset(world);marketShop?.reset();gullEncounter.reset();birds?.clearEncounter();cameraTransition=null;impacts.reset();crowd?.reset();finale.reset();startPoint=l;car=makeCar(l.x,l.z,l.heading??(l.name==='Senate Square'?0:-Math.PI/2+.17));car.distance=distance;if(travel)travel.reset(car,world);else travel=new PlayerTravel(car,world,{cars:()=>[...staticCars,...trafficCars],rides:()=>[...(knockables?.rideSources||[]),...(cyclists?.rideSources||[]),...(npcScooters?.rideSources||[])],obstacles:travelObstacles});peopleInteraction??=new PeopleInteraction(world,{context:()=>({cityName:city.name,landmarks:data?.landmarks||[]}),voiceEnabled:sound});playerCars.sync(travel);focus.set(car.x,0,car.z);cameraHeading=car.heading;tramSim?.reset(car);buses?.reset(car,tramSim?.obstacles);if(mobility){mobility.externalBodies=transitBodies();mobility.reset(car);}npcScooters?.reset(car);roadblock?.reset();police?.reset();marketLife?.reset();universityLife?.reset();terminalLife?.reset();$('district-label').textContent=districtLabel(l,city?.name);carGroup.position.set(car.x,.1+groundAt(car.x,car.z),car.z);carGroup.rotation.y=car.heading;if(ready)updateTiles().catch(handleTileError);drawMinimap();}
 function handleTileError(e){console.error(e);if(!document.body.classList.contains('booting'))toast('Some scenery could not load. Nearby streets will retry.');} // not over the welcome card
 const touchScreen=matchMedia('(pointer:coarse)').matches; // phones and tablets: no keyboard, so the HUD and touch buttons stay on
 if(touchScreen){document.body.classList.remove('clean-capture');document.body.classList.add('touch');}
@@ -665,13 +667,15 @@ function updateHUD(now){
  if(car.damage>.02)$('gear').textContent=`DAMAGE ${Math.round(car.damage*100)}% · R TO RESET`;
  if(car.battery===0)$('gear').textContent='R TO RECHARGE';else if(car.battery<=.2)$('gear').textContent='LOW BATTERY · R TO RECHARGE';
  if(!driving){$('gear').textContent=TRAVEL_MODES[travel.mode].label.toUpperCase();$('speed').title='Speed in kilometres per hour';}
- let nearest=data.landmarks[0],best=Infinity;for(const l of data.landmarks){const d=Math.hypot(l.x-car.x,l.z-car.z);if(d<best){best=d;nearest=l;}}$('district-label').textContent=nearest.district.toUpperCase();
+ let nearest=data.landmarks[0],best=Infinity;for(const l of data.landmarks){const d=Math.hypot(l.x-car.x,l.z-car.z);if(d<best){best=d;nearest=l;}}$('district-label').textContent=districtLabel(nearest,city.name);
  if(areaLabel){const caption=document.querySelector('.minimap-caption')?.firstChild,text=`${areaLabel(car.x,car.z,now)} `;if(caption&&caption.textContent!==text)caption.textContent=text;}
  const location=currentLocation();locationReadout.update(location);
  $('coordinates').textContent=`${location.coordinates.latitude.toFixed(6)}° N · ${location.coordinates.longitude.toFixed(6)}° E`;
  drawMinimap();
  if(mapOpen&&$('map-dialog').open)drawCityMap();
 }
+// Thrown off a ride: the chase camera eases from where it was onto the body on the ground.
+function knockedDown(){cameraTransition={elapsed:0,position:camera.position.clone(),target:camera.position.clone().addScaledVector(camera.getWorldDirection(new THREE.Vector3()),6)};followBody(driveCamera,car);cameraHeading=car.heading;}
 function frame(now){
  if(gameIsStopped())return;
  requestAnimationFrame(frame);const frameMs=lastTime?now-lastTime:0;const steps=simulationSteps(lastTime?(now-lastTime)/1000:0),dt=steps.reduce((a,b)=>a+b,0);lastTime=now;
@@ -685,7 +689,7 @@ function frame(now){
    impacts.step(step,world);crowd?.step(step);let before=null;const driving=travel.mode==='car',parked=travel.parked();
    if(started){
     const previous=before={...car},r=driving?driveStep(car,keys,step,world):travel.step(keys,step,travelObstacles());
-    if(r.crashed){car=travel.actor;playerCars.sync(travel);if(now-lastToast>1500){toast(r.crashed>5?'Ouch. That was a hard fall.':'You came off. Press Enter to get back on.');lastToast=now;}}
+    if(r.crashed){car=travel.actor;knockedDown();playerCars.sync(travel);if(now-lastToast>1500){toast(r.crashed>5?'Ouch. That was a hard fall.':'You came off. Press Enter to get back on.');lastToast=now;}}
     police.observeDriving(previous,car,step,{driving});
     const parkedHit=driving&&parked.find(p=>sweptContact(previous,car,p));
     if(parkedHit){Object.assign(car,{x:previous.x,z:previous.z,heading:previous.heading,speed:0});impacts.damage(car,Math.abs(previous.speed),'vehicle');police.report(parkedHit.travelMode==='car'?'vehicle':'property',`parked:${parkedHit.id}`,Math.abs(previous.speed));}
@@ -695,7 +699,7 @@ function frame(now){
      impacts.collide(previous,car,[...mobility.people,...detailPeople],[...cyclists.riders.filter(r=>!r.playerTaken),...npcScooters.riders],[...mobility.cars,...police.obstacles],police);
      if(r.collision==='building'){impacts.damage(car,Math.abs(previous.speed),'building');finale.buildingImpact({...car,speed:previous.speed},Math.abs(previous.speed),world,police);}
     }else if(!r.crashed){const h=travel.hitPeople(previous,[...mobility.people,...detailPeople],impacts,{police,obstacles:travelObstacles()});
-     if(h?.fell){car=travel.actor;playerCars.sync(travel);toast(h.fell>5?'Ouch. You hit someone and went flying.':'You hit someone and came off. Press Enter to get back on.');lastToast=now;}else if(h?.bumped&&now-lastToast>1500){toast('Sorry!');lastToast=now;}}
+     if(h?.fell){car=travel.actor;knockedDown();playerCars.sync(travel);toast(h.fell>5?'Ouch. You hit someone and went flying.':'You hit someone and came off. Press Enter to get back on.');lastToast=now;}else if(h?.bumped&&now-lastToast>1500){toast('Sorry!');lastToast=now;}}
     distance=car.distance;
     if(r.collision&&now-lastToast>2200){if(r.collision==='boundary')showEdgeInvite();if(r.collision==='water')toast('The water is best enjoyed from the shore.');lastToast=now;}
    }
@@ -740,7 +744,7 @@ function frame(now){
   if(cameraTransition){cameraTransition.elapsed+=paused||mapOpen?0:dt;const t=Math.min(1,cameraTransition.elapsed/.5),blend=t*t*(3-2*t);pose.position=pose.position.map((v,i)=>cameraTransition.position.getComponent(i)+(v-cameraTransition.position.getComponent(i))*blend);pose.target=pose.target.map((v,i)=>cameraTransition.target.getComponent(i)+(v-cameraTransition.target.getComponent(i))*blend);if(t===1)cameraTransition=null;}
   camera.position.set(pose.position[0]+cameraShake[0]+cameraRumble[0],pose.position[1]+cameraShake[1]+cameraRumble[1],pose.position[2]+cameraShake[2]+cameraRumble[2]);camera.lookAt(...pose.target);camera.rotateZ(cameraRoll);
  }else if(started&&car){const pose=overviewCameraPose(car,heading,viewSpan,highCamera);camera.position.set(...pose.position);camera.lookAt(...pose.target);
- }else{camera.position.set(focus.x+Math.sin(heading)*behind,height,focus.z+Math.cos(heading)*behind);camera.lookAt(focus);}
+ }else{const pose=welcomeCameraPose(focus,heading,height,behind);camera.position.set(...pose.position);camera.lookAt(...pose.target);}
  if(inspectionCamera){camera.position.set(...inspectionCamera.eye);camera.lookAt(...inspectionCamera.target);}
  {const pose=roadblock?.cameraPose()||finale.cameraPose(car);if(pose){camera.position.set(...pose.position);camera.lookAt(...pose.target);}} // arrest cinematic orbit
  const wantFov=chaseCamera&&started&&!inspectionCamera?cameraFov:DRIVE_FOV.min;if(camera.fov!==wantFov){camera.fov=wantFov;camera.updateProjectionMatrix();}
