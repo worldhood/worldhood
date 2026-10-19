@@ -91,4 +91,7 @@ test('bus and tram liveries: every colour can be set, the rest keep the Helsinki
  assert.deepEqual(tramMarks({operator:['ONE','TWO','THREE']}).operator,['ONE','TWO']);
  const tampere=JSON.parse(readFileSync('cities/tampere/city.json','utf8'));
  assert.equal(cityLiveries(tampere).tram.green,'#b3372a');assert.equal(cityLiveries({}).police.label,'POLIISI');
+ assert.deepEqual(cityLiveries(tampere).tram.operator,['TAMPERE','RATIKKA'],'Tampere trams carry their own plain-text lettering, not HSL HRT');assert.equal(cityLiveries(tampere).tram.logo,false);
+ const registered=JSON.parse(readFileSync('public/cities/index.json','utf8')).cities.find(c=>c.id==='tampere');
+ assert.deepEqual(registered.liveries.tram,tampere.liveries.tram,'the built registry has the city.json livery');
 });

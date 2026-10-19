@@ -19,28 +19,33 @@
     "tram": {
      "green": "#b3372a",
      "yellow": "#b3372a",
-     "black": "#1c1d20"
+     "black": "#1c1d20",
+     "operator": [
+      "TAMPERE",
+      "RATIKKA"
+     ],
+     "logo": false
     },
     "bus": {
      "paint": "#1f4e9c",
      "white": "#f4f5f6"
     },
-    "note": "Tampere trams: red Škoda/Transtech Artic X34 with a black front. Nysse city buses: white with a blue lower body. Colours estimated from reference photos."
+    "note": "Tampere trams: red Škoda/Transtech Artic X34 with a black front. Nysse city buses: white with a blue lower body. Colours estimated from reference photos. Tram lettering is plain text, no operator logo."
    },
-   "attribution": "Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright). Contains open data from the City of Tampere (street register, tree register), CC BY 4.0. Street furniture positions from Mapillary map features (mapillary.com), under Mapillary Terms of Use (mapillary.com/terms). Building heights from OSM tags or estimated by building type. Façade colours and details described from Mapillary street-level photos (mapillary.com), CC BY-SA 4.0. Keskustori described from current photos: Wikimedia Commons (JIP, Drefer, kallerna, MOs810, Tiia Monto, Piquito; CC BY-SA) and Mapillary (jopparn; CC BY-SA 4.0); wall and paving photo textures CC BY-SA 4.0 (JIP, kallerna, MOs810); City of Tampere open data (3D building parts, street parts, tree register, public transport stops), CC BY 4.0. Traffic signs, signals and stops from Digiroad, Finnish Transport Infrastructure Agency (Väylävirasto), CC BY 4.0. Pedestrian crossings, signal junctions and stops from City of Tampere open data, CC BY 4.0. Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com).",
-   "fetchedAt": "2026-10-09",
+   "attribution": "Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright). Contains open data from the City of Tampere (street register, tree register), CC BY 4.0. Building heights from OSM tags or estimated by building type. Elevation: National Land Survey of Finland, Elevation model 2 m, CC BY 4.0, via Mapterhorn terrain tiles (mapterhorn.com). Street furniture positions from Mapillary map features (mapillary.com), under Mapillary Terms of Use (mapillary.com/terms). Façade colours and details described from Mapillary street-level photos (mapillary.com), CC BY-SA 4.0. Traffic signs, signals and stops from Digiroad, Finnish Transport Infrastructure Agency (Väylävirasto), CC BY 4.0. Pedestrian crossings, signal junctions and stops from City of Tampere open data, CC BY 4.0. Keskustori described from current photos: Wikimedia Commons (JIP, Drefer, kallerna, MOs810, Tiia Monto, Piquito; CC BY-SA) and Mapillary (jopparn; CC BY-SA 4.0); wall and paving photo textures CC BY-SA 4.0 (JIP, kallerna, MOs810); City of Tampere open data (3D building parts, street parts, tree register, public transport stops), CC BY 4.0.",
+   "fetchedAt": "2026-10-19",
    "counts": {
     "official": {
      "streets": 1413,
      "paths": 3555,
      "green": 1542,
-     "osmRoadsKept": 121,
-     "osmRoadsReplaced": 3786,
+     "osmRoadsKept": 218,
+     "osmRoadsReplaced": 3778,
      "trees": 13456
     },
     "buildings": 3432,
-    "roads": 1534,
-    "pavement": 3935,
+    "roads": 1631,
+    "pavement": 4004,
     "parks": 3241,
     "water": 41,
     "trees": 13456,
@@ -69,6 +74,14 @@
      "shelter": 64,
      "sign": 5298,
      "traffic-light": 326
+    },
+    "passages": 170,
+    "collision": {
+     "buildings": 3432,
+     "passagesCut": 135,
+     "trimmed": 141,
+     "kept": 18,
+     "trimmedArea": 345
     }
    },
    "furniture": "furniture.json",
@@ -79,6 +92,7 @@
    "terrain": {
     "file": "terrain.pack",
     "cell": 3,
+    "zoom": 15,
     "base": 89,
     "min": 76.3,
     "max": 148.9,

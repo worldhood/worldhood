@@ -26,7 +26,7 @@ A city needs the same files Helsinki has under `public/data`:
 
 | File | Minimum content |
 | --- | --- |
-| `city.pack` | `buildings`, `roads`, `pavement`, `parks`, `water`, `trees`, `landmarks` (start points) |
+| `city.pack` | `buildings`, `roads`, `pavement`, `parks`, `water`, `trees`, `landmarks` (start points); optional `collision` (below) |
 | `buildings3d-index.json` + tiles | 3D buildings; may be footprint extrusions where no 3D model exists |
 | `surface-index.json` + chunks | Pre-coloured ground surfaces |
 | `mobility.json` | Road and walking graph, signals |
@@ -38,6 +38,14 @@ Data sources:
   e.g. CityGML or 3D Tiles; use them under their licence.
 - **OpenStreetMap otherwise.** Buildings (with `height` / `building:levels`), roads, footways,
   water, parks and trees all work. ODbL applies; see [EXTENDING.md](EXTENDING.md#openstreetmap).
+- **Street level only.** `city:build` keeps building passages (`tunnel=building_passage`) and covered
+  streets or arcades (`covered=yes|arcade`) as ground you can drive and walk through; tunnels below
+  street level (`tunnel=yes`, negative `layer`) are left out.
+- **Collision footprints.** The car collides with the mapped footprints, except where `city.pack`
+  `collision` (`{replaced: [ids], buildings: [...]}`) gives trimmed ones: passages are cut through,
+  and footprints straying up to 3 m onto the carriageway are trimmed back to it, unless that would
+  remove half the building (a kiosk on a square stays solid). 3D buildings keep the mapped shape
+  (`scripts/city-footprints.mjs`, `collisionBuildings` in `src/geo.js`).
 - **Formats:** reuse `scripts/build-extension.mjs` (formats, de-duplication) and
   `scripts/prepare-world.mjs` (surface colours) as the reference implementations.
 

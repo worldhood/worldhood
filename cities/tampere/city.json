@@ -20,13 +20,18 @@
   "tram": {
    "green": "#b3372a",
    "yellow": "#b3372a",
-   "black": "#1c1d20"
+   "black": "#1c1d20",
+   "operator": [
+    "TAMPERE",
+    "RATIKKA"
+   ],
+   "logo": false
   },
   "bus": {
    "paint": "#1f4e9c",
    "white": "#f4f5f6"
   },
-  "note": "Tampere trams: red Škoda/Transtech Artic X34 with a black front. Nysse city buses: white with a blue lower body. Colours estimated from reference photos."
+  "note": "Tampere trams: red Škoda/Transtech Artic X34 with a black front. Nysse city buses: white with a blue lower body. Colours estimated from reference photos. Tram lettering is plain text, no operator logo."
  },
  "official": {
   "provider": "City of Tampere",

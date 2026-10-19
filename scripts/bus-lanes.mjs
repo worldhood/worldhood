@@ -3,7 +3,7 @@
 // city's bus-corridors.json; run again whenever the corridors or the road graph change.
 import {readFileSync,writeFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
-import {SpatialIndex} from '../src/geo.js';
+import {SpatialIndex,collisionBuildings} from '../src/geo.js';
 import {prepareGraph,routePoint} from '../src/mobility.js';
 import {busLaneOffsets} from '../src/bus-simulation.js';
 import {correctHarbourLanes} from '../src/road-safety.js';
@@ -25,7 +25,7 @@ export function addBusLanes(paths,world,roads){const index=laneIndex(roads);let 
 if(import.meta.url===`file://${process.argv[1]}`){
  const id=process.argv[2]||'helsinki',root=id==='helsinki'?'public/data':`public/cities/${id}`;
  const city=JSON.parse(gunzipSync(readFileSync(`${root}/city.pack`))),file=`${root}/bus-corridors.json`,data=JSON.parse(readFileSync(file)),mobility=JSON.parse(readFileSync(`${root}/mobility.json`));
- const world={buildings:new SpatialIndex(city.buildings),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),trafficForbidden:new SpatialIndex(city.roads.filter(r=>/Koroke/.test(r.kind)))};
+ const world={buildings:new SpatialIndex(collisionBuildings(city)),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),trafficForbidden:new SpatialIndex(city.roads.filter(r=>/Koroke/.test(r.kind)))};
  const shifted=addBusLanes(data.paths,world,(id==='helsinki'?correctHarbourLanes(mobility):mobility).roads);writeFileSync(file,JSON.stringify(data));
  console.log(`${id}: ${shifted} of ${data.paths.length} bus routes follow a lane off their route line`);
 }

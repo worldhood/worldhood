@@ -6,7 +6,7 @@ import {gunzipSync} from 'node:zlib';
 import {Mobility} from '../src/mobility.js';
 import {TramSimulation} from '../src/tram-simulation.js';
 import {BusSimulation,busOverlaps,BUS_DIMENSIONS} from '../src/bus-simulation.js';
-import {SpatialIndex} from '../src/geo.js';
+import {SpatialIndex,collisionBuildings} from '../src/geo.js';
 import {oncomingPasses} from '../src/lane-model.js';
 import {trafficFootprintsOverlap,correctHarbourLanes,harbourCorridor,olympiaTramOnlySurfaces,HARBOUR_CORRIDOR_CARS} from '../src/road-safety.js';
 import {inHarbour} from '../src/harbour-layout.js';
@@ -40,7 +40,7 @@ export function loadCity(id){
  const helsinki=id==='helsinki',read=f=>JSON.parse(readFileSync(`${root}/${f}`));
  const city=JSON.parse(gunzipSync(readFileSync(`${root}/city.pack`))),mobility=read('mobility.json'),trams=existsSync(`${root}/trams.json`)?read('trams.json'):{paths:[],stops:[]},buses=existsSync(`${root}/bus-corridors.json`)?read('bus-corridors.json'):{paths:[]};
  const islands=city.roads.filter(r=>/Koroke/.test(r.kind));
- const world={buildings:new SpatialIndex(helsinki?[...city.buildings,...createSenateSquare().obstacles]:city.buildings),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),pavement:new SpatialIndex(city.pavement),
+ const world={buildings:new SpatialIndex(helsinki?[...city.buildings,...createSenateSquare().obstacles]:collisionBuildings(city)),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),pavement:new SpatialIndex(city.pavement),
   trafficForbidden:new SpatialIndex(helsinki?[...city.pavement.filter(inHarbour),...islands,...olympiaTramOnlySurfaces(city)]:islands),water:city.water};
  const out={id,helsinki,city,mobility:helsinki?correctHarbourLanes(mobility):mobility,trams,buses,world};cache.set(id,out);return out;
 }

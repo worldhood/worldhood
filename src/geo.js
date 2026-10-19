@@ -57,6 +57,12 @@ export function insidePlayable(x,z,margin=0){
  }
  return false;
 }
+// What the car collides with: the mapped footprints, with the ones city:build trimmed or cut through
+// (city.pack `collision`: {replaced: ids, buildings: their collision pieces}) swapped in. Drawing uses city.buildings.
+export function collisionBuildings(city){
+  const c=city.collision;if(!c?.replaced?.length)return city.buildings;
+  const replaced=new Set(c.replaced);return [...city.buildings.filter(b=>!replaced.has(b.id)),...c.buildings];
+}
 const NONE=Object.freeze([]);
 // Numeric cell key (no string allocation); cell coordinates stay well inside ±2^20.
 const cellKey=(x,z)=>(x+1048576)*2097152+(z+1048576);

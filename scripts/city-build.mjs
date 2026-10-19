@@ -14,13 +14,14 @@ import {execFileSync} from 'node:child_process';
 import proj4 from 'proj4';
 import polygonClipping from 'polygon-clipping';
 import earcut from 'earcut';
-import {bounds,SpatialIndex,registerPlayableArea,setPlayableRadius} from '../src/geo.js';
+import {bounds,SpatialIndex,registerPlayableArea,setPlayableRadius,collisionBuildings} from '../src/geo.js';
 import {nearestRoadPoint} from '../src/physics.js';
 import {surfaceChunks} from './world-formats.mjs';
 import {usableBusPaths} from '../src/bus-simulation.js';
 import {addBusLanes} from './bus-lanes.mjs';
 import {routePoint} from '../src/mobility.js';
 import {surfaceRecord} from '../src/surface-streaming.js';
+import {keepWay,passage,collisionFootprints} from './city-footprints.mjs';
 import {buildArgs,overpass as overpassQuery,overpassSettings,fetchTransit,beginStage,carryOver,keepRegistered,parseStarts,placeStart,defaultStartName} from './city-build-tools.mjs';
 
 const {id,refresh}=buildArgs(process.argv.slice(2));
@@ -129,18 +130,22 @@ for(const e of ways.elements){if(e.type==='node')nodes.set(e.id,local(e.lon,e.la
 const CAR={motorway:16,trunk:14,primary:12,secondary:10,tertiary:8.5,unclassified:6.5,residential:6.5,living_street:5.5,service:4.5,motorway_link:7,trunk_link:7,primary_link:7,secondary_link:7,tertiary_link:6.5};
 const WALK={footway:3,pedestrian:6,path:2.2,cycleway:2.8,steps:2.5,track:3};
 const use=new Map();for(const w of highwayWays)for(const n of w.nodes)use.set(n,(use.get(n)||0)+1);
+// Building passages and covered streets stay as ground (cut through the collision footprints below); tunnels go.
+const passages=new Set();
 for(const w of highwayWays){
- const t=w.tags||{};if(t.tunnel&&t.tunnel!=='no'||t.area==='yes'||t.highway==='proposed'||t.highway==='construction')continue;
+ const t=w.tags||{};if(!keepWay(t))continue;
  const line=w.nodes.map(n=>nodes.get(n)).filter(Boolean);if(line.length<2)continue;
  const width=parseFloat(t.width)||CAR[t.highway]||WALK[t.highway];if(!width)continue;
  const bridge=t.bridge&&t.bridge!=='no'?' (Silta)':'';
  const item={id:`osm-way-${w.id}`,name:t.name||'',kind:(CAR[t.highway]?(t.highway==='service'?'Ajorata, muu':'Ajorata'):(t.highway==='cycleway'?'Erotettu pyörätie':'Jalkakäytävä'))+bridge,material:surfaceMaterial(t.surface)};
- for(const rings of bufferLine(line,width))(CAR[t.highway]?city.roads:city.pavement).push({...item,rings,bbox:bounds(rings)});
+ for(const rings of bufferLine(line,width)){const piece={...item,rings,bbox:bounds(rings)};(CAR[t.highway]?city.roads:city.pavement).push(piece);if(passage(t))passages.add(piece);}
 }
 const signals=points.elements.filter(e=>e.type==='node'&&e.tags?.highway==='traffic_signals').map(e=>({p:local(e.lon,e.lat),name:e.tags.name||''}));
 function graph(walking){
  const ids=new Map(),out={nodes:[],edges:[]};const nodeId=n=>{if(!ids.has(n)){ids.set(n,out.nodes.length);out.nodes.push(nodes.get(n));}return ids.get(n);};
  for(const w of highwayWays){
+  // The routing graph leaves out every tunnel, building passages included: traffic and passers-by keep to the
+  // streets, while the player can drive and walk through passages (surfaces and collision footprints above).
   const t=w.tags||{};if(t.tunnel&&t.tunnel!=='no'||t.area==='yes')continue;
   const ok=walking?(WALK[t.highway]||t.sidewalk&&t.sidewalk!=='no'||['residential','living_street','tertiary','secondary','primary','unclassified'].includes(t.highway)):(CAR[t.highway]&&t.access!=='private'&&t.service!=='parking_aisle'&&t.motor_vehicle!=='no');
   if(!ok)continue;
@@ -222,10 +227,11 @@ if(official){
  if(official.green)for(const f of wfs('green',official.green.layer)){const p=f.properties,t=String(p[official.green.type]||'');
   const kind=/PENSAS|PERENNA|KUKKA|KESÄKUKKA/.test(t)?'Pensasryhmät':/LEIKKI/.test(t)?'Leikkipaikka':'Nurmikko';
   for(const rings of polys(f))officialGreen.push({id:`official-${f.id}`,name:clean(p[official.green.name]),kind,rings,bbox:bounds(rings)});}
- // OSM surfaces stay only where the official register has nothing nearby (40 m cells).
+ // OSM surfaces stay only where the official register has nothing nearby (40 m cells), and through building
+ // passages, which the street register does not cover.
  const C=40,covered=new Set();
  for(const it of [...officialRoads,...officialPaths])for(let x=Math.floor(it.bbox[0]/C);x<=Math.floor(it.bbox[2]/C);x++)for(let z=Math.floor(it.bbox[1]/C);z<=Math.floor(it.bbox[3]/C);z++)covered.add(`${x},${z}`);
- const outside=it=>{const pts=it.rings[0],hit=pts.filter(([x,z])=>covered.has(`${Math.floor(x/C)},${Math.floor(z/C)}`)).length;return hit/pts.length<.3;};
+ const outside=it=>{if(passages.has(it))return true;const pts=it.rings[0],hit=pts.filter(([x,z])=>covered.has(`${Math.floor(x/C)},${Math.floor(z/C)}`)).length;return hit/pts.length<.3;};
  const before={roads:city.roads.length,pavement:city.pavement.length};
  city.roads=[...officialRoads,...city.roads.filter(outside)];city.pavement=[...officialPaths,...city.pavement.filter(outside)];city.parks=[...officialGreen,...city.parks];
  officialCount={streets:officialRoads.length,paths:officialPaths.length,green:officialGreen.length,osmRoadsKept:city.roads.length-officialRoads.length,osmRoadsReplaced:before.roads-(city.roads.length-officialRoads.length)};
@@ -239,6 +245,11 @@ if(official){
   officialCount.trees=officialTrees.length;
  }
 }
+
+// ---------- Collision footprints ----------
+// city.buildings and the 3D buildings keep the mapped footprints; the car collides with collisionBuildings(city).
+const collision=collisionFootprints(footprints,{roads:city.roads.filter(r=>!/Koroke/.test(r.kind)),passages:[...passages]});
+city.collision=collision.collision;
 
 // ---------- Trees ----------
 if(officialTrees)city.trees=officialTrees;else for(const e of points.elements)if(e.tags?.natural==='tree'){const p=local(e.lon,e.lat);if(Math.abs(p[0])<EXTENT&&Math.abs(p[1])<EXTENT)city.trees.push({p,species:e.tags.species||e.tags.genus||'',size:'30 - 50 cm'});}
@@ -273,7 +284,7 @@ let ti=0;for(const t of tiles.values()){const file=`buildings3d/${ti++}.pack`;fs
 
 // ---------- Start points: named, well-known places near a drivable road ----------
 setPlayableRadius(R);
-const buildingIndex=new SpatialIndex(city.buildings);
+const buildingIndex=new SpatialIndex(collisionBuildings(city));
 const fame=t=>(t.wikidata?3:0)+(t.wikipedia?2:0)+(t.tourism?2:0)+(t.place==='square'?3:0)+(t.amenity==='townhall'||t.railway==='station'?3:0)+(t.historic?1:0);
 const seen=new Set(),candidates=points.elements.filter(e=>e.tags?.name&&(e.lat||e.center)).map(e=>{const c=e.center||e;return {name:e.tags.name,p:local(c.lon,c.lat),score:fame(e.tags)};})
  .filter(c=>Math.hypot(...c.p)<R-60).sort((a,b)=>b.score-a.score||Math.hypot(...a.p)-Math.hypot(...b.p));
@@ -331,7 +342,7 @@ fs.writeFileSync(path.join(OUT,'mobility.json'),JSON.stringify(mobility));
 fs.writeFileSync(path.join(OUT,'trams.json'),JSON.stringify({source:'OpenStreetMap route=tram relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables and frequencies are simulated.'],paths:tramPaths,stops:transitStops.filter(s=>s.tram).map(({bus,...s})=>s)}));
 // Check bus routes against the street geometry once here, not in every player's browser
 // (same clearance test and compaction as Helsinki's scripts/prepare-bus-corridors.mjs).
-const busWorld={buildings:new SpatialIndex(city.buildings),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),trafficForbidden:new SpatialIndex(city.roads.filter(r=>/Koroke/.test(r.kind)))};
+const busWorld={buildings:new SpatialIndex(collisionBuildings(city)),roads:new SpatialIndex(city.roads.filter(r=>!/Koroke/.test(r.kind))),trafficForbidden:new SpatialIndex(city.roads.filter(r=>/Koroke/.test(r.kind)))};
 const usableBuses=usableBusPaths({paths:busPaths},busWorld).map(p=>{const from=Math.max(0,p.start-8),to=Math.min(p.length,p.end+8),a=routePoint(p,from,0),b=routePoint(p,to,0),points=[[a.x,a.z],...p.points.filter((_,i)=>p.cumulative[i]>from&&p.cumulative[i]<to),[b.x,b.z]].map(q=>q.map(v=>+v.toFixed(3)));const {cumulative,...rest}=p;return {...rest,points,start:p.start-from,end:p.end-from,length:to-from};});
 // Lanes for buses: the car lane of their own direction, else keep right (scripts/bus-lanes.mjs).
 addBusLanes(usableBuses,busWorld,mobility.roads);
@@ -343,7 +354,7 @@ carryOver(stage.out,OUT); // extensions, place textures and furniture made by ot
 fs.mkdirSync(path.join(OUT,'extensions'),{recursive:true});
 const extensionCatalog=path.join(OUT,'extensions/index.json');
 if(!fs.existsSync(extensionCatalog))fs.writeFileSync(extensionCatalog,JSON.stringify({schemaVersion:1,extensions:[]}));
-const counts={official:officialCount,buildings:registry,roads:city.roads.length,pavement:city.pavement.length,parks:city.parks.length,water:city.water.length,trees:city.trees.length,roadEdges:mobility.roads.edges.length,walkEdges:mobility.walks.edges.length,signals:signals.length,starts:city.landmarks.length,tramRoutes:tramPaths.length,tramLines:[...new Set(tramPaths.map(p=>p.line))].join(' '),busRoutes:busPaths.length,busCorridors:usableBuses.length,stops:transitStops.length};
+const counts={official:officialCount,buildings:registry,roads:city.roads.length,pavement:city.pavement.length,parks:city.parks.length,water:city.water.length,trees:city.trees.length,passages:passages.size,collision:collision.stats,roadEdges:mobility.roads.edges.length,walkEdges:mobility.walks.edges.length,signals:signals.length,starts:city.landmarks.length,tramRoutes:tramPaths.length,tramLines:[...new Set(tramPaths.map(p=>p.line))].join(' '),busRoutes:busPaths.length,busCorridors:usableBuses.length,stops:transitStops.length};
 const entry={id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,police:def.police||undefined,helpWanted:def.helpWanted||undefined,
  attribution:'Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright).'+(def.official?` ${def.official.attribution}.`:'')+' Building heights from OSM tags or estimated by building type.',fetchedAt:city.fetchedAt,counts};
 // Hills: ground elevation from open terrain tiles (scripts/city-terrain.mjs); "terrain": false in city.json keeps the city flat.
