@@ -1,6 +1,10 @@
 # worldhood
 
-**Explore the world, and build your own corner of it.**
+<a href="https://worldhood.org"><img src="docs/media/hero.jpg" width="100%" alt="The worldhood start screen over Helsinki's Market Square: check out some hoods, then build your own."></a>
+
+**check out some hoods, then build your own.**
+
+**[Play at worldhood.org](https://worldhood.org)** · **[▶ Watch the tour](https://worldhood.org/media/worldhood-tour.mp4)** (30 s video)
 
 There have been city games before. But for the first time, anyone can recreate the world, street by street.
 
@@ -8,7 +12,7 @@ An open-source city playground in your browser. Explore Helsinki and Tampere by 
 by bicycle or on an e-scooter. Greet people, try another car, or help recreate a place you know.
 The streets and buildings come from open map and city data, with local details added by contributors.
 
-**Play: [worldhood.org](https://worldhood.org)**
+<p align="center"><a href="https://worldhood.org/media/worldhood-tour.mp4"><img src="docs/media/highlights.webp" width="720" alt="Walking through the Market Square as gulls take off over the stalls, then switching the weather by Helsinki Cathedral and Esplanadi."></a></p>
 
 The current game is single-player. A shared online world and player-owned territories are future
 plans. Adding and improving cities currently happens through this repository, rather than an in-game editor.
@@ -31,6 +35,31 @@ every city. Start from the [wishlist](docs/IDEAS.md) and the [engine code map](d
 How we work: [vision](docs/VISION.md) · [CONTRIBUTING.md](CONTRIBUTING.md) · [GOVERNANCE.md](GOVERNANCE.md) · [Discord](https://discord.gg/c6SaPvxhJG)
 
 Originally built by [Lasse](https://www.linkedin.com/in/lassesaari/). Have an idea? [Tell me](https://www.linkedin.com/in/lassesaari/).
+
+## A look around
+
+<img src="docs/media/kauppatori-gulls.jpg" width="49%" alt="On foot at Kauppatori, the Market Square, with gulls circling over the stalls."> <img src="docs/media/scooter-esplanadi.jpg" width="49%" alt="Riding an e-scooter through Esplanadi park.">
+<br><sub><b>Kauppatori, Helsinki:</b> the market stalls and their gulls · <b>Esplanadi:</b> walk, run, or grab a scooter or city bike</sub>
+
+<img src="docs/media/harbour-drive.jpg" width="49%" alt="Driving along the South Harbour towards the SkyWheel."> <img src="docs/media/tampere-keskustori.jpg" width="49%" alt="Keskustori, the central square of Tampere, with the Old Church bell tower.">
+<br><sub><b>South Harbour, Helsinki:</b> drive the waterfront · <b>Keskustori, Tampere:</b> the central square</sub>
+
+<img src="docs/media/tampere-lakeside.jpg" width="49%" alt="A lakeside road in Tampere climbing the hills along Lake Näsijärvi.">  <img src="docs/media/espoo-tapiola.jpg" width="49%" alt="Tapiola centre in Espoo.">
+<br><sub><b>Tampere:</b> real terrain, from the lakeshore up the hills · <b>Tapiola, Espoo:</b> drive on from Helsinki into Espoo</sub>
+
+### Weather and time of day
+
+Press **T** to change the light. The same street in Helsinki, Esplanadi:
+
+<table>
+<tr>
+<td align="center"><img src="docs/media/weather-golden-evening.jpg" width="150" alt="Esplanadi in golden evening light."><br><sub>Golden evening</sub></td>
+<td align="center"><img src="docs/media/weather-midday.jpg" width="150" alt="Esplanadi at midday under a blue sky."><br><sub>Midday</sub></td>
+<td align="center"><img src="docs/media/weather-white-night.jpg" width="150" alt="Esplanadi in the blue light of a white night."><br><sub>White night</sub></td>
+<td align="center"><img src="docs/media/weather-overcast.jpg" width="150" alt="Esplanadi under an overcast sky."><br><sub>Overcast</sub></td>
+<td align="center"><img src="docs/media/weather-rain.jpg" width="150" alt="Esplanadi in the rain."><br><sub>Rain</sub></td>
+</tr>
+</table>
 
 ## Run
 
@@ -75,11 +104,11 @@ npm run build     # static build in dist/, deployable to any static host
 ## Cities
 
 <!-- CITIES:START -->
-| City | Play | Status | Data | Maintainers |
-| --- | --- | --- | --- | --- |
-| Helsinki, Finland | [`?city=helsinki`](https://worldhood.org/?city=helsinki) | playable | City of Helsinki 3D city model + open data, HSL | wanted |
-| Tampere, Finland | [`?city=tampere`](https://worldhood.org/?city=tampere) | draft | OpenStreetMap | wanted |
-| Oulu, Finland | [`?city=oulu`](https://worldhood.org/?city=oulu) | draft · [help wanted → #68](https://github.com/worldhood/worldhood/issues/68) | OpenStreetMap | zaw-ye-tun |
+| | City | Play | Status | Data | Maintainers |
+| --- | --- | --- | --- | --- | --- |
+| <a href="https://worldhood.org/?city=helsinki"><img src="docs/media/cities/helsinki.jpg" width="160" alt="Helsinki"></a> | Helsinki, Finland | [`?city=helsinki`](https://worldhood.org/?city=helsinki) | playable | City of Helsinki 3D city model + open data, HSL | wanted |
+| <a href="https://worldhood.org/?city=tampere"><img src="docs/media/cities/tampere.jpg" width="160" alt="Tampere"></a> | Tampere, Finland | [`?city=tampere`](https://worldhood.org/?city=tampere) | draft | OpenStreetMap | wanted |
+| <a href="https://worldhood.org/?city=oulu"><img src="docs/media/cities/oulu.jpg" width="160" alt="Oulu"></a> | Oulu, Finland | [`?city=oulu`](https://worldhood.org/?city=oulu) | draft · [help wanted → #68](https://github.com/worldhood/worldhood/issues/68) | OpenStreetMap | zaw-ye-tun |
 <!-- CITIES:END -->
 
 Running it locally? Use `http://localhost:5173/?city=<id>`.
@@ -127,6 +156,7 @@ you.
    - The build also adds your city to the table above, via `npm run cities:readme`.
 3. **Make it yours:**
    - Put your GitHub handle in `maintainers` in `cities/<id>/city.json`.
+   - Optionally add a screenshot as `docs/media/cities/<id>.jpg` (about 320×200 JPEG) for the table above.
    - Add these lines to `.github/CODEOWNERS`:
      ```
      /cities/<id>/          @you
