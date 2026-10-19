@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import {createPersonBatch,advanceGait,personLook} from './person-model.js';
+import {createPersonBatch,advanceGait,personLook,POLICE_UNIFORM} from './person-model.js';
 import {createDoor} from './angry-drivers.js';
 import {groundAt} from './terrain.js';
 import {ROADBLOCK,planRoadblock,roadblockVisible,roadblockClear,roadblockDistanceAhead,crossesStrip} from './roadblock-planning.js';
@@ -12,12 +12,12 @@ const ease=v=>{v=Math.min(1,Math.max(0,v));return v*v*(3-2*v);};
 const lerp=(a,b,t)=>a+(b-a)*t;
 const wrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
 
-// Finnish police patrol uniform: dark navy jacket with POLIISI across the back
-// (or a hi-vis vest over it), navy trousers, duty belt, black boots, peaked cap.
-const OFFICER_LOOK={shirt:'#1b2436',trousers:'#1a2232',hat:'#1b2436',hairStyle:'police',shoes:'#121214',coat:0,skirt:false,bagType:null,
- uniform:'jacket',outer:'uniform',scarf:null,accessory:null,phoneWalk:false,stoop:0,age:'adult',stride:1};
-const VEST_LOOK={...OFFICER_LOOK,uniform:'vest'};
-export const officerLook=(seed,vest=false)=>personLook(9000+seed*13,vest?VEST_LOOK:OFFICER_LOOK);
+// Police patrol uniform (default Finnish): dark jacket with the police label across the back
+// (or a hi-vis vest over it), matching trousers, duty belt, black boots, peaked cap. Colours
+// follow the city's police config (POLICE_UNIFORM).
+const OFFICER_LOOK={hairStyle:'police',shoes:'#121214',coat:0,skirt:false,bagType:null,
+ outer:'uniform',scarf:null,accessory:null,phoneWalk:false,stoop:0,age:'adult',stride:1};
+export const officerLook=(seed,vest=false)=>{const U=POLICE_UNIFORM;return personLook(9000+seed*13,{...OFFICER_LOOK,shirt:U.navy,trousers:U.trousers,hat:U.navy,uniform:vest?'vest':'jacket'});};
 
 // Arrest timeline, seconds after the door officers reach the car.
 // pull: out of the seat; drag: turned to the car beside the rear door; down:

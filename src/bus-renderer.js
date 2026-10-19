@@ -3,18 +3,22 @@ import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
 import {groundPose} from './terrain.js';
 import {BUS_DIMENSIONS} from './bus-simulation.js';
+import {mergeColours} from './city-liveries.js';
 export {THREE}; // Also lets the isolated preview use the exact same engine instance.
 
 // Original lightweight mesh, referencing the blue electric HSL fleet's proportions
 // and fittings. Not an exact licensed Yutong/VDL body or a copied HSL logotype.
-// A city can repaint its city buses (cities/<id>/city.json → liveries.bus), e.g. Tampere's Nysse.
-let BUS_LIVERY={};
-export function setBusLivery(livery={}){BUS_LIVERY=livery;}
+// A city can repaint its city buses (cities/<id>/city.json → liveries.bus), e.g. Tampere's Nysse:
+// any of these colours, unknown keys and non-hex values ignored. display/displayText are the
+// destination board's background and LED colour.
+export const BUS_COLOURS={paint:'#098bd0',white:'#e5ebe7',glass:'#13272f',black:'#151c20',alloy:'#aab2b4',roof:'#c0c8c7',head:'#f9f4da',tail:'#dc1832',amber:'#e7ac24',display:'#101918',displayText:'#f8cd67'};
+let BUS_LIVERY=BUS_COLOURS;
+export function setBusLivery(livery={}){return BUS_LIVERY=mergeColours(BUS_COLOURS,livery);}
 export function createBusModel(kind='city',{line='',destination='HELSINKI'}={}){
  const d=BUS_DIMENSIONS[kind],tourist=kind==='tourist',trunk=kind==='trunk',group=new THREE.Group(),parts=new Map();
- const mats={paint:new THREE.MeshStandardMaterial({color:tourist?'#b5242b':trunk?'#ed6b21':'#098bd0',roughness:.4,metalness:.18}),white:new THREE.MeshStandardMaterial({color:'#e5ebe7',roughness:.5}),glass:new THREE.MeshStandardMaterial({color:'#13272f',roughness:.17,metalness:.4}),black:new THREE.MeshStandardMaterial({color:'#151c20',roughness:.85}),alloy:new THREE.MeshStandardMaterial({color:'#aab2b4',roughness:.35,metalness:.75}),roof:new THREE.MeshStandardMaterial({color:'#c0c8c7',roughness:.7}),head:new THREE.MeshStandardMaterial({color:'#f9f4da',emissive:'#fff2c8',emissiveIntensity:.7}),tail:new THREE.MeshStandardMaterial({color:'#dc1832',emissive:'#cb1222',emissiveIntensity:.5}),amber:new THREE.MeshStandardMaterial({color:'#e7ac24',emissive:'#cd830b',emissiveIntensity:.35})};
+ const C=kind==='city'?BUS_LIVERY:BUS_COLOURS;
+ const mats={paint:new THREE.MeshStandardMaterial({color:tourist?'#b5242b':trunk?'#ed6b21':C.paint,roughness:.4,metalness:.18}),white:new THREE.MeshStandardMaterial({color:C.white,roughness:.5}),glass:new THREE.MeshStandardMaterial({color:C.glass,roughness:.17,metalness:.4}),black:new THREE.MeshStandardMaterial({color:C.black,roughness:.85}),alloy:new THREE.MeshStandardMaterial({color:C.alloy,roughness:.35,metalness:.75}),roof:new THREE.MeshStandardMaterial({color:C.roof,roughness:.7}),head:new THREE.MeshStandardMaterial({color:C.head,emissive:'#fff2c8',emissiveIntensity:.7}),tail:new THREE.MeshStandardMaterial({color:C.tail,emissive:'#cb1222',emissiveIntensity:.5}),amber:new THREE.MeshStandardMaterial({color:C.amber,emissive:'#cd830b',emissiveIntensity:.35})};
  if(kind==='coach'){mats.paint.color.set('#d7c796');mats.white.color.set('#315c79');}
- if(kind==='city')for(const [k,v] of Object.entries(BUS_LIVERY))mats[k]?.color.set(v);
  const add=(g,m,x=0,y=0,z=0,rotZ=0)=>{g.rotateZ(rotZ);g.translate(x,y,z);if(g.index)g=g.toNonIndexed();g.deleteAttribute('uv');if(!parts.has(m))parts.set(m,[]);parts.get(m).push(g);};
  const box=(w,h,l,m,x,y,z)=>add(new THREE.BoxGeometry(w,h,l),m,x,y,z);
  const round=(w,h,l,r,m,x,y,z)=>add(new RoundedBoxGeometry(w,h,l,2,r),m,x,y,z);
@@ -58,7 +62,7 @@ export function createBusModel(kind='city',{line='',destination='HELSINKI'}={}){
  for(const [name,gs]of parts){const mesh=new THREE.Mesh(mergeGeometries(gs),mats[name]);mesh.castShadow=true;mesh.receiveShadow=true;group.add(mesh);gs.forEach(g=>g.dispose());}
  // Route text is drawn once. Defaults avoid inventing real line numbers.
  if(typeof document!=='undefined'){
-  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const ctx=canvas.getContext('2d');ctx.fillStyle='#101918';ctx.fillRect(0,0,512,96);ctx.fillStyle='#f8cd67';ctx.font='bold 55px sans-serif';ctx.fillText(tourist?(destination||'CITY TOUR'):`${line} ${destination}`,12,66,490);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(2.1,.37),new THREE.MeshBasicMaterial({map:texture}));screen.rotation.y=Math.PI;screen.position.set(0,2.77,-d.length/2-.055);group.add(screen);
+  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=96;const ctx=canvas.getContext('2d');ctx.fillStyle=C.display;ctx.fillRect(0,0,512,96);ctx.fillStyle=C.displayText;ctx.font='bold 55px sans-serif';ctx.fillText(tourist?(destination||'CITY TOUR'):`${line} ${destination}`,12,66,490);const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;const screen=new THREE.Mesh(new THREE.PlaneGeometry(2.1,.37),new THREE.MeshBasicMaterial({map:texture}));screen.rotation.y=Math.PI;screen.position.set(0,2.77,-d.length/2-.055);group.add(screen);
  }
  const doors=leaves.map((gs,k)=>{const mesh=new THREE.Mesh(mergeGeometries(gs.map(g=>g.toNonIndexed())),mats.glass);mesh.name=`Door leaves ${k?'rear':'forward'}`;gs.forEach(g=>g.dispose());group.add(mesh);return mesh;});
  // Doors open outward and slide apart (0 closed … 1 open).

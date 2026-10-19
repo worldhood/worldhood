@@ -3,11 +3,13 @@ import {animateVehicle} from './vehicles.js';
 import {createSiren,SURGE_SIREN} from './police-siren.js';
 import {groundPose} from './terrain.js';
 const slope={y:0,pitch:0,roll:0};
-import {createPoliceBody,unitNumber,unitNumberTexture,unitVariant,POLICE_BLUE,POLICE_YELLOW} from './police-model.js';
+import {createPoliceBody,unitNumber,unitNumberTexture,unitVariant,policeLivery,POLICE_BLUE,POLICE_YELLOW} from './police-model.js';
+import {beaconShades} from './city-liveries.js';
 
-// Finnish Poliisi patrol units in the current national livery (white body,
-// blue POLIISI/POLIS door band, yellow-green chevrons, blue LED bar). The
-// bodies and the livery atlas live in police-model.js.
+// Patrol units in the city's police livery (default: Finnish Poliisi, white body,
+// blue POLIISI door band, yellow-green chevrons, blue LED bar). The bodies and
+// the livery atlas live in police-model.js; beacon colours and siren style come
+// from the same config (city.json → "police").
 export {POLICE_BLUE,POLICE_YELLOW};
 
 // Rapid alternating triple-flash strobe: side 0 flashes three times, then side 1.
@@ -18,16 +20,19 @@ export function strobe(time,side,offset=0){
 // Slower headlamp wig-wag, opposite phase per side.
 export const wigwag=(time,side,offset=0)=>((((time+offset)/.5)%1+1)%1<.5?0:1)===side?1:0;
 
-function glowTexture(){
+// Blue-tinted glow for the default beacons; neutral white when a city tints them itself.
+function glowTexture(tinted){
  const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const ctx=canvas.getContext('2d');
- const g=ctx.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.22,'rgba(110,160,255,.75)');g.addColorStop(1,'rgba(0,40,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,64,64);
+ const g=ctx.createRadialGradient(32,32,0,32,32,32);g.addColorStop(0,'rgba(255,255,255,1)');g.addColorStop(.22,tinted?'rgba(110,160,255,.75)':'rgba(255,255,255,.75)');g.addColorStop(1,tinted?'rgba(0,40,255,0)':'rgba(255,255,255,0)');ctx.fillStyle=g;ctx.fillRect(0,0,64,64);
  const texture=new THREE.CanvasTexture(canvas);texture.colorSpace=THREE.SRGBColorSpace;return texture;
 }
 // Geometry shared by every unit (never disposed with a car).
 function createKit(){
  const geometry={grille:new THREE.BoxGeometry(.13,.065,.025),head:new THREE.BoxGeometry(.3,.03,.02),pool:new THREE.PlaneGeometry(9,9).rotateX(-Math.PI/2)};
  for(const g of Object.values(geometry))g.userData.shared=true;
- return {glow:glowTexture(),geometry};
+ // Colours are read when the first car is built, after the city's config is applied.
+ let glow=null,shades=null;
+ return {geometry,get glow(){return glow||=glowTexture(this.shades.every(s=>s.flash==='#1f5cff'));},get shades(){return shades||=policeLivery().lights.map(beaconShades);}};
 }
 const unitIndex=id=>Number(String(id).replace(/\D/g,''))||0;
 
@@ -54,14 +59,14 @@ export function createPoliceRenderer(scene,simulation){
   // material per side so the whole side flashes together.
   const lights=[],halos=[],heads=[],lens=new THREE.BoxGeometry(mounts.bar.w,.07,.3);
   for(const [i,side]of [[0,-1],[1,1]]){
-   const material=new THREE.MeshStandardMaterial({color:'#2a52b8',emissive:'#1f5cff',emissiveIntensity:.15,roughness:.2});
+   const shade=kit.shades[i],material=new THREE.MeshStandardMaterial({color:shade.lens,emissive:shade.flash,emissiveIntensity:.15,roughness:.2});
    lights.push(add(lens,material,side*mounts.bar.x,mounts.bar.y,mounts.bar.z));
    lights.push(add(g.grille,material,side*mounts.grille.x,mounts.grille.y,mounts.grille.z));
-   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:kit.glow,color:'#3f86ff',blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:0}));
+   const halo=new THREE.Sprite(new THREE.SpriteMaterial({map:kit.glow,color:shade.halo,blending:THREE.AdditiveBlending,depthWrite:false,transparent:true,opacity:0}));
    halo.position.set(side*mounts.bar.x,mounts.bar.y+.03,mounts.bar.z);halo.scale.setScalar(1.8);m.add(halo);halos[i]=halo;owned.push(material,halo.material);
    const head=add(g.head,new THREE.MeshBasicMaterial({color:'#ffffff'}),side*mounts.head.x,mounts.head.y,mounts.head.z);head.visible=false;heads[i]=head;owned.push(head.material);
   }
-  const pool=new THREE.Mesh(g.pool,new THREE.MeshBasicMaterial({map:kit.glow,color:'#2a62ff',blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:.55}));
+  const pool=new THREE.Mesh(g.pool,new THREE.MeshBasicMaterial({map:kit.glow,color:kit.shades[0].pool,blending:THREE.AdditiveBlending,transparent:true,depthWrite:false,opacity:.55}));
   pool.position.y=.06;pool.visible=false;pool.renderOrder=2;m.add(pool);owned.push(pool.material);
   Object.assign(m.userData,{policeLights:lights,policeHalos:halos,policeHeads:heads,policePool:pool,ownedMaterials:owned,phase:index*.23%1});
   scene.add(m);return m;
@@ -90,11 +95,11 @@ export function createPoliceRenderer(scene,simulation){
    for(const [id,m]of models)if(!simulation.units.some(u=>u.id===id)){dispose(m);models.delete(id);}
    for(let i=0;i<2;i++){const m=nearest[i];if(!m||nearestD[i]>140)continue;
     const a=strobe(t,0,m.userData.phase),b=strobe(t,1,m.userData.phase),pool=m.userData.policePool;
-    pool.visible=!!(a||b);pool.position.x=a?-1.1:1.1;
+    pool.visible=!!(a||b);pool.position.x=a?-1.1:1.1;pool.material.color.set(kit.shades[a?0:1].pool);
    }
   },
-  // WebAudio siren; call every frame. `enabled` must reflect the sound toggle.
-  // `enabled` must reflect the sound toggle; the arrest cinematic keeps the siren going after heat drops to zero.
-  audio(context,enabled){siren.update(context,enabled&&(simulation.level>0||!!simulation.busted),simulation.units,simulation.player,simulation.time+arrestClock,simulation.surging||simulation.busted?SURGE_SIREN:1);},
+  // WebAudio siren; call every frame. `enabled` must reflect the sound toggle; the arrest
+  // cinematic keeps the siren going after heat drops to zero.
+  audio(context,enabled){siren.update(context,enabled&&(simulation.level>0||!!simulation.busted),simulation.units,simulation.player,simulation.time+arrestClock,simulation.surging||simulation.busted?SURGE_SIREN:1,policeLivery().siren);},
  };
 }

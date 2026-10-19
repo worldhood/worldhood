@@ -10,6 +10,9 @@ import {SpatialIndex,RADIUS,pointInPolygon,insidePlayable,setPlayableRadius} fro
 import {loadExtensionIndex,loadExtension,applyExtensions,mapViewFor,activateExtension,createExtensionStreamer} from './extensions.js';
 import {setTramLivery} from './tram-model.js';
 import {setBusLivery} from './bus-renderer.js';
+import {cityLiveries} from './city-liveries.js';
+import {setPoliceLivery} from './police-model.js';
+import {setPoliceUniform} from './person-model.js';
 import {selectCity,useCity,pickStart,startUrl,dataUrl,registerCities} from './cities.js';
 import {createStartPicker,pickerStep,districtLabel} from './start-picker.js';
 import {createAdaptiveResolution} from './adaptive-quality.js';
@@ -802,7 +805,7 @@ async function boot(){
    const helsinki=city.scenery==='helsinki';
    if(!helsinki)finale.zone=null; // station tram scheduling belongs to Helsinki; pursuit rules are shared
    if(!helsinki&&city.projection?.startsWith('+proj'))useProjection(city.projection,city.origin);
-   if(city.liveries?.tram)setTramLivery(city.liveries.tram);if(city.liveries?.bus)setBusLivery(city.liveries.bus);
+   {const l=cityLiveries(city);setTramLivery(l.tram);setBusLivery(l.bus);setPoliceUniform(setPoliceLivery(l.police));} // city.json "liveries" and "police" (src/city-liveries.js)
    progress(8,`Loading ${city.name}`);
    const d=unpack(dataUrl('city.pack')).then(bytes=>JSON.parse(new TextDecoder().decode(bytes)));
    const terrainData=city.terrain?.file?unpack(dataUrl(city.terrain.file)).then(decodeTerrain).catch(e=>{console.warn('Terrain unavailable; the city stays flat:',e);return null;}):null; // ground elevation (src/terrain.js)

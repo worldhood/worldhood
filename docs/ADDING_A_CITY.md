@@ -46,7 +46,48 @@ or the generic scenery builder. Add place-specific models through that boundary.
 such as walking, riding, traffic, conversations, police and weather work across cities; keep their
 rules in the shared engine. See [GAMEPLAY.md](GAMEPLAY.md).
 
-## Step 4: review
+## Step 4: police and transit liveries
+
+Police, buses and trams default to Helsinki's look: Finnish `POLIISI` cars and uniforms, blue HSL
+buses, green Artic trams. A city in another country sets its own in `cities/<id>/city.json`;
+`npm run city:build` copies both blocks into `public/cities/index.json`. Every field is optional,
+colours are `#rrggbb`, and unknown keys or malformed values fall back to the defaults
+(`src/city-liveries.js`).
+
+```json
+"police": {
+  "label": "POLICE",
+  "emergency": "999",
+  "siren": "hi-lo",
+  "car": {"body": "#f4f5f2", "band": "#1b3f94", "accent": "#e8d21d", "lettering": "#f4f5f2", "bar": "#2448a6"},
+  "lights": ["#1f5cff", "#1f5cff"],
+  "uniform": {"jacket": "#141a26", "trousers": "#161b26", "vest": "#d9e021", "reflective": "#c8ccd0"}
+},
+"liveries": {
+  "bus": {"paint": "#1f4e9c", "white": "#f4f5f6", "display": "#101918", "displayText": "#f8cd67"},
+  "tram": {"green": "#b3372a", "yellow": "#b3372a", "operator": ["CITY", "TRAM"], "logo": false}
+}
+```
+
+| Field | Meaning |
+| --- | --- |
+| `police.label` | Word on doors, bonnet, light bar, rear and uniform backs (up to 16 characters) |
+| `police.emergency` | Number on the rear door, `""` for none (default `112`) |
+| `police.website` | Small rear-door address on vans; only Finland's is inherited, `""` hides it |
+| `police.emblem` | The game's own stylised badge. Defaults to `false` once you change `label` |
+| `police.siren` | `wail-yelp` (slow wail far away, fast yelp up close) or `hi-lo` (two-tone) |
+| `police.car` | Body, door band, chevron accents, lettering and light bar housing colours |
+| `police.lights` | Beacon colours, left and right side (e.g. `["#ff2020", "#1f5cff"]`) |
+| `police.uniform` | Jacket (also the vest's text panel), trousers, hi-vis vest and reflective bands |
+| `liveries.bus` | City bus colours: `paint`, `white`, `glass`, `black`, `alloy`, `roof`, `head`, `tail`, `amber`, `display`, `displayText` |
+| `liveries.tram` | Any `ARTIC_COLOURS` key in `src/tram-model.js`, plus `operator` (one or two short lines, `[]` for none), `logo`, `marks` and `fleet` lettering colours |
+
+Use plain text and colours only. Do not copy a police force's crest, badge, coat of arms or an
+operator's logotype: they are usually protected marks. The label, colour scheme and a generic
+chevron pattern are enough to read as the local police. Base colours on your own photos or on
+permitted references, and note the source in `liveries.note`.
+
+## Step 5: review
 
 Use the same area workflow ([EXTENDING.md](EXTENDING.md)): starts, `knownFor`, permitted reference
 notes and a visual review of each checkpoint. Optional review tools can help, but are not required.

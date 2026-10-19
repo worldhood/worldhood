@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {mergeColours,tramMarks} from './city-liveries.js';
 
 // Code-native Škoda/Transtech Artic (HSL class 401-) body model.
 // Each of the three articulated modules is emitted as one merged geometry per
@@ -27,7 +28,10 @@ export const TRAM_DISPLAYS={front:[2.0,.475],rear:[.4,.46],side:[1.3,.31],sideLi
 const P=ARTIC_PROFILE;
 // A city can repaint the tram (cities/<id>/city.json → liveries.tram), e.g. Tampere's red Artics.
 let C=ARTIC_COLOURS;
-export function setTramLivery(overrides={}){C={...ARTIC_COLOURS,...overrides};}
+// Any ARTIC_COLOURS key, plus the lettering beside the first door: operator (one or two short
+// lines, [] for none), logo (ring mark), marks and fleet colours (src/city-liveries.js).
+let MARKS=tramMarks();
+export function setTramLivery(overrides={}){C=mergeColours(ARTIC_COLOURS,overrides);MARKS=tramMarks(overrides);return {...C,...MARKS};}
 const colour=hex=>new THREE.Color(hex);
 const tmpA=new THREE.Vector3(),tmpB=new THREE.Vector3(),tmpN=new THREE.Vector3();
 
@@ -300,8 +304,8 @@ export function drawSignRow(ctx,row,{line,destination,fleet}){
  // Line-number display (rear window and first side window).
  ctx.textAlign='center';ctx.font=`900 126px ${SIGN_FONTS.digit}`;glow(String(line),(R.line.x[0]+R.line.x[1])/2,y+(R.line.y[0]+R.line.y[1])/2+7,110);
  ctx.fillStyle='#eef0f2';ctx.font=`bold 62px ${SIGN_FONTS.text}`;ctx.fillText(String(fleet),(R.fleet.x[0]+R.fleet.x[1])/2,y+(R.fleet.y[0]+R.fleet.y[1])/2+3,150);
- const lx=R.livery.x[0];ctx.fillStyle='#ecefee';ctx.font=`bold 36px ${SIGN_FONTS.text}`;ctx.textAlign='left';ctx.fillText('HSL',lx+84,y+36);ctx.fillText('HRT',lx+84,y+74);ctx.fillRect(lx+70,y+16,4,76);
- ctx.beginPath();ctx.arc(lx+36,y+54,18,0,Math.PI*2);ctx.lineWidth=6;ctx.strokeStyle='#ecefee';ctx.stroke();for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.fillRect(lx+36+Math.cos(a)*24-3,y+54+Math.sin(a)*24-3,7,7);}
- ctx.fillStyle='#d9ab3c';ctx.font=`bold 56px ${SIGN_FONTS.text}`;ctx.fillText(String(fleet),lx+14,y+128);
+ const lx=R.livery.x[0],M=MARKS,tx=M.logo?lx+84:lx+14;ctx.fillStyle=M.marks;ctx.font=`bold 36px ${SIGN_FONTS.text}`;ctx.textAlign='left';M.operator.forEach((t,k)=>ctx.fillText(t,tx,y+36+k*38,R.livery.x[1]-tx-8));
+ if(M.logo){ctx.fillRect(lx+70,y+16,4,76);ctx.beginPath();ctx.arc(lx+36,y+54,18,0,Math.PI*2);ctx.lineWidth=6;ctx.strokeStyle=M.marks;ctx.stroke();for(let k=0;k<8;k++){const a=k*Math.PI/4;ctx.fillRect(lx+36+Math.cos(a)*24-3,y+54+Math.sin(a)*24-3,7,7);}}
+ ctx.fillStyle=M.fleet;ctx.font=`bold 56px ${SIGN_FONTS.text}`;ctx.fillText(String(fleet),lx+14,y+128);
  ctx.restore();
 }

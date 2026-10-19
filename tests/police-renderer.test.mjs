@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Scene} from 'three';
 import {createPoliceRenderer,strobe,wigwag} from '../src/police-renderer.js';
 import {createPoliceBody,unitNumber,unitVariant,POLICE_SPECS} from '../src/police-model.js';
-import {sirenMix} from '../src/police-siren.js';
+import {SURGE_SIREN as SURGE,sirenMix,sirenGain,sirenCutoff,sirenPitch,SIREN_RANGE} from '../src/police-siren.js';
 import {createVehicle} from '../src/vehicles.js';
 
 // Minimal canvas stand-in: every 2D context call is a no-op.
@@ -45,7 +45,7 @@ test('police steering, brake lamps, strobes and beacon update without altering c
 
 test('siren is silent without police, louder when closer, and yelps up close',()=>{
  const player={x:0,z:0};
- assert.equal(sirenMix([],player,0).volume,0);assert.equal(sirenMix([{x:400,z:0}],player,0).volume,0);
+ assert.equal(sirenMix([],player,0).volume,0);assert.equal(sirenMix([{x:520,z:0}],player,0).volume,0);
  const far=sirenMix([{x:150,z:0}],player,1),near=sirenMix([{x:20,z:0}],player,1);
  assert.ok(near.volume>far.volume&&far.volume>0);
  const pitches=new Set();for(let t=0;t<.32;t+=.04)pitches.add(Math.round(sirenMix([{x:20,z:0}],player,t).frequency));
@@ -85,3 +85,21 @@ test('per-unit variant, number decals and geometry are released when the unit le
  assert.equal(scene.children.length,1);assert.ok(geometries.size>10);assert.equal(disposed.size,geometries.size,'per-car geometry disposed');
  assert.ok(b.getObjectByName('paint').material.map.image,'shared atlas survives the other unit leaving');
 }));
+
+test('siren carries about 500 m: smooth distance roll-off, silent at the edge, muffled far away',()=>{
+ assert.equal(SIREN_RANGE,500);assert.equal(sirenGain(0),1);assert.equal(sirenGain(500),0);assert.equal(sirenGain(Infinity),0);assert.equal(sirenGain(NaN),0);
+ let last=2;for(let d=0;d<500;d+=5){const g=sirenGain(d);assert.ok(g<last&&g>0,`gain falls at ${d} m`);last=g;}
+ assert.ok(sirenGain(300)>.04,'still clearly audible at 300 m');assert.ok(sirenGain(480)<.01,'fades out before the edge');
+ const player={x:0,z:0},far=sirenMix([{x:450,z:0}],player,0),mid=sirenMix([{x:250,z:0}],player,0),near=sirenMix([{x:10,z:0}],player,0);
+ assert.ok(far.volume>0&&mid.volume>far.volume&&near.volume>mid.volume);
+ assert.equal(near.cutoff,2200,'full brightness up close');assert.ok(mid.cutoff<near.cutoff&&far.cutoff<mid.cutoff,'low-pass closes with distance');
+ assert.equal(sirenCutoff(500),450);assert.ok(sirenMix([{x:10,z:0}],player,0,SURGE).volume<=.16,'volume capped in the surge');
+ assert.equal(sirenMix([{x:60,z:0}],player,0,1).frequency>=640,true);
+});
+
+test('hi-lo siren alternates two tones, faster up close',()=>{
+ const tones=t=>sirenPitch('hi-lo',t,false),fast=t=>sirenPitch('hi-lo',t,true);
+ assert.deepEqual(new Set([0,.2,.4,.7,.9,1.1].map(tones)),new Set([920,690]));
+ assert.notEqual(fast(.5),tones(.5),'close units switch tone sooner');
+ const player={x:0,z:0};assert.ok([920,690].includes(sirenMix([{x:20,z:0}],player,.3,1,'hi-lo').frequency));
+});

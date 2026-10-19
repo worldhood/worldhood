@@ -396,9 +396,11 @@ export function uniformTorsoGeometry(){
  const g=torsoGeometry().rotateY(Math.PI),p=g.attributes.position,uv=g.attributes.uv;
  for(let i=0;i<p.count;i++)uv.setY(i,p.getY(i));return g;
 }
-// Finnish police: dark navy patrol jacket with reflective POLIISI across the
+// Default Finnish police: dark navy patrol jacket with reflective POLIISI across the
 // back, or a fluorescent yellow vest with silver bands and POLIISI on a navy panel.
-export const POLICE_UNIFORM={navy:'#1b2436',vest:'#d4e03c',reflective:'#c8ccd0',text:'POLIISI'};
+// A city sets its own text and colours (city.json → "police", src/city-liveries.js).
+export const POLICE_UNIFORM={navy:'#1b2436',trousers:'#1a2232',vest:'#d4e03c',reflective:'#c8ccd0',text:'POLIISI'};
+export function setPoliceUniform({label,uniform}){Object.assign(POLICE_UNIFORM,{navy:uniform.jacket,trousers:uniform.trousers,vest:uniform.vest,reflective:uniform.reflective,text:label});return POLICE_UNIFORM;}
 function uniformTexture(kind){
  if(typeof document==='undefined')return null;
  const canvas=document.createElement('canvas');canvas.width=512;canvas.height=256;const ctx=canvas.getContext('2d'),U=POLICE_UNIFORM;
@@ -424,7 +426,7 @@ function colors(look){
  c={shirt:rgb(look.shirt||'#4b4f55'),skin:rgb(look.skin||'#e3b48f'),trousers:rgb(look.trousers||'#2e3440'),hair:rgb(look.hairStyle==='beanie'?look.hat||'#2a2d33':look.hair||'#3b2a20'),
   shoes:rgb(look.shoes||'#1b1b1d'),bag:rgb(look.bagColor||'#2b2b2e'),legs:rgb(look.skirt?(look.tights||'#2a2a2e'):look.trousers||'#2e3440'),coat:rgb(look.skirt?look.trousers||'#2e3440':look.shirt||'#4b4f55'),
   case:rgb(look.caseColor||'#334b60'),metal:rgb('#9da4a6'),dark:rgb('#25282b'),scarf:rgb(look.scarf||'#8a2f35'),dog:rgb(look.dogColor||'#5a4030'),
-  black:rgb('#141518'),phone:rgb('#202226'),badge:rgb('#c9ccd0'),vest:rgb(look.uniform==='vest'?'#d4e03c':look.shirt||'#1e2a44')};
+  black:rgb('#141518'),phone:rgb('#202226'),badge:rgb('#c9ccd0'),vest:rgb(look.uniform==='vest'?POLICE_UNIFORM.vest:look.shirt||'#1e2a44')};
  if(look.hairStyle==='cap'||look.hairStyle==='police')c.hair=rgb(look.hat||'#2a2d33');
  looks.set(look,c);return c;
 }
