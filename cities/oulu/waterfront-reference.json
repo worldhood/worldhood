@@ -1,0 +1,13 @@
+{
+ "referenceOnly": false,
+ "adapter": "municipal-model",
+ "name": "Kaarlenvayla theatre and library",
+ "modelFile": "waterfront-model.json",
+ "centreLocal": [-340,-350],
+ "radiusMetres": 180,
+ "views": [
+  {"photo":"commons/Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_05.jpg","x":-314.7,"z":-370.43,"eye":-3,"heading":-147.05,"pitch":7,"note":"Leonhard Lenz CC0, 2026-01-05. Approximate NE entrance comparison; daytime game lighting differs from the night photograph."},
+  {"photo":"commons/Oulu_Central_Library_Saari_20260106.jpg","x":-268.8,"z":-356.5,"eye":-3,"heading":-47,"pitch":7,"note":"Estormiz CC0, 2026-01-06; approximate reference camera. Municipal shell with interpreted facade."},
+  {"photo":"commons/Oulu_City_Theatre_20260403.jpg","x":-366.5,"z":-195.9,"eye":-3,"heading":0,"pitch":8,"note":"Estormiz CC0, 2026-04-03; approximate reference camera. Municipal LOD1 shell; extra stage-house volume is a photo estimate."}
+ ]
+}

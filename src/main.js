@@ -6,7 +6,7 @@ import {createLoadingScreen} from './loading-screen.js';
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
-import {SpatialIndex,RADIUS,pointInPolygon,insidePlayable,setPlayableRadius} from './geo.js';
+import {SpatialIndex,RADIUS,pointInPolygon,insidePlayable,setPlayableRadius,bounds} from './geo.js';
 import {loadExtensionIndex,loadExtension,applyExtensions,mapViewFor,activateExtension,createExtensionStreamer} from './extensions.js';
 import {setTramLivery} from './tram-model.js';
 import {setBusLivery} from './bus-renderer.js';
@@ -353,7 +353,7 @@ async function buildRoof(t,at){
   applyFacadeHeights(a,t.parts);liftBuildings(a,t.parts); // terrain cities: each part stands on its lowest ground
   const parts=t.parts.filter(p=>![211,212,213,1796,57950,STATION_KIOSK_RATU,USPENSKI.ratu].includes(p.ratu)&&!placeHidden.has(p.id)); // place landmarks and shelters are drawn by place-scene.js
   // Far level: one merged shell per atlas. Near level: per-part shells until the worker's details replace them.
-  group.add(...createMergedShells(a,parts,textures));for(const part of parts)group.add(createSourceShell(a,part,textures.get(part.texture)));
+  for(const shell of createMergedShells(a,parts,textures))group.add(shell);for(const part of parts)group.add(createSourceShell(a,part,textures.get(part.texture)));
   Object.assign(group.userData,{textures,windows:0,tile:t,pending:{array:a,parts,images:new Map([...images].map(([f,i])=>[f,i.bytes]))}});
   freezeTileGroup(group);applyTileLod(group,tileLevel(null,tileDistance(t,at)),at);loadedTiles.set(t.file,group);
   // One atlas upload per frame, then the tile itself: twenty tiles landing after a teleport no longer upload in one frame.
@@ -750,7 +750,7 @@ function frame(now){
  }else{const pose=welcomeCameraPose(focus,heading,height,behind);camera.position.set(...pose.position);camera.lookAt(...pose.target);}
  if(inspectionCamera){camera.position.set(...inspectionCamera.eye);camera.lookAt(...inspectionCamera.target);}
  {const pose=roadblock?.cameraPose()||finale.cameraPose(car);if(pose){camera.position.set(...pose.position);camera.lookAt(...pose.target);}} // arrest cinematic orbit
- const wantFov=chaseCamera&&started&&!inspectionCamera?cameraFov:DRIVE_FOV.min;if(camera.fov!==wantFov){camera.fov=wantFov;camera.updateProjectionMatrix();}
+ const wantFov=inspectionCamera?.fov??(chaseCamera&&started&&!inspectionCamera?cameraFov:DRIVE_FOV.min);if(camera.fov!==wantFov){camera.fov=wantFov;camera.updateProjectionMatrix();}
  playerCars.setVisible(!inspectionCamera);
   travelRenderer.update(travel,started&&!paused&&!mapOpen?dt:0,{visible:!inspectionCamera,actorVisible:!police?.busted,hold:marketShop?.holdPose()??null});
   if(ready&&!paused&&!mapOpen&&!police?.busted){
@@ -770,7 +770,7 @@ function frame(now){
  // Fade only the buildings between the chase camera and the player, preserving a readable road view.
  if(car&&started){const target=new THREE.Vector3(car.x,1+groundAt(car.x,car.z),car.z),ray=new THREE.Ray(camera.position.clone(),target.clone().sub(camera.position).normalize()),hit=new THREE.Vector3(),limit=camera.position.distanceTo(target);
   const updated=new Set();
-  for(const tile of loadedTiles.values())if(tile.visible)for(const mesh of tile.children){if(!mesh.visible)continue;const state=mesh.userData.occlusion;if(!updated.has(state)){const intersects=ray.intersectBox(mesh.userData.box,hit),fade=!!intersects&&hit.distanceTo(camera.position)<limit-3;advanceOcclusion(state,fade,dt);updated.add(state);}mesh.material.opacity=state.opacity;mesh.material.depthWrite=state.opacity>.999;const fading=state.opacity<.999;if(mesh.material.transparent!==fading){mesh.material.transparent=fading;mesh.material.needsUpdate=true;}}
+  for(const tile of loadedTiles.values())if(tile.visible)for(const mesh of tile.children){if(!mesh.visible)continue;const state=mesh.userData.occlusion;if(!updated.has(state)){const intersects=ray.intersectBox(mesh.userData.box,hit),fade=!inspectionCamera&&!!intersects&&hit.distanceTo(camera.position)<limit-3;advanceOcclusion(state,fade,dt);updated.add(state);}mesh.material.opacity=state.opacity;mesh.material.depthWrite=state.opacity>.999;const fading=state.opacity<.999;if(mesh.material.transparent!==fading){mesh.material.transparent=fading;mesh.material.needsUpdate=true;}}
  }
  // Shadow box and texel snapping follow the active look's sun (weather.js re-applies the same offset below).
  {const sunOffset=look?look.current.sunOffset:new THREE.Vector3(-160,260,160),sf=shadowFrame(sunOffset);
@@ -816,7 +816,12 @@ async function boot(){
    // register trees with species heights, and the buildings their landmarks replace.
    places=(await Promise.all((city.places||[]).map(p=>json(dataUrl(`places/${p}.json`)).catch(()=>null)))).filter(Boolean);
    for(const pl of places){const inPlace=t=>Math.hypot(t.p[0]-pl.centre[0],t.p[1]-pl.centre[1])<pl.radius;
-    data.trees=[...data.trees.filter(t=>!inPlace(t)),...pl.trees.filter(inPlace)];for(const id of pl.hideBuildings||[])placeHidden.add(id);
+    data.trees=[...data.trees.filter(t=>pl.replaceTrees===false||!inPlace(t)),...pl.trees.filter(inPlace)];for(const id of pl.hideBuildings||[])placeHidden.add(id);
+    if(pl.extendPavement)for(const [i,p] of pl.paving.entries())data.pavement.push({id:`place-${pl.city}-${pl.place}-${i}`,rings:p.rings,bbox:bounds(p.rings)});
+    for(const m of pl.municipalModels||[]){const building=data.buildings.find(b=>b.id===m.building);if(building){building.rings=[m.ring];building.bbox=bounds(building.rings);building.height=m.height;}}
+    for(const m of pl.ouluMarket?.square?.buildings||[]){const building=data.buildings.find(b=>b.id===m.building);if(building)building.height=m.eave+m.rise;}
+    if(pl.ouluCityHall){const building=data.buildings.find(b=>b.id===pl.ouluCityHall.building);if(building)building.height=pl.heights[building.id];}
+    if(pl.ouluCathedral){const building=data.buildings.find(b=>b.id===pl.ouluCathedral.building);if(building)building.height=pl.heights[building.id];}
     for(const t of roofIndex.tiles)for(const part of t.parts)if(pl.heights?.[part.id]&&!part.facade?.height)part.measuredHeight=pl.heights[part.id];}
    // The catalog lists every destination; only the requested region blocks startup.
    if(helsinki)data.landmarks.push({...HARBOUR_START});
@@ -903,7 +908,7 @@ async function boot(){
     marketLife=life();universityLife=life();terminalLife=life();detailPeople=[];
     harbour={group:new THREE.Group(),obstacles:[],knockables:null};knockables=combineKnockables([breakableSigns]); // traffic-signal posts bend when hit, in every city
     finale.zone=null; // station tram scheduling is Helsinki-specific
-    const streetObstacles=[];for(const pl of places){const p=createPlace(pl,{textureUrl:dataUrl});cityModel.add(settleObject(p.group));streetObstacles.push(...p.obstacles);}
+    const streetObstacles=[];for(const pl of places){const p=createPlace(pl,{textureUrl:dataUrl});cityModel.add(settleObject(p.group,{skip:o=>o.userData.municipalElevation||o.userData.fixedElevation}));streetObstacles.push(...p.obstacles);}
     return {streetObstacles,ads:empty(),crossingSigns:empty(),routeCrossingSigns:empty(),roadworks:empty(),senateProps:empty(),furniture:empty(),
      micromobility:{...empty(),knockables:{snapshot:()=>({})}},market:empty(),kaivokatuDetails:empty()};
    }
@@ -1002,9 +1007,10 @@ async function boot(){
     if(![x,z,heading].every(Number.isFinite)||!insidePlayable(x,z)||world.buildings.at(x,z)||(!world.roads.at(x,z)&&!world.pavement.at(x,z)))throw Error('Inspection point must be on clear mapped ground');
     setStart({name:'Street inspection',district:'Helsinki',x,z,heading});cameraLook=0;setPaused(true);
    };
-   if(import.meta.env.DEV)window.openCityDrive.inspectCamera=({eye,target})=>{
+   if(import.meta.env.DEV)window.openCityDrive.inspectCamera=({eye,target,fov=null})=>{
     if(![...eye,...target].every(Number.isFinite)||!insidePlayable(eye[0],eye[2]))throw Error('Invalid reference camera');
-    inspectionCamera={eye,target};setPaused(true);
+    if(fov!==null&&(!Number.isFinite(fov)||fov<10||fov>100))throw Error('Invalid reference field of view');
+    inspectionCamera={eye,target,fov};setPaused(true);
    };
    // Debug: hide/show a named detail group (e.g. 'Route street furniture', 'Granite kerbstones') to measure its render cost.
    if(import.meta.env.DEV)window.openCityDrive.mappedFurniture=mappedFurniture; // tests: placed furniture and its hittable posts

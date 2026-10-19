@@ -1,0 +1,24 @@
+{
+ "referenceOnly": true,
+ "name": "Contributor photo comparisons",
+ "views": [
+  {
+   "photo": "own_75bfb3fa4220.jpg",
+   "x": 162,
+   "z": -202,
+   "eye": -0.21,
+   "heading": -61.7,
+   "pitch": 5,
+   "note": "Photographed by zaw-ye-tun (April 2025); used as a reference, original not distributed. Camera position, eye height and heading approximate. Custom City Hall model with municipal-height reference; architectural detail remains approximate."
+  },
+  {
+   "photo": "own_3772e8923a08.jpg",
+   "x": 5,
+   "z": 181,
+   "eye": 0.06,
+   "heading": 138.7,
+   "pitch": 5,
+   "note": "Photographed by zaw-ye-tun (October 2025); used as a reference, original not distributed. Camera position, eye height and heading approximate. Colour-only update; geometry remains provisional."
+  }
+ ]
+}

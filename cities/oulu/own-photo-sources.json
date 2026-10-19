@@ -1,0 +1,36 @@
+{
+ "schemaVersion": 1,
+ "author": "zaw-ye-tun",
+ "permission": "Photographed by zaw-ye-tun; used as a reference; originals not distributed.",
+ "note": "Only photographs used as a reference for something built are listed. Locations, exact dates and original file names are intentionally omitted.",
+ "photos": [
+  {
+   "id": "own_3772e8923a08",
+   "subject": "Isokatu 37, street front",
+   "author": "zaw-ye-tun",
+   "captured": "2025-10",
+   "usedFor": "Isokatu 37 wall colour and material (facades.json)"
+  },
+  {
+   "id": "own_75bfb3fa4220",
+   "subject": "Oulu City Hall, front",
+   "author": "zaw-ye-tun",
+   "captured": "2025-04",
+   "usedFor": "City Hall facade colour and twin-pavilion silhouette (city-hall place, facades.json)"
+  },
+  {
+   "id": "own_91444c5d9f11",
+   "subject": "Oulu city bus, front",
+   "author": "zaw-ye-tun",
+   "captured": "2026-02",
+   "usedFor": "City bus paint, glazing, windscreen and headlights (city.json liveries.bus)"
+  },
+  {
+   "id": "own_41645f59d53e",
+   "subject": "Kauppatori, Rantakatu side",
+   "author": "zaw-ye-tun",
+   "captured": "2025-06",
+   "usedFor": "Pink Rantakatu house facade colour (facades.json, market place)"
+  }
+ ]
+}

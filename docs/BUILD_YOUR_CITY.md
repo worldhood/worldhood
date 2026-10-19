@@ -300,6 +300,8 @@ shapes; everything you see comes from photos taken after the place last changed.
    It saves current Commons, Mapillary and Panoramax photos (plus any of your own you drop in the
    folder) to the git-ignored `data/raw/photos/<id>/<place>/` with `catalog.json`. List what you used,
    with author, licence, date and use, in `<place>-sources.json`.
+   A photo acquisition plan can set `"referenceOnly": true` while observations and the place
+   model are pending; `city:build` skips that file. Remove the flag once the model is ready.
 2. **Describe:** look at every photo and write the place in your own words in the reference file:
    paving per street-part rule (the city's street-part polygons give the areas), tram stop, lamps,
    furniture, landmark dimensions and colours. `npm run place:build -- <id> <place>` joins it with the

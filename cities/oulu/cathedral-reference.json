@@ -1,0 +1,45 @@
+{
+ "referenceOnly": false,
+ "name": "Oulu Cathedral and Kirkkokatu",
+ "photoSearch": {
+  "centre": [
+   25.475714,
+   65.01464
+  ],
+  "radiusMetres": 200,
+  "since": "2021-01-01",
+  "commons": [
+   "Oulu Cathedral"
+  ]
+ },
+ "views": [
+  {
+   "photo": "commons/199558409.jpg",
+   "x": 211.9,
+   "z": -355.3,
+   "heading": 128,
+   "pitch": 20,
+   "note": "Draft comparison. Leonhard Lenz, CC0, 2026-01-05. Camera uses the photo geotag; heading is estimated toward the mapped building, not surveyed. Eye position is adjusted to the game terrain; height above ground is estimated.",
+   "eye": 1.94
+  },
+  {
+   "photo": "commons/174237270.jpg",
+   "x": 184,
+   "z": -401,
+   "eye": 48,
+   "heading": -139.1,
+   "pitch": -12.5,
+   "note": "Approximate aerial comparison camera, estimated to compare overall massing; not surveyed.",
+   "fov": 48
+  }
+ ],
+ "adapter": "oulu-cathedral",
+ "building": "osm-way-28849152",
+ "centreLocal": [
+  260,
+  -317.8
+ ],
+ "radiusMetres": 100,
+ "heightSource": "https://www.ouka.fi/media/8025/download",
+ "source": "Oulu Cathedral: OpenStreetMap footprint (ODbL 1.0); 56.5 m tower-height reference from City of Oulu high-rise report (2014). Original geometry interpreted from Leonhard Lenz and Estormiz CC0 photographs; other dimensions and colours estimated."
+}

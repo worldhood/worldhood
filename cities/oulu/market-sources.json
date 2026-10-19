@@ -1,0 +1,410 @@
+{
+ "photos": [
+  {
+   "source": "commons",
+   "id": "155841038",
+   "file": "commons/155841038.jpg",
+   "title": "Rantakatu Oulu 20241126.jpg",
+   "category": "Oulu Market Hall at night",
+   "url": "https://commons.wikimedia.org/wiki/File:Rantakatu_Oulu_20241126.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2024-11-26",
+   "x": -249.7,
+   "z": -144.6,
+   "textures": false,
+   "use": "Reference for original procedural geometry; no photo pixels shipped."
+  },
+  {
+   "source": "commons",
+   "id": "161753217",
+   "file": "commons/161753217.jpg",
+   "title": "Detail Oulu Market Hall 20250309 04.jpg",
+   "category": "Oulu Market Hall",
+   "url": "https://commons.wikimedia.org/wiki/File:Detail_Oulu_Market_Hall_20250309_04.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-03-09",
+   "x": -301.2,
+   "z": -129.1,
+   "textures": false,
+   "use": "Reference for original procedural geometry; no photo pixels shipped."
+  },
+  {
+   "source": "commons",
+   "id": "158320345",
+   "file": "commons/158320345.jpg",
+   "title": "Oulu Market Hall 20250116.jpg",
+   "category": "Oulu Market Hall",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Hall_20250116.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-01-16",
+   "x": -235.9,
+   "z": -152.2,
+   "textures": false,
+   "use": "Reference for original procedural geometry; no photo pixels shipped."
+  },
+  {
+   "source": "commons",
+   "id": "165928231",
+   "file": "commons/165928231.jpg",
+   "title": "Oulu Market Hall 20250520.jpg",
+   "category": "Oulu Market Hall",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Hall_20250520.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-05-20",
+   "x": -250.9,
+   "z": -136.9,
+   "textures": false,
+   "use": "Reference for original procedural geometry; no photo pixels shipped."
+  },
+  {
+   "source": "commons",
+   "id": "172768713",
+   "file": "commons/172768713.jpg",
+   "title": "Oulu Market Hall 20250805 01.jpg",
+   "category": "Oulu Market Hall",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Hall_20250805_01.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-08-05",
+   "x": -250.9,
+   "z": -148.7,
+   "textures": false,
+   "use": "Reference for original procedural geometry; no photo pixels shipped."
+  },
+  {
+   "file": "commons/Warehouses_Aittatori_Oulu_20241005_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Warehouses_Aittatori_Oulu_20241005_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/0/05/Warehouses_Aittatori_Oulu_20241005_01.jpg/1280px-Warehouses_Aittatori_Oulu_20241005_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 5 October 2024",
+   "camera": [
+    25.46222,
+    65.013142
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Warehouses_Aittatori_Oulu_20241005_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Warehouses_Aittatori_Oulu_20241005_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/a/aa/Warehouses_Aittatori_Oulu_20241005_02.jpg/1280px-Warehouses_Aittatori_Oulu_20241005_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 5 October 2024",
+   "camera": [
+    25.462277,
+    65.013163
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Warehouses_Oulu_Market_Square_20250104.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Warehouses_Oulu_Market_Square_20250104.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5a/Warehouses_Oulu_Market_Square_20250104.jpg/1280px-Warehouses_Oulu_Market_Square_20250104.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 4 January 2025",
+   "camera": [
+    25.465905,
+    65.01396
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Torinranta_Oulu_20250419_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Torinranta_Oulu_20250419_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/65/Torinranta_Oulu_20250419_02.jpg/1280px-Torinranta_Oulu_20250419_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 19 April 2025",
+   "camera": [
+    25.459828,
+    65.01433
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Torinranta_Oulu_20250419_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Torinranta_Oulu_20250419_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/43/Torinranta_Oulu_20250419_01.jpg/1280px-Torinranta_Oulu_20250419_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 19 April 2025",
+   "camera": [
+    25.459843,
+    65.014305
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20260605_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20260605_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/ca/Oulu_Market_Square_20260605_01.jpg/1280px-Oulu_Market_Square_20260605_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 5 June 2026",
+   "camera": [
+    25.464573,
+    65.013632
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20260605_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20260605_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/2d/Oulu_Market_Square_20260605_02.jpg/1280px-Oulu_Market_Square_20260605_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 5 June 2026",
+   "camera": [
+    25.464147,
+    65.013519
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20260501_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20260501_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/2/20/Oulu_Market_Square_20260501_01.jpg/1280px-Oulu_Market_Square_20260501_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 1 May 2026",
+   "camera": [
+    25.463281,
+    65.0144
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20260501_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20260501_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/de/Oulu_Market_Square_20260501_02.jpg/1280px-Oulu_Market_Square_20260501_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 1 May 2026",
+   "camera": [
+    25.463281,
+    65.0144
+   ],
+   "textures": false,
+   "status": "Reference for original geometry only; no pixels bundled."
+  },
+  {
+   "file": "commons/Toripolliisi_2026.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Toripolliisi_2026.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/ff/Toripolliisi_2026.jpg/1280px-Toripolliisi_2026.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Alphaios",
+   "licence": "CC0",
+   "captured": "2026-09-02",
+   "camera": [
+    null,
+    null
+   ],
+   "textures": false,
+   "status": "Downloaded for review; Commons deletion nomination disputes underlying sculpture rights. Not treated as cleared CC0 artwork."
+  },
+  {
+   "file": "commons/Warehouse_Restaurants_Oulu_20171015.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Warehouse_Restaurants_Oulu_20171015.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/6/68/Warehouse_Restaurants_Oulu_20171015.jpg/1280px-Warehouse_Restaurants_Oulu_20171015.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 15 October 2017",
+   "camera": [
+    25.463702,
+    65.014038
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Aitta_23_Aittatori_Oulu_20200409.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Aitta_23_Aittatori_Oulu_20200409.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Aitta_23_Aittatori_Oulu_20200409.jpg/1280px-Aitta_23_Aittatori_Oulu_20200409.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 9 April 2020",
+   "camera": [
+    null,
+    null
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20230629_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20230629_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f5/Oulu_Market_Square_20230629_02.jpg/1280px-Oulu_Market_Square_20230629_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 29 June 2023",
+   "camera": [
+    25.464679,
+    65.013649
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20230629_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20230629_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/79/Oulu_Market_Square_20230629_01.jpg/1280px-Oulu_Market_Square_20230629_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 29 June 2023",
+   "camera": [
+    25.464746,
+    65.013649
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20230629_03.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20230629_03.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/5/5c/Oulu_Market_Square_20230629_03.jpg/1280px-Oulu_Market_Square_20230629_03.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 29 June 2023",
+   "camera": [
+    25.463235,
+    65.012846
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Warehouse_Restaurants_Oulu_20200409.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Warehouse_Restaurants_Oulu_20200409.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/3/30/Warehouse_Restaurants_Oulu_20200409.jpg/1280px-Warehouse_Restaurants_Oulu_20200409.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 9 April 2020",
+   "camera": [
+    null,
+    null
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Oulu_Market_Hall_20250805_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Hall_20250805_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/b/b4/Oulu_Market_Hall_20250805_02.jpg/1280px-Oulu_Market_Hall_20250805_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 5 August 2025",
+   "camera": [
+    25.464878,
+    65.013124
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20260421_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20260421_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/7/7d/Oulu_Market_Square_20260421_02.jpg/1280px-Oulu_Market_Square_20260421_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 21 April 2026",
+   "camera": [
+    25.463839,
+    65.013504
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Oulu_Market_Square_20260421_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Market_Square_20260421_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/49/Oulu_Market_Square_20260421_01.jpg/1280px-Oulu_Market_Square_20260421_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 21 April 2026",
+   "camera": [
+    25.463888,
+    65.013463
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Torin_Kippari_Oulu_20260623_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Torin_Kippari_Oulu_20260623_02.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/d/dc/Torin_Kippari_Oulu_20260623_02.jpg/1280px-Torin_Kippari_Oulu_20260623_02.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 23 June 2026",
+   "camera": [
+    25.463635,
+    65.014679
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Torin_Kippari_Oulu_20260623_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Torin_Kippari_Oulu_20260623_01.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/c/c1/Torin_Kippari_Oulu_20260623_01.jpg/1280px-Torin_Kippari_Oulu_20260623_01.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 23 June 2026",
+   "camera": [
+    25.463635,
+    65.014679
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  },
+  {
+   "file": "commons/Kemppaisen_kenkäkauppa_Aittatori_2_Oulu_20260902.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Kemppaisen_kenk%C3%A4kauppa_Aittatori_2_Oulu_20260902.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/f/f9/Kemppaisen_kenk%C3%A4kauppa_Aittatori_2_Oulu_20260902.jpg/1280px-Kemppaisen_kenk%C3%A4kauppa_Aittatori_2_Oulu_20260902.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "Taken on 2 September 2026",
+   "camera": [
+    25.463194,
+    65.013427
+   ],
+   "textures": false,
+   "use": "Whole-square original geometry and materials; source images retained locally, no photo pixels distributed."
+  }
+ ],
+ "mapSources": [
+  "https://www.openstreetmap.org/way/28979742",
+  "https://www.openstreetmap.org/way/94507906",
+  "https://www.openstreetmap.org/way/27690320",
+  "https://www.openstreetmap.org/way/50118176",
+  "https://www.openstreetmap.org/node/576296537",
+  "https://www.openstreetmap.org/way/1174793845"
+ ],
+ "measuredHeightSource": "https://www.munoulu.fi/kulttuuri/oulun-toripolliisi-katsonut-oululaisten-peraan-lahes-40-vuotta-syntyhetkissa-kansalaiskeraysta-ja-appiukon-mallia/",
+ "interpretation": "Footprints and sculpture point from OSM. Statue height 2.2 m excludes plinth. Other proportions, bay counts, signs, tree and furniture placement are estimates from permitted photos; unseen architecture is incomplete.",
+ "sculptureRights": {
+  "status": "Reconstruction excluded pending permission for a 3D recreation of the sculpture.",
+  "photo": "https://commons.wikimedia.org/wiki/File:Toripolliisi_2026.jpg",
+  "notice": "Commons deletion nomination notes underlying sculpture rights. Owning a photograph does not settle sculpture copyright."
+ },
+ "square": "market-square.json: fifteen mapped structures and a representative summer trading layout. The yellow front warehouse is OSM 40004546; rear Aitta 22 remains grey. Proportions and unseen elevations remain estimates.",
+ "contributorPhotos": [
+  {
+   "id": "own_41645f59d53e",
+   "author": "zaw-ye-tun",
+   "permission": "Photographed by zaw-ye-tun; used as a reference; originals not distributed."
+  }
+ ]
+}

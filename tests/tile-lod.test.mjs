@@ -36,6 +36,14 @@ function tileGroup(){
  group.add(...createMergedShells(array,parts,textures));for(const p of parts)group.add(createSourceShell(array,p,textures.get('a.jpg')));
  return {group,parts,textures};
 }
+
+test('observed wall colours survive source shells and far-distance batching',()=>{
+ const parts=[part(0,6,null,'a'),part(6,6,null,'b'),part(12,6,null,'c')];
+ parts[0].facade=parts[1].facade={wall:'#c69a60'};parts[2].facade={wall:'#b79b78'};
+ const merged=createMergedShells(array,parts,new Map());assert.equal(merged.length,2);
+ assert.equal(merged[0].material.color.getHexString(),'c69a60');assert.equal(merged[1].material.color.getHexString(),'b79b78');
+ assert.equal(createSourceShell(array,parts[0],null).material.color.getHexString(),'c69a60');
+});
 test('far tiles show only merged shells; near tiles show per-part shells until details land',()=>{
  const {group,parts,textures}=tileGroup(),focus=new THREE.Vector3(0,0,0);
  applyTileLod(group,'far',focus);

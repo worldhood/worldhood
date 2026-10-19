@@ -13,7 +13,8 @@ export function shipFacades(id,{registry='public/cities/index.json'}={}){
  if(errors.length)throw Error(`${source}:\n  ${errors.slice(0,20).join('\n  ')}`);
  const reg=JSON.parse(fs.readFileSync(registry)),city=reg.cities.find(c=>c.id===id);if(!city)throw Error(`${id} is not built yet: npm run city:build -- ${id}`);
  fs.copyFileSync(source,path.join('public',city.dataRoot,'facades.json'));
- city.facades='facades.json';if(!city.attribution.includes(CREDIT))city.attribution=`${city.attribution} ${CREDIT}`;
+ const credit=data.attribution||CREDIT;
+ city.facades='facades.json';if(!city.attribution.includes(credit))city.attribution=`${city.attribution} ${credit}`;
  fs.writeFileSync(registry,JSON.stringify(reg,null,1));
  return Object.keys(data.buildings).length;
 }

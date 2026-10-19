@@ -1,0 +1,79 @@
+{
+ "photos": [
+  {
+   "source": "commons",
+   "id": "199558409",
+   "file": "commons/199558409.jpg",
+   "title": "Oulun tuomiokirkko Oulun vanha monumentaalikeskus ja Franzénin puisto Oulu 2026-01-05 02.jpg",
+   "category": "Oulu Cathedral",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulun_tuomiokirkko_Oulun_vanha_monumentaalikeskus_ja_Franz%C3%A9nin_puisto_Oulu_2026-01-05_02.jpg",
+   "author": "Leonhard Lenz",
+   "licence": "CC0",
+   "captured": "2026-01-05",
+   "x": 211.9,
+   "z": -355.3,
+   "textures": false,
+   "use": "Observed appearance notes and draft game comparison; no image pixels used as runtime textures."
+  },
+  {
+   "source": "commons",
+   "id": "174237270",
+   "file": "commons/174237270.jpg",
+   "title": "Oulu Cathedral 20250902 03.jpg",
+   "category": "Aerial photographs of Oulu Cathedral",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Cathedral_20250902_03.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-09-02",
+   "x": 164.6,
+   "z": -329.2,
+   "textures": false,
+   "use": "Inspected for original geometry: tower stages, four clock faces, spire, dome, curved roofs and facade details; no source pixels distributed."
+  },
+  {
+   "source": "commons",
+   "id": "174237272",
+   "file": "commons/174237272.jpg",
+   "title": "Oulu Cathedral 20250902 02.jpg",
+   "category": "Aerial photographs of Oulu Cathedral",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Cathedral_20250902_02.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2025-09-02",
+   "x": 151.6,
+   "z": -344.7,
+   "textures": false,
+   "use": "Inspected for original geometry: tower stages, four clock faces, spire, dome, curved roofs and facade details; no source pixels distributed."
+  },
+  {
+   "source": "commons",
+   "id": "124611181",
+   "file": "commons/124611181.jpg",
+   "title": "Oulu Cathedral 20220816.jpg",
+   "category": "Oulu Cathedral Bell Tower",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Cathedral_20220816.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2022-08-16",
+   "x": 189.1,
+   "z": -236.1,
+   "textures": false,
+   "use": "Inspected for original geometry: tower stages, four clock faces, spire, dome, curved roofs and facade details; no source pixels distributed."
+  }
+ ],
+ "heightReference": {
+  "url": "https://www.ouka.fi/media/8025/download",
+  "publisher": "City of Oulu",
+  "year": 2014,
+  "reportedTowerHeightMetres": 56.5,
+  "use": "Overall height only; stage proportions and all other dimensions are photo-based estimates."
+ },
+ "municipalPreviewCheck": {
+  "tile": "212221",
+  "component": 216,
+  "bboxResidualMetres": 0.4104,
+  "heightMetres": 5.8905,
+  "decision": "Rejected as a height reference: this simplified legacy component does not represent the visible tower or complete roof."
+ },
+ "interpretation": "Retains original mapped cruciform outline. Ochre walls, pale trim, curved copper roofs, octagonal crossing drum/dome, staged bell tower, four geometric clock faces, square flared spire, ball/cross, columned portico and stairs are original geometry. Fine relief, rear/side details, exact roof curvature, window placement, fence and landscaping remain provisional."
+}

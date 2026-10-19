@@ -5,10 +5,27 @@ import {readFileSync} from 'node:fs';
 import {gunzipSync} from 'node:zlib';
 import {SpatialIndex} from '../src/geo.js';
 import {BUS_DIMENSIONS,busSamples,busOverlaps,busFitsRoad,busPose,safeBusSweep,BusSimulation} from '../src/bus-simulation.js';
-import {createBusModel,createBusRenderer} from '../src/bus-renderer.js';
+import {createBusModel,createBusRenderer,setBusLivery} from '../src/bus-renderer.js';
 import {terminalAnchors} from '../src/bus-terminal.js';
 import {HARBOUR_START} from '../src/demo-route.js';
 const world={roads:{at:()=>true},buildings:{at:()=>false}};
+test('Oulu circular front lamps apply only to the city bus body',()=>{
+ try{
+  setBusLivery({});const plain=createBusModel('city'),trunk=createBusModel('trunk');
+  const headVertices=m=>m.children.filter(o=>o.isMesh&&o.material.color.getHexString()==='f9f4da').reduce((n,o)=>n+o.geometry.attributes.position.count,0);
+  setBusLivery({headlights:'round-triple',windscreen:'single'});
+  assert.ok(headVertices(createBusModel('city'))>headVertices(plain));assert.equal(headVertices(createBusModel('trunk')),headVertices(trunk));
+ }finally{setBusLivery({});}
+});
+test('Oulu paint applies without adding the shared HSL circle motif',()=>{
+ try{
+  setBusLivery({paint:'#c43d8d',motif:'none'});const plain=createBusModel('city');
+  assert.ok(plain.children.some(m=>m.material?.color?.getHexString()==='c43d8d'));
+  const whiteVertices=m=>m.children.filter(o=>o.isMesh&&o.material.color.getHexString()==='e5ebe7').reduce((n,o)=>n+o.geometry.attributes.position.count,0);
+  setBusLivery({paint:'#c43d8d'});const motif=createBusModel('city');
+  assert.ok(whiteVertices(plain)<whiteVertices(motif));
+ }finally{setBusLivery({});}
+});
 test('adding one bus retains existing rendered fleet geometry',()=>{
  const bus=id=>({kind:'city',x:0,z:id*20,heading:0,path:{segmentId:String(id),line:'',destination:'RAUTATIENTORI'}});
  const sim={buses:[bus(1)]},renderer=createBusRenderer(sim);renderer.update({x:0,z:0});const model=renderer.group.children[0],geometry=model.children[0].geometry;

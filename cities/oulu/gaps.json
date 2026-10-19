@@ -1,0 +1,66 @@
+{
+ "status": "draft",
+ "recognisabilityReview": "pending",
+ "localSignOff": "pending",
+ "traffic": {
+  "status": "needs-work",
+  "command": "npm run traffic:check -- oulu --seconds 240 --seeds 1",
+  "scope": "Four watched starting points; 240 simulated seconds per point; seed 1",
+  "stalledEpisodes": 37,
+  "vehicleMinutes": 831.9,
+  "stallsPer100VehicleMinutes": 4.45,
+  "passingThreshold": 2,
+  "deadlocks": 0,
+  "overlaps": 1,
+  "hotspots": [
+   "Kajaaninkatu / Kirkkokatu near the Cathedral: bus queues, signals and following traffic",
+   "Kaarlenvayla near the theatre: a road blockage propagates through following traffic",
+   "Rantakatu: a bus stops making progress",
+   "Saaristonkatu: one car-bus overlap"
+  ]
+ },
+ "visual": [
+  "No central street has yet passed the guide's photo-by-photo appearance review.",
+  "Market Hall has a bespoke procedural model; exact ornament, proportions, unseen elevations and surrounding market buildings remain provisional. Toripolliisi reconstruction and collision are excluded pending artwork permission; see HANDOVER.md.",
+  "Valkea shopping centre has no completed dedicated, reference-validated landmark treatment. Mapped shells, if present, remain provisional; validate the complex and entrances before modelling.",
+  "Cathedral now has a bespoke model: curved roofs/dome, staged tower, four clocks, square spire, ball/cross, columned entrance and terrain-supported stairs. Fine profiles, clock numerals, side/rear details and churchyard need validation.",
+  "City Hall now has a municipal-height, twin-pavilion bespoke model, entrance stairs, lamps and benches. Fine relief, side/rear details and full garden reconstruction remain provisional.",
+  "Theatre and Library Saari now use municipal LOD1 shells and photo-guided facade additions. Entrance glazing and colonnades have CC0 photo guidance; lettering, steps, current quay/garden and exact facade/interior details remain incomplete; railway station remains provisional.",
+  "Most building heights remain estimates. Municipal tile 212221 now supplies the theatre/library LOD1 shell heights; these are legacy data, not current detailed roof measurements.",
+  "Contributor-photo-backed pink bus paint, single windscreen, round front lights and plain operator lettering are implemented; full body shape and the rest of the fleet remain provisional.",
+  "City Hall has a documented municipal LOD1 height reference and photo-guided facade/roof additions; detailed heights and profiles remain estimates. Isokatu 37 still has colour/material-only guidance."
+ ],
+ "references": {
+  "commonsPhotosDownloaded": 135,
+  "landmarksWithInspectedSourceNotes": 3,
+  "panoramaxPhotosInSearchAreas": 0,
+  "mapillaryConfigured": false,
+  "typesafeConfigured": false,
+  "comparisonCameras": "Source geotags; headings, pitch and elevated camera height are approximate. Comparisons show draft gaps and do not establish a sign-off.",
+  "contributorPhotosUsed": 4,
+  "contributorPhotos": "Photographed by zaw-ye-tun; used as a reference; originals not distributed. See own-photo-sources.json."
+ },
+ "marketReview": {
+  "status": "implemented-approximation",
+  "sources": "market-sources.json",
+  "exactMatch": false
+ },
+ "waterfrontImport": {
+  "status": "implemented-approximation",
+  "source": "waterfront-sources.json",
+  "municipalTile": "212221"
+ },
+ "handover": "HANDOVER.md",
+ "toripolliisi": {
+  "status": "excluded-pending-permission",
+  "renderedModel": false,
+  "collisionObstacle": false,
+  "nextStep": "Establish and document permission or an applicable legal basis for redistributing a 3D recreation, including intended reuse. See HANDOVER.md and market-sources.json."
+ },
+ "cathedralReview": {
+  "status": "implemented-approximation",
+  "sources": "cathedral-sources.json",
+  "exactMatch": false,
+  "localSignOff": "pending"
+ }
+}

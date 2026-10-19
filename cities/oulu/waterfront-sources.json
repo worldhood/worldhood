@@ -1,0 +1,127 @@
+{
+ "checkedAt": "2026-10-15",
+ "photos": [
+  {
+   "file": "Oulu_City_Theatre_20260403.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Theatre_20260403.jpg",
+   "download": "https://upload.wikimedia.org/wikipedia/commons/d/d5/Oulu_City_Theatre_20260403.jpg",
+   "author": "Estormiz",
+   "licence": "CC0 1.0",
+   "captured": "2026-04-03",
+   "camera": [
+    25.462427,
+    65.013548
+   ]
+  },
+  {
+   "file": "Oulu_Central_Library_Saari_20260106.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_Central_Library_Saari_20260106.jpg",
+   "download": "https://upload.wikimedia.org/wikipedia/commons/2/2a/Oulu_Central_Library_Saari_20260106.jpg",
+   "author": "Estormiz",
+   "licence": "CC0 1.0",
+   "captured": "2026-01-06",
+   "camera": [
+    25.464502,
+    65.014987
+   ]
+  },
+  {
+   "file": "Oulu_City_Theatre_20211031_01.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Theatre_20211031_01.jpg",
+   "author": "Estormiz",
+   "licence": "CC0 1.0",
+   "captured": "2021-10-31",
+   "use": "Additional SW/rear facade reference, checked against the 2026 exterior photo."
+  },
+  {
+   "file": "Oulu_City_Theatre_20211031_02.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Theatre_20211031_02.jpg",
+   "author": "Estormiz",
+   "licence": "CC0 1.0",
+   "captured": "2021-10-31",
+   "use": "Additional SW/rear facade reference, checked against the 2026 exterior photo."
+  },
+  {
+   "file": "Oulu_City_Theatre_20181007.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Theatre_20181007.jpg",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2018-10-07",
+   "camera": [
+    25.462033,
+    65.013303
+   ],
+   "use": "Original procedural geometry: stage curve, concrete joints, entrance glazing and recessed colonnade. Photo pixels are not bundled."
+  },
+  {
+   "title": "File:Oulu City Theatre 20231210.jpg",
+   "file": "Oulu_City_Theatre_20231210.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulu_City_Theatre_20231210.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/1/10/Oulu_City_Theatre_20231210.jpg/1920px-Oulu_City_Theatre_20231210.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Estormiz",
+   "licence": "CC0",
+   "captured": "2023-12-10",
+   "camera": [
+    25.462448,
+    65.015053
+   ],
+   "use": "Original procedural geometry: stage curve, concrete joints, entrance glazing and recessed colonnade. Photo pixels are not bundled."
+  },
+  {
+   "title": "File:Oulun kaupunginteatteri Oulun rantakortteleiden julkinen kaupunkitila Oulu at night 2026-01-05 05.jpg",
+   "file": "Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_05.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_05.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/8/80/Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_05.jpg/1920px-Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_05.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Leonhard Lenz",
+   "licence": "CC0",
+   "captured": "2026-01-05 18:43:36",
+   "camera": [
+    25.463719,
+    65.014937
+   ],
+   "use": "Original procedural geometry: stage curve, concrete joints, entrance glazing and recessed colonnade. Photo pixels are not bundled."
+  },
+  {
+   "title": "File:Oulun kaupunginteatteri Oulun rantakortteleiden julkinen kaupunkitila Oulu at night 2026-01-05 04.jpg",
+   "file": "Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_04.jpg",
+   "url": "https://commons.wikimedia.org/wiki/File:Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_04.jpg",
+   "download": "https://thumb.wikimedia.org/wikipedia/commons/thumb/4/40/Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_04.jpg/1920px-Oulun_kaupunginteatteri_Oulun_rantakortteleiden_julkinen_kaupunkitila_Oulu_at_night_2026-01-05_04.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=thumbnail",
+   "author": "Leonhard Lenz",
+   "licence": "CC0",
+   "captured": "2026-01-05 18:40:48",
+   "camera": [
+    25.463728,
+    65.014343
+   ],
+   "use": "Original procedural geometry: stage curve, concrete joints, entrance glazing and recessed colonnade. Photo pixels are not bundled."
+  }
+ ],
+ "municipal3d": {
+  "url": "https://api.ouka.fi/3d/index_en.html",
+  "licence": "CC BY 4.0",
+  "formats": [
+   "SketchUp 2016",
+   "DWG 2013"
+  ],
+  "lastUpdated": "2017-08-10",
+  "status": "Downloaded and used: municipal tile 212221, components 240 (theatre) and 508 (library), clipped and converted into waterfront-model.json; registered in the local game.",
+  "detail": "Mostly LOD1, centre partly LOD2. Geometry may support dimensions, but needs validation against current exterior photos.",
+  "archive": "data/raw/cities/oulu/municipal-3d/212221.skp.zip",
+  "sourcePreview": "https://api.ouka.fi/3d/Mallit/212221.html",
+  "downloadManifest": "data/raw/cities/oulu/municipal-3d/download-manifest.json",
+  "geometry": "waterfront-model.json",
+  "qualification": "Actual municipal LOD1 mesh triangles, not a detailed textured scan. Roof stage and facade additions are separately interpreted from CC0 photos. Library footprint agrees within 0.32 m of OSM bounding edges; theatre within 3.02 m. Source elevations retained; precise vertical datum remains unconfirmed."
+ },
+ "pointCloud": {
+  "url": "https://api.ouka.fi/3d/Pistepilvi/index.html",
+  "licence": "CC BY 4.0",
+  "captured": "2017-08",
+  "format": "LAS 1.2",
+  "crs": "ETRSGK-26 / N2000",
+  "status": "Source found; covers an approximately 10 ha downtown flight. Theatre/library coverage is not yet verified."
+ },
+ "architecture": {
+  "url": "https://www.ouka.fi/en/libraries/history-and-architecture-central-library-saari",
+  "use": "Factual reference: library glass facade reported as 54 metres. Do not assume linked photographs/PDF illustrations carry the municipal model licence."
+ }
+}
