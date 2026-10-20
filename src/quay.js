@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import earcut from 'earcut';
-import {SpatialIndex,WORLD_EXTENT,clipLinesFor,onClipLine,playableExtent} from './geo.js';
+import {SpatialIndex,WORLD_EXTENT,clipLinesFor,onClipLine,playableExtent,pointInPolygon,inWaterPolygons} from './geo.js';
+import {copenhagenStyle} from './city-style.js';
 
 // Helsinki's harbour water sits well below street level behind vertical
 // granite quay walls (Kauppatori, Pohjoisranta, Eteläranta). The height is a
@@ -15,7 +16,10 @@ const LAND_PROBES=[.6,2];
 // Fast "inside any water polygon" test: edges bucketed by 4 m z-rows, then an
 // even-odd +x ray. The municipal sea polygon has thousands of vertices, so a
 // plain point-in-polygon per quay segment would dominate loading.
+// Copenhagen (copenhagenStyle): any water polygon holds the point (overlapping polygons stay wet; the raster in geo.js
+// answers most points at once). Other cities keep the even-odd test over all polygons together.
 export function waterLocator(water,row=4){
+ if(copenhagenStyle())return (x,z)=>inWaterPolygons(water,x,z);
  const rows=new Map();
  for(const {rings} of water)for(const ring of rings||[])for(let i=0,n=ring.length;i<n;i++){
   const a=ring[i],b=ring[(i+1)%n];if(a[1]===b[1])continue;
@@ -178,4 +182,41 @@ export function createGroundGeometry(water,size=groundSizeForExtent()){
  }
  const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));
  const n=new Float32Array(pos.length);for(let i=2;i<n.length;i+=3)n[i]=1;g.setAttribute('normal',new THREE.BufferAttribute(n,3));g.computeBoundingSphere();return g;
+}
+
+// Bridge railings: wherever a bridge deck (road or footway kind 'Silta') borders the water, an iron railing
+// stands on its edge (posts every 1.8 m, top and middle rails). Without it a deck over a canal read as a
+// road edge you could drive off into the water. Geometry at y=0 above the deck; drape it onto the ground.
+export function buildBridgeRailings(water,land={},{height=1.05,ground=()=>0}={}){ // ground(x,z): height of the land; a run stands at its higher (quay) end, not on the canal bed
+ const inWater=waterLocator(water),decks=[...(land.roads||[]),...(land.pavement||[])].filter(p=>p.rings?.[0]?.length>2); // 'Silta' decks, and any paving mapped across the water (a bridge without the tag)
+ const parts=[],box=(w,h,d,x,y,z,yaw)=>{const g=new THREE.BoxGeometry(w,h,d);g.rotateY(yaw);g.translate(x,y,z);parts.push(g.index?g.toNonIndexed():g);};
+ const paved=new SpatialIndex(decks),otherPaving=(x,z,self)=>paved.near(x,z).some(p=>p!==self&&x>=p.bbox[0]&&x<=p.bbox[2]&&z>=p.bbox[1]&&z<=p.bbox[3]&&pointInPolygon(x,z,p.rings)); // where the deck meets the next road or footway: no railing across it
+ let runs=0;const railed=new Set(),deckY=new Map();
+ for(const deck of decks)for(const ring of deck.rings){const n=ring.length;let ringTop=-Infinity;for(const p of ring){const g=ground(p[0],p[1]);if(Number.isFinite(g))ringTop=Math.max(ringTop,g);}
+  for(let i=0;i<n;i++){const a=ring[i],b=ring[(i+1)%n],dx=b[0]-a[0],dz=b[1]-a[1],l=Math.hypot(dx,dz);if(l<1.5)continue;
+   const ux=dx/l,uz=dz/l,nx=-uz,nz=ux,steps=Math.max(1,Math.round(l/1.8));let start=-1;
+   // outer side: the one off the deck; a railing where that side is water and no other paving continues
+   const inRing=(x,z)=>{let c=false;for(let j=0,m=ring.length,k2=m-1;j<m;k2=j++){const p=ring[j],q=ring[k2];if((p[1]>z)!==(q[1]>z)&&x<(q[0]-p[0])*(z-p[1])/(q[1]-p[1])+p[0])c=!c;}return c;};
+   const wet=t=>{const x=a[0]+dx*t,z=a[1]+dz*t,s=inRing(x+nx*.6,z+nz*.6)?-1:1,ox=x+nx*s*1.5,oz=z+nz*s*1.5;if(!inWater(ox,oz)||otherPaving(ox,oz,deck))return false;return BRIDGE.test(`${deck.kind||''} ${deck.name||''}`)||inWater(x-nx*s*1.5,z-nz*s*1.5);};
+   for(let k=0;k<=steps;k++){const ok=k<steps&&wet((k+.5)/steps);
+    if(ok&&start<0)start=k;
+    else if(!ok&&start>=0){const t0=start/steps,t1=k/steps,x0=a[0]+dx*t0,z0=a[1]+dz*t0,x1=a[0]+dx*t1,z1=a[1]+dz*t1,len=Math.hypot(x1-x0,z1-z0),yaw=Math.atan2(ux,uz);
+     // set in 25 cm from the deck edge
+     const cx=(x0+x1)/2,cz=(z0+z1)/2,y0=Math.max(ground(x0,z0),ground(x1,z1),ground(a[0],a[1]),ground(b[0],b[1])),y1=y0<ringTop-2?ringTop:y0,y=Number.isFinite(y1)?y1:0; /* all over sunk canal bed: the deck's highest corner */deckY.set(deck,Math.max(deckY.get(deck)??-Infinity,y));
+     box(.07,.07,len,cx,y+height,cz,yaw);box(.05,.05,len,cx,y+height*.5,cz,yaw);
+     for(let p=0;p<=k-start;p++){const t=(start+p)/steps;box(.07,height,.07,a[0]+dx*t,y+height/2,a[1]+dz*t,0);}
+     runs++;railed.add(deck);start=-1;}
+   }
+  }
+ }
+ if(!parts.length)return null;
+ // Decks of tagged bridges as plates of their own: the surface tiles drop paving that lies inside the water
+ // polygons (dropSunkenSurfaces), which left railings standing over open water.
+ const deck=[];for(const d of railed){const r=d.rings[0];
+  const flat=r.flat(),ids=earcut(flat),y=deckY.get(d)+.035;for(const i of ids)deck.push(r[i][0],y,r[i][1]);}
+ const pos=[];for(const g of parts){pos.push(...g.attributes.position.array);g.dispose();}
+ const geometry=new THREE.BufferGeometry();geometry.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));geometry.computeVertexNormals();geometry.userData.runs=runs;
+ geometry.userData.bridges=[...railed].map(d=>({rings:d.rings,y:deckY.get(d)+.035,name:d.name||'',kind:d.kind||''})); // the plates as drawn: what the ground under them must carry (raiseBridgeDecks)
+ if(deck.length){const g=new THREE.BufferGeometry(),uv=new Float32Array(deck.length/3*2);for(let i=0,j=0;i<deck.length;i+=3,j+=2){uv[j]=deck[i]/2.6;uv[j+1]=deck[i+2]/2.6;}g.setAttribute('position',new THREE.Float32BufferAttribute(deck,3));g.setAttribute('uv',new THREE.BufferAttribute(uv,2));const base=new Float32Array(deck.length/3);for(let i=0;i<base.length;i++)base[i]=deck[i*3+1];g.setAttribute('deckBase',new THREE.BufferAttribute(base,1));g.computeVertexNormals();geometry.userData.deck=g;}
+ return geometry;
 }

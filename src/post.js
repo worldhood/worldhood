@@ -6,6 +6,8 @@ import {FullScreenQuad} from 'three/addons/postprocessing/Pass.js';
 // a quarter-resolution bloom (bright pass + separable blur), then one composite pass:
 // AO, bloom, exposure, ACES, colour grade, vignette, dither, sRGB. No history buffers,
 // so nothing can ghost or flicker between frames; AO noise is a fixed screen pattern.
+// Every pass clamps what it reads, so a NaN or infinite pixel (a flat-shaded sliver on some GPUs) stays one dark
+// pixel instead of spreading through the blurs into black squares.
 // The scene is drawn into a render target, so three.js skips its own tone mapping and
 // colour-space conversion for every material (fog is mixed in linear light instead of
 // output space); the composite pass reproduces ACES + sRGB with its own exposure.
@@ -34,7 +36,7 @@ void main(){
  vec3 px1=viewPos(vUv+vec2(ts.x,0.0),viewZ(vUv+vec2(ts.x,0.0)))-P,px0=P-viewPos(vUv-vec2(ts.x,0.0),viewZ(vUv-vec2(ts.x,0.0)));
  vec3 py1=viewPos(vUv+vec2(0.0,ts.y),viewZ(vUv+vec2(0.0,ts.y)))-P,py0=P-viewPos(vUv-vec2(0.0,ts.y),viewZ(vUv-vec2(0.0,ts.y)));
  vec3 dx=abs(px1.z)<abs(px0.z)?px1:px0,dy=abs(py1.z)<abs(py0.z)?py1:py0;
- vec3 N=normalize(cross(dx,dy));
+ vec3 cr=cross(dx,dy);vec3 N=dot(cr,cr)>1e-30?normalize(cr):vec3(0.0,0.0,1.0); // degenerate depth (a sliver, the far plane): no NaN
  // Wet ground: upward faces mirror the sky at grazing angles (Schlick, F0 = .02).
  vec3 V=normalize(-P);
  float up=smoothstep(0.55,0.95,dot(N,uUpView));
@@ -66,7 +68,7 @@ void main(){
   ao=clamp(1.0-uIntensity*occlusion/float(TAPS),0.0,1.0);
   ao=mix(1.0,ao*ao,fade);
  }
- gl_FragColor=vec4(ao,wet,0.0,1.0);
+ gl_FragColor=vec4(clamp(ao,0.0,1.0),clamp(wet,0.0,1.0),0.0,1.0);
 }`;
 
 const AO_BLUR_FRAGMENT=/* glsl */`
@@ -93,7 +95,7 @@ uniform sampler2D uScene;
 uniform vec2 uTexel; // scene texel
 uniform float uThreshold,uKnee;
 varying vec2 vUv;
-vec3 tap(vec2 o){return texture2D(uScene,vUv+o*uTexel).rgb;}
+vec3 tap(vec2 o){return clamp(texture2D(uScene,vUv+o*uTexel).rgb,0.0,64.0);} // a NaN or infinite pixel would spread through the blur into a black square
 void main(){
  vec3 c=(tap(vec2(-1.0,-1.0))+tap(vec2(1.0,-1.0))+tap(vec2(-1.0,1.0))+tap(vec2(1.0,1.0)))*0.25;
  float l=dot(c,vec3(0.2126,0.7152,0.0722));
@@ -132,12 +134,12 @@ vec3 aces(vec3 c){
 }
 float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
 void main(){
- vec3 c=texture2D(uScene,vUv).rgb;
- vec2 occ=texture2D(uAO,vUv).xy;float ao=occ.x;
+ vec3 c=clamp(texture2D(uScene,vUv).rgb,0.0,64.0);
+ vec2 occ=clamp(texture2D(uAO,vUv).xy,0.0,1.0);float ao=occ.x;
  if(uDebug>0.5){gl_FragColor=vec4(vec3(mix(1.0,ao,uAOStrength)),1.0);return;}
  c*=mix(1.0,ao,uAOStrength);
  c+=uWetSky*occ.y*ao; // wet ground mirrors the sky where nothing stands in the way
- c+=texture2D(uBloom,vUv).rgb*uBloomStrength;
+ c+=clamp(texture2D(uBloom,vUv).rgb,0.0,64.0)*uBloomStrength;
  c=aces(c*uExposure);
  // Grade in display-linear light: tint, lifted cool shadows (atmospheric haze), saturation, contrast.
  c*=uTint;
@@ -173,6 +175,8 @@ export function createPostPipeline(renderer,{samples=4,ao=true,bloom=true}={}){
  const brightMaterial=material(BRIGHT_FRAGMENT,{uScene:{value:scene.texture},uTexel:{value:new THREE.Vector2()},uThreshold:{value:GRADE_DEFAULTS.bloomThreshold},uKnee:{value:.35}});
  const blurMaterial=material(BLUR_FRAGMENT,{uTex:{value:null},uDir:{value:new THREE.Vector2()}});
  const white=new THREE.DataTexture(new Uint8Array([255,255,255,255]),1,1);white.needsUpdate=true;
+ // AO off: full light (x=1) and no wet-sky mirror (y=0; a white texture would wash the whole frame with sky)
+ const noAO=new THREE.DataTexture(new Uint8Array([255,0,0,255]),1,1);noAO.needsUpdate=true;
  const black=new THREE.DataTexture(new Uint8Array([0,0,0,255]),1,1);black.needsUpdate=true;
  const compositeMaterial=material(COMPOSITE_FRAGMENT,{
   uScene:{value:scene.texture},uAO:{value:aoBlurred.texture},uBloom:{value:blurA.texture},
@@ -217,7 +221,7 @@ export function createPostPipeline(renderer,{samples=4,ao=true,bloom=true}={}){
    aoBlurMaterial.uniforms.uNear.value=camera.near;aoBlurMaterial.uniforms.uFar.value=camera.far;
    pass(aoRaw,aoMaterial);pass(aoBlurred,aoBlurMaterial);
    grade.uAO.value=aoBlurred.texture;
-  }else grade.uAO.value=white;
+  }else grade.uAO.value=noAO;
   if(options.bloom){
    pass(bright,brightMaterial);
    blurMaterial.uniforms.uTex.value=bright.texture;blurMaterial.uniforms.uDir.value.set(1/bright.width,0);pass(blurA,blurMaterial);
@@ -251,7 +255,7 @@ export function createPostPipeline(renderer,{samples=4,ao=true,bloom=true}={}){
   renderer.info.autoReset=previousAutoReset;
   for(const t of [scene,aoRaw,aoBlurred,bright,blurA])t.dispose();
   for(const m of [aoMaterial,aoBlurMaterial,brightMaterial,blurMaterial,compositeMaterial])m.dispose();
-  quad.dispose();white.dispose();black.dispose();
+  quad.dispose();white.dispose();black.dispose();noAO.dispose();
  }
  return {render,resize,setGrade,options,dispose,targets:{scene,aoRaw,aoBlurred,bright,blurA},materials:{aoMaterial,aoBlurMaterial,brightMaterial,blurMaterial,compositeMaterial}};
 }

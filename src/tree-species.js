@@ -126,20 +126,41 @@ export function treeInstance(t,i=0){
  const family=t.family||speciesFamily(t.species,t.conifer),F=FAMILY[family]||FAMILY.broadleaf;
  const h=Math.max(2.5,t.height||10),young=h<6.5&&!/spruce|fir|larch|pine/.test(family);
  const hash=Math.abs(Math.round(t.p[0]*13+t.p[1]*31+i));
- // Young street trees: narrower than their mature form, as in the photos (slim stems, upright crowns).
- const width=h*(young?.68:1)*(.9+(hash%23)/100); // the template already carries the family's width
+ // Young street trees: narrower than their mature form, as in the photos (slim stems, upright crowns). A tree in a dense
+ // planting (t.space: the distance to its nearest neighbour, see spaceTrees) has a crown no wider than 1.8 times that.
+ const width=Math.min(h*(young?.68:1)*(.9+(hash%23)/100),t.space?Math.max(1.6,t.space*1.8)/F.width:Infinity); // the template already carries the family's width
  return {family,height:h*(.95+(hash%11)/100),width,variant:hash%2,yaw:(hash%628)/100,tint:.92+(hash%17)/100};
 }
 
+// Trees at least 3.5 m apart (register duplicates and the densest plantings thinned: Rådhuspladsen's cherry grove is
+// listed 1.2-2 m apart, 77 trees in 40 m, and read as one wall of crowns; 29 stay), and each tree's distance to its nearest neighbour (t.space), so
+// close plantings get crowns that fit their spacing.
+export function spaceTrees(trees){
+ const C=5,grid=new Map(),key=(x,z)=>Math.floor(x/C)*73856093^Math.floor(z/C)*19349663,kept=[];
+ const near=(x,z,f)=>{for(let i=-1;i<=1;i++)for(let j=-1;j<=1;j++){const l=grid.get(key(x+i*C,z+j*C));if(l)for(const o of l)f(o);}};
+ for(const t of trees){const [x,z]=t.p;let dup=false;near(x,z,o=>{if(Math.hypot(o.p[0]-x,o.p[1]-z)<3.5)dup=true;});if(dup)continue;
+  kept.push(t);const k=key(x,z);if(!grid.has(k))grid.set(k,[]);grid.get(k).push(t);}
+ for(const t of kept){const [x,z]=t.p;let d=Infinity;near(x,z,o=>{if(o!==t)d=Math.min(d,Math.hypot(o.p[0]-x,o.p[1]-z));});t.space=d<C?d:0;} // 0: none within 5 m, no cap
+ return kept;
+}
 // All species trees of a city in three BatchedMeshes (near, mid, far): one draw call per level, with
 // per-tree visibility by distance and per-tree frustum culling. Returns {group, update(focus), stats}.
 export const SPECIES_LOD={near:140,mid:460,far:850};
+export const DETAILED_SPECIES_LOD={near:95,mid:460,far:850}; // detailed: full EZ crowns near (about 2-9k triangles each)
 export function treeLevel(d,b=SPECIES_LOD){return d<b.near?'near':d<b.mid?'mid':d<b.far?'far':null;}
-export function createSpeciesTrees(trees){
+// detailed (Copenhagen): register duplicates and dense plantings thinned (spaceTrees), EZ-Tree crowns near; models: ez-trees.js
+// loadTreeModels(), the near crowns of the broadleaf families. Other cities keep every registered tree and the procedural shapes.
+// detailed: the near crowns come from ez-trees.js, passed in as `ez` (loaded on demand: it pulls in the EZ-Tree library).
+export function createSpeciesTrees(trees,{detailed=false,models=null,ez:ezModule=null}={}){
+ if(detailed&&!ezModule)detailed=false;
+ if(detailed)trees=spaceTrees(trees);const bands=detailed?DETAILED_SPECIES_LOD:SPECIES_LOD;
  const group=new THREE.Group();group.name='Species trees';
  const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.95,metalness:0,emissive:'#3a4a28',emissiveIntensity:.45});
  const items=trees.map((t,i)=>({t,inst:treeInstance(t,i)})),used=new Set(items.map(o=>`${o.inst.family}|${o.inst.variant}`));
  const meshes={},ids={},triangles={};const m=new THREE.Object3D(),tint=new THREE.Color();
+ // Near trees: the detailed EZ-Tree crowns (as in Helsinki) where the family has one; the procedural near shape otherwise.
+ const ez=detailed?ezModule.createEzTrees(items.map(({t,inst})=>{const F=FAMILY[inst.family]||FAMILY.broadleaf;return {x:t.p[0],z:t.p[1],y:groundAt(t.p[0],t.p[1]),kind:ezModule.ezKind(inst.family,models),width:inst.width*F.width*1.05,height:inst.height,yaw:inst.yaw,tint:inst.tint};}),models):null;
+ if(ez)group.add(ez.group);
  for(const level of LEVELS){
   const geos=new Map([...used].map(k=>{const [f,v]=k.split('|');return [k,treeTemplate(f,level,+v+1)];}));
   const verts=[...geos.values()].reduce((n,g)=>n+g.attributes.position.count,0);
@@ -150,11 +171,14 @@ export function createSpeciesTrees(trees){
   geos.forEach(g=>g.dispose());
   bm.perObjectFrustumCulled=true;bm.castShadow=level==='near';bm.receiveShadow=level!=='far';bm.userData.shadowLod=true;meshes[level]=bm;group.add(bm);
  }
- let last=null;const shown=new Array(items.length).fill(null);
- const update=focus=>{
-  if(last&&Math.hypot(focus.x-last.x,focus.z-last.z)<8)return;last={x:focus.x,z:focus.z};
-  items.forEach(({t},i)=>{const l=treeLevel(Math.hypot(t.p[0]-focus.x,t.p[1]-focus.z));if(l===shown[i])return;
-   if(shown[i])meshes[shown[i]].setVisibleAt(ids[shown[i]][i],false);if(l)meshes[l].setVisibleAt(ids[l][i],true);shown[i]=l;});
+ let last=null,lastHigh=false;const shown=new Array(items.length).fill(null);
+ // high: the camera looks down from well above the street (high camera, overhead views). The detailed crowns'
+ // leaf cards stand mostly upright and read as bare branches from above, so the procedural 'mid' crowns are used.
+ const update=(focus,{high=false}={})=>{
+  if(last&&high===lastHigh&&Math.hypot(focus.x-last.x,focus.z-last.z)<8)return;last={x:focus.x,z:focus.z};lastHigh=high;
+  items.forEach(({t},i)=>{let l=treeLevel(Math.hypot(t.p[0]-focus.x,t.p[1]-focus.z),bands);if(high&&l==='near')l='mid';if(l===shown[i])return;
+   const vis=(lv,on)=>{if(lv==='near'&&ez?.has(i))ez.show(i,on);else meshes[lv].setVisibleAt(ids[lv][i],on);};
+   if(shown[i])vis(shown[i],false);if(l)vis(l,true);shown[i]=l;});
  };
  const families={};for(const {inst} of items)families[inst.family]=(families[inst.family]||0)+1;
  group.userData={count:trees.length,families,templates:used.size*LEVELS.length,drawCalls:LEVELS.length,trianglesIfAllNear:triangles.near,trianglesIfAllMid:triangles.mid,trianglesIfAllFar:triangles.far,

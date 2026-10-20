@@ -1,10 +1,11 @@
 import * as THREE from 'three';
+import {copenhagenStyle} from './city-style.js';
 
 // Hold a building clear for a quarter second before restoring it. A camera ray
 // grazing a corner must not alternate between solid and see-through each frame.
 export function advanceOcclusion(state, blocked, dt) {
  state.clearTime=blocked?0:(state.clearTime||0)+dt;
- const target=blocked||state.clearTime<.25?.18:1;
+ const target=blocked||state.clearTime<.25?(copenhagenStyle()?.28:.18):1; // Copenhagen fades buildings a little less
  state.opacity=(state.opacity??1)+(target-(state.opacity??1))*(1-Math.exp(-dt*5));
  if(Math.abs(state.opacity-target)<.001)state.opacity=target;
  return state.opacity;

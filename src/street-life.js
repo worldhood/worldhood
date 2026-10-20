@@ -4,14 +4,15 @@ import {createTrafficRenderer} from './traffic-renderer.js';
 import {routePoint,signalGreen} from './mobility.js';
 import {signalAnchor,authoredOlympiaMarkings} from './road-safety.js';
 import {crossingPolygons,kerbSegments} from './crossing-markings.js';
-import {createGraniteKerbs} from './street-furniture.js';
+import {createGraniteKerbs,keepLongKerbs} from './street-furniture.js';
 import earcut,{flatten} from 'earcut';
 import {createPersonBatch,advanceGait,personLook,smoothHeading} from './person-model.js';
 import {createBreakableSigns} from './breakable-signs.js';
 import {groundAt} from './terrain.js';
 import {drapeGeometry,settleObject} from './terrain-mesh.js';
+import {copenhagenStyle} from './city-style.js';
 
-export function createStreetLife(scene,mobility){
+export function createStreetLife(scene,mobility,{paintedMarkings=true,mappedSignalNear=null}={}){ // paintedMarkings:false for 1760 (no zebra stripes or centre lines)
  const group=new THREE.Group();scene.add(group);
  const traffic=createTrafficRenderer(mobility.cars);group.add(traffic.group);
  // Walking pedestrians share the articulated person model used by every crowd.
@@ -24,6 +25,15 @@ export function createStreetLife(scene,mobility){
  const counts={roads:0,walks:0,pavement:0};
  let initial=true;
  const poleGeometry=new THREE.CylinderGeometry(.065,.085,3.4,6),poleMaterial=new THREE.MeshStandardMaterial({color:'#566166',metalness:.6,roughness:.5}),housingGeometry=new THREE.BoxGeometry(.27,.8,.23),housingMaterial=new THREE.MeshStandardMaterial({color:'#18232a'});
+ // Signal heads in three batches for the whole street set, not five draws per post: poles and housings are merged
+ // into the breakable-post meshes (they fold with the post), the lamps are one instanced batch coloured per phase.
+ const lampGeometry=new THREE.SphereGeometry(.083,8,6),lampMaterial=new THREE.MeshBasicMaterial({color:'#ffffff'}),lampLocal=[0,1,2].map(i=>new THREE.Matrix4().makeTranslation(0,3.35-i*.25,.18));
+ const LAMP={redOn:new THREE.Color('#ff392b'),redOff:new THREE.Color('#382927'),amberOff:new THREE.Color('#263633'),greenOn:new THREE.Color('#47ec9b'),greenOff:new THREE.Color('#233a32')};
+ const lamps=new THREE.InstancedMesh(lampGeometry,lampMaterial,3);lamps.name='Traffic signal lamps';lamps.frustumCulled=false;lamps.count=0;lamps.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+ lamps.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(9),3).setUsage(THREE.DynamicDrawUsage);group.add(lamps);
+ const growLamps=n=>{if(lamps.instanceMatrix.count>=n)return;const cap=Math.max(n,lamps.instanceMatrix.count*2); // capacity grows in place: the batch object stays the same
+  lamps.instanceMatrix=new THREE.InstancedBufferAttribute(new Float32Array(cap*16),16).setUsage(THREE.DynamicDrawUsage);lamps.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(cap*3),3).setUsage(THREE.DynamicDrawUsage);};
+ const m4=new THREE.Matrix4(),place=new THREE.Matrix4();
  // Append only static detail; traffic and person renderers retain their actors.
  // References make a retry safe without duplicating markings, kerbs or posts.
  function append({roads=mobility.roads.edges,walks=mobility.walks.edges,pavement=[...new Set([...mobility.world.pavement?.cells.values()||[]].flat())]}={}){
@@ -44,43 +54,61 @@ export function createStreetLife(scene,mobility){
   markings.push(g);
  }
  // Road centrelines only where the municipal graph indicates a two-way carriageway.
- for(const edge of roads){if(edge.separateCarriageway||edge.lane<1||edge.from>edge.to||edge.length<25)continue;
-  for(let s=8;s<edge.length-7;s+=8){const p=routePoint(edge,s,0);if(!mobility.world.roads.at(p.x,p.z)||mobility.world.buildings.at(p.x,p.z))continue;const g=new THREE.PlaneGeometry(.10,2.7);g.rotateX(-Math.PI/2);g.rotateY(p.heading);g.translate(p.x,.092,p.z);markings.push(g);}
+ // Copenhagen: dashes every 6 m run the whole edge (short blocks too), stopping 7 m short of each junction box.
+ const cph=copenhagenStyle(),minEdge=cph?18:25;
+ for(const edge of roads){if(edge.separateCarriageway||edge.lane<1||edge.from>edge.to||edge.length<minEdge)continue;
+  for(let s=cph?7+((edge.length-14)%6)/2:8;cph?s<=edge.length-7:s<edge.length-7;s+=cph?6:8){const p=routePoint(edge,s,0);if(!mobility.world.roads.at(p.x,p.z)||mobility.world.buildings.at(p.x,p.z))continue;const g=new THREE.PlaneGeometry(.10,2.7);g.rotateX(-Math.PI/2);g.rotateY(p.heading);g.translate(p.x,.092,p.z);markings.push(g);}
  }
+ if(!paintedMarkings){markings.forEach(g=>g.dispose());markings.length=0;}
  if(markings.length){const geometries=markings.map(g=>g.index?g.toNonIndexed():g);const m=new THREE.Mesh(drapeGeometry(mergeGeometries(geometries)),new THREE.MeshStandardMaterial({color:'#e7e3d4',roughness:1,side:THREE.DoubleSide,polygonOffset:true,polygonOffsetFactor:-1}));m.receiveShadow=true;group.add(m);new Set([...geometries,...markings]).forEach(g=>g.dispose());}
  const kerbs=[];
- // Raised granite kerbstones follow surveyed pavement boundaries adjacent to a carriageway,
+ // Raised granite kerbstones (not in 1760: they are 19th-century) follow surveyed pavement boundaries adjacent to a carriageway,
  // dropped across crossings; geometry and shader live in street-furniture.js (createGraniteKerbs).
- for(const pavement of pavements)for(const ring of pavement.rings)for(let i=1;i<ring.length;i++){
+ if(paintedMarkings)for(const pavement of pavements)for(const ring of pavement.rings)for(let i=1;i<ring.length;i++){
   const a=ring[i-1],b=ring[i],dx=b[0]-a[0],dz=b[1]-a[1],length=Math.hypot(dx,dz);if(length<.4||length>30)continue;
-  const x=(a[0]+b[0])/2,z=(a[1]+b[1])/2,nx=-dz/length*.38,nz=dx/length*.38;
-  if(!mobility.world.roads.at(x+nx,z+nz)&&!mobility.world.roads.at(x-nx,z-nz))continue;
-  kerbs.push(...kerbSegments(a,b,crossingData.chains));
+  // Road on exactly one side, tested every ~1.5 m (a midpoint test let pavement edges that cut across a
+  // carriageway lay a kerb right over the road); each qualifying run becomes kerbstones.
+  const nx=-dz/length*.38,nz=dx/length*.38,n=Math.max(1,Math.round(length/1.5)),roads=mobility.world.roads;let run=-1;
+  for(let k=0;k<=n;k++){
+   let ok=false;if(k<n){const x=a[0]+dx*(k+.5)/n,z=a[1]+dz*(k+.5)/n;ok=!roads.at(x+nx,z+nz)!==!roads.at(x-nx,z-nz);}
+   if(ok&&run<0)run=k;
+   else if(!ok&&run>=0){const p=t=>[a[0]+dx*t/n,a[1]+dz*t/n];if(k-run>=1)kerbs.push(...kerbSegments(p(run),p(k),crossingData.chains));run=-1;}
+  }
  }
- const kerbGroup=kerbs.length?settleObject(createGraniteKerbs(kerbs)):null;if(kerbGroup){group.add(kerbGroup);kerbGroups.push(kerbGroup);}
+ const longKerbs=keepLongKerbs(kerbs),kerbGroup=longKerbs.length&&paintedMarkings?settleObject(createGraniteKerbs(longKerbs)):null; // stray stubs (bricks in the road) left out
+ if(kerbGroup){group.add(kerbGroup);kerbGroups.push(kerbGroup);}
  const signalPosts=createBreakableSigns('Traffic signal posts');
  // One post per approach that stops at the signal (lane-model.js), showing that approach's own phase.
  for(const e of mobility.roads.edges){if(e.signal<0||e.length<4)continue;const key=`${e.signal}:${Math.round(routePoint(e,e.length-3).heading/1.6)}`;if(used.has(key))continue;
   const p=signalAnchor(e,mobility.world);if(!p)continue;used.add(key);
-  const root=new THREE.Group(),y=groundAt(p.x,p.z);root.position.set(p.x,y,p.z);root.rotation.y=p.heading;
-  const pole=new THREE.Mesh(poleGeometry,poleMaterial);pole.position.y=1.7;const box=new THREE.Mesh(housingGeometry,housingMaterial);box.position.set(0,3.1,.05);root.add(pole,box);
-  const lamps=[0,1,2].map(i=>{const m=new THREE.Mesh(new THREE.SphereGeometry(.083,8,6),new THREE.MeshBasicMaterial({color:'#263633'}));m.position.set(0,3.35-i*.25,.18);root.add(m);return m;});group.add(root);
+  if(mappedSignalNear?.(p.x,p.z))continue; // a surveyed signal head (photo-mapped) already stands here: no second post
+  const root=new THREE.Group(),y=groundAt(p.x,p.z);root.position.set(p.x,y,p.z);root.rotation.y=p.heading;root.updateMatrix();
   // Signal posts are sturdier than plain signs (strength 1.8): they fold over and only snap off in a fast hit.
-  signalPosts.attach(root,signalPosts.post({id:`signal-${e.signal}-${signalObjects.length}`,x:p.x,z:p.z,y,yaw:p.heading,height:3.45,radius:.085,strength:1.8}));signalObjects.push({root,lamps,edge:e});
+  const post=signalPosts.post({id:`signal-${e.signal}-${signalObjects.length}`,x:p.x,z:p.z,y,yaw:p.heading,height:3.45,radius:.085,strength:1.8});
+  signalPosts.add(poleGeometry.clone().applyMatrix4(m4.multiplyMatrices(root.matrix,place.makeTranslation(0,1.7,0))),poleMaterial,post);
+  signalPosts.add(housingGeometry.clone().applyMatrix4(m4.multiplyMatrices(root.matrix,place.makeTranslation(0,3.1,.05))),housingMaterial,post);
+  group.add(root);signalPosts.attach(root,post);signalObjects.push({root,edge:e}); // the (empty) root carries the post's fold for the lamps
  }
- group.add(signalPosts.finish());
+ group.add(signalPosts.finish());growLamps(signalObjects.length*3);
  initial=false;
  }
  append();
- return {group,traffic,append,staticCounts:()=>({...counts,signals:signalObjects.length}),update(dt,player){
+ let skinned=null,baked=null; // the nearest walkers as rigged characters, the rest out to ~130 m baked (skinned-people.js), once their models load
+ return {group,traffic,append,staticCounts:()=>({...counts,signals:signalObjects.length}),setSkinned(crowd){if(skinned){group.remove(skinned.group);skinned.dispose();}skinned=crowd;if(crowd)group.add(crowd.group);},setBaked(crowd){if(baked){group.remove(baked.group);baked.dispose();}baked=crowd;if(crowd)group.add(crowd.group);},update(dt,player){
   traffic.update(dt,player);for(const kerbs of kerbGroups)kerbs.userData.update(player);
+  const near=skinned?skinned.update(dt,player,mobility.people,looks):null;
+  const crowd=baked?baked.update(dt,player,mobility.people,looks,near):null;
   people.begin(player); // distance levels: full body near the player, simplified beyond, none past the batch's hide range
-  for(let i=0;i<count;i++){const a=mobility.people[i],v=views[i];advanceGait(a,gaits[i],dt,looks[i]);
+  for(let i=0;i<count;i++){const a=mobility.people[i],v=views[i];advanceGait(a,gaits[i],dt,looks[i]);if(near?.has(a)||crowd?.has(a))continue; // drawn rigged or baked
    if(!a.edge||Math.hypot(a.x-player.x,a.z-player.z)>=300){gaits[i].yaw=undefined;continue;}
    v.x=a.x;v.z=a.z;v.speed=a.speed;v.running=a.running;v.knockdown=a.knockdown;v.groundY=a.groundY;v.pose=a.pose;v.suitcase=a.suitcase;
    v.expression=a.expression;v.speaking=a.speaking;v.mouthOpen=a.mouthOpen;
    v.heading=a.knockdown?(gaits[i].yaw=a.heading):smoothHeading(gaits[i],a.heading,dt);people.draw(v,looks[i],gaits[i]);}
   people.end();
-  for(const s of signalObjects){s.root.visible=s.edge.signal>=0&&Math.hypot(s.root.position.x-player.x,s.root.position.z-player.z)<350;if(!s.root.visible)continue;const green=signalGreen(s.edge,mobility.time);s.lamps[0].material.color.set(green?'#382927':'#ff392b');s.lamps[2].material.color.set(green?'#47ec9b':'#233a32');}
+  let lit=0;
+  for(const s of signalObjects){if(s.edge.signal<0||Math.hypot(s.root.position.x-player.x,s.root.position.z-player.z)>=350)continue;const green=signalGreen(s.edge,mobility.time);
+   for(let q=0;q<3;q++){lamps.setMatrixAt(lit,m4.multiplyMatrices(s.root.matrix,lampLocal[q]));lamps.setColorAt(lit++,q===0?(green?LAMP.redOff:LAMP.redOn):q===2?(green?LAMP.greenOn:LAMP.greenOff):LAMP.amberOff);}}
+  lamps.count=lit;lamps.instanceMatrix.clearUpdateRanges();lamps.instanceColor.clearUpdateRanges();if(lit){lamps.instanceMatrix.addUpdateRange(0,lit*16);lamps.instanceColor.addUpdateRange(0,lit*3);}
+  lamps.instanceMatrix.needsUpdate=true;lamps.instanceColor.needsUpdate=true;
  }};
 }

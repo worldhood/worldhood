@@ -1,4 +1,22 @@
 import * as THREE from 'three';
+import {shellColourAttribute,shellHeightAttribute,creasedShellNormals} from './shell-colors.js';
+import {facadeGrain} from './facade-grain.js';
+import {copenhagenStyle} from './city-style.js';
+
+// Creased normals of a tile's merged shell ranges (and all their positions in one array, for the tile's shadow
+// caster), worked out in a worker (shell-normals-worker.js); resolves to {normals,positions}, or null when there is
+// no worker (createMergedShells then computes the normals itself).
+let normalsWorker=null,normalsFailed=false,normalsId=0;const normalJobs=new Map();
+export function shellNormals(array,ranges){
+ if(typeof Worker==='undefined'||normalsFailed||!ranges.length||!copenhagenStyle())return Promise.resolve(null); // other cities: face normals on the main thread (createMergedShells)
+ if(!normalsWorker){
+  try{normalsWorker=new Worker(new URL('./shell-normals-worker.js',import.meta.url),{type:'module'});}catch{normalsFailed=true;return Promise.resolve(null);}
+  normalsWorker.onmessage=({data})=>{const job=normalJobs.get(data.id);if(!job)return;normalJobs.delete(data.id);job(data.error?null:{normals:data.normals,positions:data.positions});};
+  normalsWorker.onerror=e=>{normalsFailed=true;for(const job of normalJobs.values())job(null);normalJobs.clear();e.preventDefault?.();};
+ }
+ const id=++normalsId,copy=array.slice(); // the tile array itself goes on to the building worker later
+ return new Promise(resolve=>{normalJobs.set(id,resolve);normalsWorker.postMessage({id,array:copy,ranges},[copy.buffer]);});
+}
 
 // Distance levels for measured building tiles, with hysteresis so a tile parked on a threshold
 // never flickers between representations:
@@ -6,7 +24,14 @@ import * as THREE from 'three';
 //  far    — one merged measured shell per texture atlas: same walls and roofs, no windows, no shadows
 //  hidden — beyond the fogged distance
 // Authored landmark fronts inside tiles (shell meshes with the 'detail' role) stay visible at every level.
-export const LOD={near:240,far:290,visible:550,detail:180,shadow:130};
+export const LOD={near:240,far:290,visible:550,detail:180,shadow:130,building:Infinity};
+// building: a landed detailed building further than this (plus 20 m of hysteresis on the way out) hands back to its
+// tile's merged shell, one draw for the whole tile. Copenhagen (configureTileLod) uses 140 m, and building shells
+// beyond 95 m cast no shadow there (draw calls in its dense blocks); other cities keep every near building detailed.
+export function configureTileLod(styled=copenhagenStyle()){if(styled)Object.assign(LOD,{shadow:95,building:140});return LOD;}
+// Merged-shell normals: Copenhagen's city model has slightly twisted wall quads, so its shells get creased normals;
+// the other cities keep three.js face normals.
+export function shellNormalsFor(geometry){if(copenhagenStyle())creasedShellNormals(geometry);else geometry.computeVertexNormals();return geometry;}
 
 export function tileLevel(previous,distance,bands=LOD){
  if(distance>bands.visible)return 'hidden';
@@ -23,15 +48,43 @@ export function mergedShellRanges(parts){
  return ranges;
 }
 
-export function createMergedShells(array,parts,textures){
- return mergedShellRanges(parts).map(r=>{
+// Near tiles show the same merged shells until the worker's detailed buildings land: a per-tile mask
+// (one texel per part) hides each part as its detailed building arrives, and dithers it while the chase
+// camera fades it. One draw per atlas instead of one per waiting building (500+ draws at Nyhavn).
+export function createShellMask(count){
+ if(count>256)console.warn(`Tile with ${count} parts: only the first 256 can hand over to detail cleanly`);
+ // One float per part in a vec4[64] uniform (a tile holds at most 255 parts): no texture uploads, and the
+ // uniform only re-sends when a value changes.
+ const data=new Float32Array(256).fill(1);let shown=count;
+ return {data,get shown(){return shown;},
+  set(i,v){v=Math.max(0,Math.min(1,v));if(i>255||data[i]===v)return;if(data[i]>0&&v===0)shown--;else if(data[i]===0&&v>0)shown++;data[i]=v;},
+  get(i){return data[i];}};
+}
+const MASK_VERTEX='\nvMask=1.;if(uMaskOn>.5&&aBid<255.5){int b=int(aBid+.5);vMask=uMask[b>>2][b&3];}if(vMask<.002)gl_Position=vec4(0.,0.,2.,1.);';
+function maskShader(material,uniforms,{fragment=true}={}){
+ const prev=material.onBeforeCompile,prevKey=material.customProgramCacheKey;
+ material.onBeforeCompile=(shader,renderer)=>{prev?.call(material,shader,renderer);Object.assign(shader.uniforms,uniforms);
+  shader.vertexShader=shader.vertexShader.replace('#include <common>','#include <common>\nattribute float aBid;uniform vec4 uMask[64];uniform float uMaskOn;varying float vMask;').replace('#include <project_vertex>','#include <project_vertex>'+MASK_VERTEX);
+  shader.fragmentShader=shader.fragmentShader.replace('#include <common>','#include <common>\nvarying float vMask;').replace('#include <clipping_planes_fragment>','#include <clipping_planes_fragment>\n'+(fragment?'if(vMask<.996&&fract(52.9829189*fract(dot(floor(gl_FragCoord.xy),vec2(.06711056,.00583715))))>vMask)discard;':'if(vMask<.5)discard;'));};
+ material.customProgramCacheKey=()=>(prevKey?prevKey.call(material):'')+'|shell-mask';
+ return material;
+}
+// normals: optional per-range creased normals in mergedShellRanges order (shellNormals, computed in a worker).
+export function createMergedShells(array,parts,textures,mask=null,normals=null){
+ const index=new Map(parts.map((p,i)=>[p,i]));
+ return mergedShellRanges(parts).map((r,ri)=>{
   const data=array.slice(r.start*5,r.end*5),buffer=new THREE.InterleavedBuffer(data,5),geometry=new THREE.BufferGeometry();
-  geometry.setAttribute('position',new THREE.InterleavedBufferAttribute(buffer,3,0));geometry.setAttribute('uv',new THREE.InterleavedBufferAttribute(buffer,2,3));geometry.computeVertexNormals();geometry.computeBoundingSphere();
+  geometry.setAttribute('position',new THREE.InterleavedBufferAttribute(buffer,3,0));geometry.setAttribute('uv',new THREE.InterleavedBufferAttribute(buffer,2,3));if(normals?.[ri]?.length===(r.end-r.start)*3)geometry.setAttribute('normal',new THREE.BufferAttribute(normals[ri],3));else shellNormalsFor(geometry);geometry.computeBoundingSphere();
   const texture=r.texture?textures.get(r.texture)||null:null;
-  const material=new THREE.MeshStandardMaterial({map:texture,color:texture?'#ffffff':r.color||'#aca79a',roughness:.86,side:THREE.DoubleSide});
-  const mesh=new THREE.Mesh(geometry,material);mesh.castShadow=false;mesh.receiveShadow=true;
-  // An empty box keeps the chase-camera occlusion fade from ever grabbing a whole tile.
-  mesh.userData={lod:true,occlusion:{opacity:1,clearTime:1},box:new THREE.Box3(),triangles:(r.end-r.start)/3};
+  const styled=copenhagenStyle(); // Copenhagen: untextured shells carry part colours, wall grain and windows; other cities keep the plain colour
+  if(!texture&&styled){geometry.setAttribute('color',shellColourAttribute(array,parts,r.start,r.end));geometry.setAttribute('aRel',shellHeightAttribute(array,parts,r.start,r.end));}
+  const material=texture?new THREE.MeshStandardMaterial({map:texture,roughness:.86,side:THREE.DoubleSide}):styled?facadeGrain(new THREE.MeshStandardMaterial({vertexColors:true,roughness:.86,side:THREE.DoubleSide}),{windows:true}):new THREE.MeshStandardMaterial({color:r.color||'#aca79a',roughness:.86,side:THREE.DoubleSide});
+  const mesh=new THREE.Mesh(geometry,material);mesh.castShadow=false;mesh.receiveShadow=true;mesh.userData.range=[r.start,r.end]; // source vertex range (occlusion tests per part)
+  if(mask){const bid=new Float32Array(r.end-r.start);for(const p of parts)if(p.start>=r.start&&p.start<r.end)bid.fill(index.get(p),p.start-r.start,p.start-r.start+p.count);geometry.setAttribute('aBid',new THREE.BufferAttribute(bid,1));
+   const uniforms={uMask:{value:mask.data},uMaskOn:{value:0}};maskShader(material,uniforms);mesh.customDepthMaterial=maskShader(new THREE.MeshDepthMaterial({depthPacking:THREE.RGBADepthPacking}),uniforms,{fragment:false});mesh.userData.maskOn=uniforms.uMaskOn;mesh.userData.mask=mask;}
+  geometry.computeBoundingBox();
+  // An empty box keeps the chase-camera occlusion fade from ever grabbing a whole tile; tileBox is for distance.
+  Object.assign(mesh.userData,{lod:true,occlusion:{opacity:1,clearTime:1},box:new THREE.Box3(),tileBox:geometry.boundingBox.clone(),triangles:(r.end-r.start)/3});
   return mesh;
  });
 }
@@ -40,16 +93,39 @@ export function createMergedShells(array,parts,textures){
 export function applyTileLod(group,level,focus,bands=LOD){
  group.userData.level=level;group.visible=level!=='hidden';
  if(!group.visible)return level;
- for(const mesh of group.children){
-  const u=mesh.userData;
-  if(u.lod){mesh.visible=level==='far';continue;}
-  const d=u.box.distanceToPoint(focus);
-  if(u.source){mesh.visible=level==='near';mesh.castShadow=mesh.visible&&d<bands.shadow;continue;}
-  const hero=!!u.shell&&u.role==='detail';
-  mesh.visible=level==='near'?!!(u.shell||u.provisional||d<bands.detail):hero;
-  mesh.castShadow=!!u.shell&&level==='near'&&mesh.visible&&d<bands.shadow;
- }
+ const batches=group.userData.batches;if(batches){batches.setNear(level==='near');for(const p of batches.parts)applyPartLod(batches,p,level,focus,group.userData.mask,bands);}
+ for(const mesh of group.children)if(!mesh.userData.lod)applyMeshLod(mesh,level,focus,bands);
+ for(const mesh of group.children)if(mesh.userData.lod)applyMeshLod(mesh,level,focus,bands); // after the buildings: they decide which parts the merged shell shows
  return level;
+}
+// One mesh at its tile's level (newly landed detail does not need the whole tile walked again).
+// castByTile: the tile's shadow casters (merged measured shells drawn only into the shadow map, main.js) cast for
+// this mesh, so it never casts itself. shadowCaster: one of those casters; main.js shows it during the shadow pass.
+// One landed building in its tile's detail batches (building-batches.js): shown while near and within bands.building
+// (20 m of hysteresis on the way out, on the building's shared occlusion state), else handed back to the merged
+// shell; a camera fade dims it through the same per-part value.
+export function applyPartLod(batches,part,level,focus,mask,bands=LOD){
+ const o=part.occlusion,d=part.box.distanceToPoint(focus),want=level==='near'&&d<bands.building+(o.detailed===false?0:20);
+ if(o.detailed!==want){o.detailed=want;mask?.set(part.i,want?0:1);}
+ batches.set(part.i,want?(o.opacity>.995?1:Math.max(.01,o.opacity)):0);
+}
+export function applyMeshLod(mesh,level,focus,bands=LOD){
+ const u=mesh.userData;
+ if(u.shadowCaster||u.batch)return;
+ if(u.lod){
+  // Masked shells also stand in at the near level for buildings whose detail has not landed yet.
+  const waiting=!!u.maskOn&&level==='near'&&(u.mask?.shown??1)>0;
+  mesh.visible=level==='far'||waiting;if(u.maskOn)u.maskOn.value=level==='near'?1:0;
+  mesh.castShadow=waiting&&!u.castByTile&&u.tileBox.distanceToPoint(focus)<bands.shadow;return;}
+ const d=u.box.distanceToPoint(focus);
+ if(u.source){mesh.visible=level==='near';mesh.castShadow=mesh.visible&&!u.castByTile&&d<bands.shadow;return;}
+ // A landed building (part index and tile mask set by main.js) beyond bands.building is drawn by the merged shell:
+ // its own meshes hide and its part is unmasked. The decision lives on the building's shared occlusion state.
+ const o=u.occlusion;let detailed=true;
+ if(u.mask&&u.part!==undefined&&o){const want=level==='near'&&d<bands.building+(o.detailed===false?0:20);if(o.detailed!==want){o.detailed=want;if(mesh.parent)u.mask.set(u.part,want?0:1);}detailed=want;}
+ const hero=!!u.shell&&u.role==='detail';
+ mesh.visible=level==='near'?detailed&&!!(u.shell||u.provisional||d<bands.detail):hero;
+ mesh.castShadow=!!u.shell&&!u.castByTile&&level==='near'&&mesh.visible&&d<bands.shadow;
 }
 
 // Buildings never move: skip them in the renderer's per-frame matrix walk. New children must call

@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {encodeTerrain,decodeTerrain,setTerrain,groundAt,waterAt,lakeAt,groundPose,footprintBase,liftBuildings,hasTerrain} from '../src/terrain.js';
-import {drapeGeometry,settleObject,subdivideGeometry,createLakeGeometry,lakeSurface} from '../src/terrain-mesh.js';
+import {encodeTerrain,decodeTerrain,setTerrain,groundAt,waterAt,lakeAt,groundPose,footprintBase,liftBuildings,hasTerrain,raiseBridgeDecks} from '../src/terrain.js';
+import {drapeGeometry,dropSunkenSurfaces,settleObject,subdivideGeometry,createLakeGeometry,lakeSurface} from '../src/terrain-mesh.js';
 import {makeCar,driveStep} from '../src/physics.js';
 import {drivingCameraPose} from '../src/driving-camera.js';
 import {SpatialIndex} from '../src/geo.js';
@@ -216,5 +216,130 @@ test('Tampere: no drivable street jumps at its interchanges (Rantatunneli, Sorin
  assert.ok(spikes.every(p=>p.grade<=.22),`steepest ${JSON.stringify(spikes[0])}`);
  assert.ok(spikes.length<=12,`${spikes.length} spots above 12 %`);
  for(const [x,z] of [[757,-1062],[603,-1037],[624,-882],[684,308],[-227,757]])assert.ok(!spikes.some(p=>Math.hypot(p.x-x,p.z-z)<30),`interchange at ${x},${z}`);
+ setTerrain(null);
+});
+
+test('surface triangles draped just above water are dropped, quay-level ones kept', () => {
+ const tri=(x,h)=>[x,0,0, x+1,0,0, x,0,1].map((v,i)=>i%3===1?h:v);
+ const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(new Float32Array([...tri(0,0),...tri(10,0),...tri(20,0)]),3));
+ g.setAttribute('terrainY',new THREE.BufferAttribute(new Float32Array([-5.2,-5.2,-5.2, -4,-4,-4, -5.2,-5.2,-5.2]),1));
+ const water=(x)=>x<15?-6.1:null; // first two triangles over water, the third on land
+ dropSunkenSurfaces(g,{water});
+ assert.equal(g.userData.sunkenDropped,1);
+ assert.deepEqual([...g.index.array],[3,4,5,6,7,8]);
+});
+
+test('dry samples at sea-bed height outside the mapped water are raised to quay height', async () => {
+ const {raiseDryHollows}=await import('../src/terrain.js');
+ const size=5,ground=new Float32Array(size*size).fill(-8),water=new Float32Array(size*size).fill(-6);
+ const f={size,cell:2,extent:4,ground,water};
+ const n=raiseDryHollows((x,z)=>x<0,{shelf:false},f); // the west half is mapped water
+ assert.equal(n,15);                             // x = 0, 2, 4 are dry
+ assert.equal(ground[0],-8);                      // x=-4: water, untouched
+ assert.ok(Math.abs(ground[4]-(-4.4))<1e-6);      // x=+4: dry, raised to water+1.6
+});
+
+test('a pond level spread above a flat square does not lift single samples out of the square', async () => {
+ const {raiseDryHollows}=await import('../src/terrain.js');
+ // flat square at 0.4 above a harbour (sea level -6, the south rows); a pond in the middle column whose level (0.5)
+ // the model spread over the samples beside it
+ const size=15,ground=new Float32Array(size*size).fill(.4),water=new Float32Array(size*size).fill(NaN);
+ for(let j=0;j<=8;j++)for(let i=6;i<=8;i++)water[j*size+i]=.5;
+ for(let j=10;j<size;j++)for(let i=0;i<size;i++){water[j*size+i]=-6;ground[j*size+i]=-8;}
+ const n=raiseDryHollows((x,z)=>z>=9||Math.abs(x)<1&&z<=3,{shelf:false},{size,cell:3,extent:21,ground,water});
+ assert.equal(n,0);
+ for(let j=0;j<10;j++)for(let i=0;i<size;i++)assert.ok(Math.abs(ground[j*size+i]-.4)<1e-6,`the square stays flat (${i},${j}: ${ground[j*size+i]})`);
+});
+
+test('a bank deeper than maxRaise is raised by maxRaise, not left as a cliff, and never above the ground behind it', async () => {
+ const {levelBanks}=await import('../src/terrain.js');
+ const size=24,cell=3,extent=36,ground=new Float32Array(size*size),water=new Float32Array(size*size).fill(NaN);
+ // water west of x=0; a long even slope rising 0.7 m per cell inland (a rampart), no flat land within reach
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){const x=-extent+i*cell,k=j*size+i;water[k]=x<15?-1:NaN;ground[k]=x<0?-3:x/cell*.7;}
+ levelBanks((x,z)=>x<0,{shelf:false},{size,cell,extent,ground,water});
+ const row=[];for(let i=0;i<size;i++){const x=-extent+i*cell;if(x>=0)row.push(ground[12*size+i]);}
+ for(let i=1;i<row.length;i++)assert.ok(row[i]>=row[i-1]-1e-6,`no ridge: ${row.map(v=>v.toFixed(2)).join(' ')}`);
+ for(let i=1;i<row.length;i++)assert.ok(row[i]-row[i-1]<=.7+1e-6,`no cliff steeper than the slope: ${row.map(v=>v.toFixed(2)).join(' ')}`);
+});
+
+test('the first water sample beside a quay takes the quay height (no slope into the canal)', async () => {
+ const {raiseDryHollows}=await import('../src/terrain.js');
+ const size=5,ground=new Float32Array(size*size),water=new Float32Array(size*size).fill(-6);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)ground[j*size+i]=i<2?-8:-4;   // canal west, quay at -4 east
+ raiseDryHollows((x,z)=>x<0,{},{size,cell:2,extent:4,ground,water});
+ assert.equal(ground[2*size+1],-4);   // x=-2, beside the quay: shelf
+ assert.equal(ground[2*size+0],-8);   // x=-4: canal bed
+});
+
+test('a bank blurred into a slope is levelled to the land behind it; land farther out and higher ground stay', async () => {
+ const {levelBanks}=await import('../src/terrain.js');
+ const size=20,cell=3,extent=30,ground=new Float32Array(size*size),water=new Float32Array(size*size).fill(NaN);
+ // lake west of x=0 at 0.8; the bank rises 1.0 -> 1.8 over four cells, then flat land at 1.8; a 6 m hill far east
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){const x=-extent+i*cell,k=j*size+i;water[k]=x<12?.8:NaN;ground[k]=x<0?-.5:x<12?1+x/12*.8:x<45?1.8:6;}
+ const plain=ground.slice(),n=levelBanks((x,z)=>x<0,{},{size,cell,extent,ground,water});
+ assert.ok(n>0);
+ const at=x=>ground[10*size+Math.round((x+extent)/cell)];
+ for(const x of [0,3,6,9])assert.ok(Math.abs(at(x)-1.8)<1e-6,`bank at x=${x} is level with the land (${at(x)})`);
+ assert.ok(Math.abs(at(-3)-1.8)<1e-6,'the quay shelf: the water cell the shoreline crosses is level with the quay');
+ assert.equal(at(-6),-.5);   // the lake bed further out is untouched
+ assert.ok(Math.abs(at(27)-1.8)<1e-6);   // land behind stays where it was
+ levelBanks((x,z)=>x<0,{shelf:false},{size,cell,extent,ground:plain,water});
+ assert.equal(plain[10*size+Math.round((-3+extent)/cell)],-.5,'without the shelf the bed stays');
+});
+
+test('water at street height (a moat the elevation model never saw) is sunk below its banks; a real basin is left alone', async () => {
+ const {sinkShallowWater}=await import('../src/terrain.js');
+ const size=12,cell=3,extent=18,ground=new Float32Array(size*size).fill(2.6),water=new Float32Array(size*size).fill(NaN);
+ // a moat strip (x in [-6,3]) at 2.5 on 2.6 m ground; a harbour basin (x > 9) at 0 below 2.6 m quays
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){const x=-extent+i*cell,k=j*size+i;if(x>=-6&&x<=3){water[k]=2.5;}if(x>9){water[k]=0;ground[k]=-4;}}
+ const wet=(x)=>(x>=-6&&x<=3)||x>9;
+ const n=sinkShallowWater(wet,{},{size,cell,extent,ground,water});
+ assert.equal(n,1);
+ const k=6*size+Math.round((0+extent)/cell);
+ assert.ok(Math.abs(water[k]-(2.6-1.8))<1e-5,`moat level ${water[k]}`);
+ assert.ok(ground[k]<water[k]-1);
+ assert.equal(water[6*size+size-1],0); // the harbour keeps its level
+});
+
+test('surveyed building parts (abs) keep their heights; other parts stand on the lowest ground under them', async () => {
+ const {liftBuildings,setTerrain,terrain}=await import('../src/terrain.js');
+ const before=terrain(),size=3,ground=new Float32Array(size*size).fill(2);
+ setTerrain({size,cell:10,extent:10,ground,water:null});
+ try{
+  const a=new Float32Array([0,5,0,0,0, 1,9,0,0,0, 0,9,1,0,0,  0,.12,0,0,0, 1,4,0,0,0, 0,4,1,0,0]);
+  const parts=[{start:0,count:3,abs:1},{start:3,count:3}];
+  liftBuildings(a,parts);
+  assert.equal(a[1],5);assert.equal(parts[0].base,5);          // surveyed: untouched, base = its foot
+  assert.ok(Math.abs(a[16]-2.12)<1e-6);assert.equal(parts[1].base,2); // relative: lifted onto the ground
+ }finally{setTerrain(before);}
+});
+
+test('a bridge deck drawn over the water carries whatever drives onto it',()=>{
+ // a canal 20 m wide (bed 4 m down, water at -3) the elevation model saw no bridge over; a deck drawn at street level crosses it
+ const size=41,water=new Float32Array(size*size).fill(NaN),f=field((x)=>Math.abs(x)<10?-4:0,{size,water});
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++)if(Math.abs(i*2-40)<10)water[j*size+i]=-3;
+ setTerrain(f);const wet=(x,z)=>Math.abs(x)<10;
+ assert.ok(groundAt(0,0)<-3.9,'before: the canal bed under the deck');
+ const raised=raiseBridgeDecks([{rings:[[[-14,-3],[14,-3],[14,3],[-14,3]]],y:.035}],wet);
+ assert.ok(raised>0);assert.ok(Math.abs(groundAt(0,0)+.085)<.02,`12 cm under the deck plate (a car's ride height puts its wheels on the plate; street surfaces draped on the ground stay under it), got ${groundAt(0,0)}`);assert.ok(Math.abs(groundAt(-6,2)+.085)<.02,'to its edges');
+ assert.ok(groundAt(0,12)<-3.9,'open water beside the bridge stays water');assert.equal(groundAt(12,0),0,'the banks are left alone');
+ assert.equal(raiseBridgeDecks([{rings:[[[-14,-3],[14,-3],[14,3],[-14,3]]],y:.035}],wet),0,'raising twice changes nothing');
+ setTerrain(null);
+});
+
+test('paving over the mapped water is dropped, but not on a bridge deck (the deck keeps the street\'s own surface)', async () => {
+ const {buildSurfaceTile}=await import('../src/surface-tiles.js');const {setCityStyle}=await import('../src/city-style.js');setCityStyle({id:'copenhagen'}); // Copenhagen trims paving at the water
+ // a canal across x in [-10,10] at level 0; the bank at 2 m; a strip of paving from x=-30 to 30 at z in [0,6] (stride 6: xyz rgb)
+ const size=41,cell=2,extent=40,ground=new Float32Array(size*size),water=new Float32Array(size*size);
+ for(let j=0;j<size;j++)for(let i=0;i<size;i++){const x=i*cell-extent,k=j*size+i;ground[k]=Math.abs(x)<10?2:2;water[k]=0;}
+ setTerrain({size,cell,extent,base:0,ground,water,lake:null});
+ const quad=(x0,x1,z0,z1)=>[x0,.02,z0,.5,.5,.5, x1,.02,z0,.5,.5,.5, x1,.02,z1,.5,.5,.5, x0,.02,z0,.5,.5,.5, x1,.02,z1,.5,.5,.5, x0,.02,z1,.5,.5,.5];
+ const floats=()=>new Float32Array([...quad(-30,-10,0,6),...quad(-10,10,0,6),...quad(10,30,0,6)]);
+ const canal=[{rings:[[[-10,-50],[10,-50],[10,50],[-10,50]]]}];
+ const count=g=>(g.index?g.index.count:g.attributes.position.count)/3;
+ const dry=count(buildSurfaceTile(floats(),[],[])),cut=count(buildSurfaceTile(floats(),canal,[])),deck=count(buildSurfaceTile(floats(),canal,[{rings:[[[-12,-1],[12,-1],[12,7],[-12,7]]]}]));
+ assert.ok(cut<dry,`paving over the canal is dropped (${cut} of ${dry} triangles left)`);
+ assert.equal(deck,dry,'on the bridge deck it stays');
+ setCityStyle(null);assert.equal(count(buildSurfaceTile(floats(),canal,[])),dry,'other cities keep their paving');
  setTerrain(null);
 });

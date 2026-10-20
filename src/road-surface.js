@@ -1,3 +1,4 @@
+import {copenhagenStyle} from './city-style.js';
 // Ground surface classification and the cobblestone rumble it drives.
 //
 // Classification is DATA-SIDE: every road and pavement polygon in
@@ -78,6 +79,7 @@ function envelope(phase,seed,lo=.6){const k=Math.floor(phase/Math.PI),t=smooth(p
 // Raw (pre-filter) body bump amplitude in metres: 3 cm at 20 km/h, ~4.1 cm at 30, ~6.4 cm at 50, capped 6.6 cm.
 export function rumbleAmplitude(speed){
  const kmh=Math.abs(speed)*3.6;
+ if(copenhagenStyle())return Math.min(.04,kmh<20?.018*(kmh/20):.018+(kmh-20)*(.02/30)); // Copenhagen: gentler, capped at 4 cm
  return Math.min(RUMBLE.maxAmplitude,kmh<20?.03*(kmh/20):.03+(kmh-20)*(.034/30));
 }
 export function rumbleFrequency(speed){return RUMBLE.minHz+(RUMBLE.maxHz-RUMBLE.minHz)*clamp(Math.abs(speed)*3.6/50,0,1);}

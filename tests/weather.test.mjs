@@ -1,14 +1,14 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {LOOKS,LOOK_ORDER,WEATHER_UNIFORMS,createLook,createRain} from '../src/weather.js';
+import {LOOKS,LOOK_ORDER,lookOrder,WEATHER_UNIFORMS,createLook,createRain} from '../src/weather.js';
 import {createSky,SUN_OFFSET} from '../src/sky.js';
 import {GRADE_DEFAULTS} from '../src/post.js';
 
 const hex=/^#[0-9a-f]{6}$/i;
 
 test('every look is complete, with valid colours and a sun above the horizon',()=>{
- assert.deepEqual(LOOK_ORDER,['midday','golden','whitenight','overcast','rain']);
+ assert.deepEqual(lookOrder(),['midday','golden','whitenight','overcast','rain']); // Copenhagen adds the night look (LOOK_ORDER)
  for(const name of LOOK_ORDER){
   const l=LOOKS[name];assert.ok(l,name);assert.ok(l.label);
   for(const k of ['zenith','mid','horizon','sunGlow','cloudLit','cloudShade'])assert.match(l.sky[k],hex,`${name}.sky.${k}`);
@@ -76,4 +76,14 @@ test('a look transition fires skychange while blending and once more when it set
   for(let i=0;i<600;i++){t+=1/60;look.update(1/60,t);}
   assert.equal(events.length,during,'quiet again once settled');
  }finally{delete globalThis.window;}
+});
+
+test('the night look and the longer fog are Copenhagen\'s; other cities cycle the five looks',async()=>{
+ const {FOG_REACH}=await import('../src/weather.js');const {setCityStyle}=await import('../src/city-style.js');
+ assert.deepEqual(lookOrder(),['midday','golden','whitenight','overcast','rain']);
+ setCityStyle({id:'copenhagen'});
+ try{assert.deepEqual(lookOrder(),LOOK_ORDER);assert.ok(LOOK_ORDER.includes('night'));
+  const scene=new THREE.Scene();scene.fog=new THREE.Fog('#fff',1,2);const look=createLook({scene,initial:'rain'});look.update(1,0);
+  assert.ok(Math.abs(scene.fog.far-LOOKS.rain.fog.far*FOG_REACH[1])<1);look.dispose();}
+ finally{setCityStyle(null);}
 });

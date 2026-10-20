@@ -37,12 +37,17 @@ export function logOnce(log=console.error,limit=50){
 // Jobs that create GPU resources (texture init, a building's meshes) run a couple per frame.
 // One failing job (a lost texture, a bad mesh) is logged and skipped; the frame and the rest of the queue go on.
 export function createFrameQueue({maxJobs=2,budgetMs=2.5,onError=logOnce()}={}){
- const jobs=[];let failures=0;
+ // Jobs may carry a priority function (lower runs first, e.g. distance to the player); others run in order.
+ const jobs=[];let seq=0,failures=0;
+ const pick=()=>{let bi=0,bp=Infinity;for(let i=0;i<jobs.length;i++){const j=jobs[i],p=j.p?j.p():j.s*1e-9-1e9;if(p<bp){bp=p;bi=i;}}return jobs.splice(bi,1)[0];};
  return {
-  push(job){jobs.push(job);},
+  // alive(): false once the job's tile has unloaded; such jobs are dropped unrun (a queue of jobs for tiles
+  // left behind held their building data: ~200 MB after each teleport while it never drained).
+  push(job,priority=null,alive=null){jobs.push({run:job,p:priority,s:seq++,alive});},
   get size(){return jobs.length;},
   get failures(){return failures;},
-  step(){const t=performance.now();let n=0;while(jobs.length&&n<maxJobs&&(n===0||performance.now()-t<budgetMs)){const job=jobs.shift();n++;try{job();}catch(e){failures++;try{onError(e,'Skipped a scenery upload:');}catch{}}}return n;}
+  step(){let w=0;for(const j of jobs)if(!j.alive||j.alive())jobs[w++]=j;jobs.length=w;
+   const t=performance.now();let n=0;while(jobs.length&&n<maxJobs&&(n===0||performance.now()-t<budgetMs)){const job=pick();n++;try{job.run();}catch(e){failures++;try{onError(e,'Skipped a scenery upload:');}catch{}}}return n;}
  };
 }
 

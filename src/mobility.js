@@ -4,7 +4,12 @@ import {vehicleFitsRoad,safeVehicleSegment,trafficFootprintsOverlap} from './roa
 import {cornerSpeedLimit,edgeCruise,approachCruise,edgeTopSpeed,carLane} from './traffic-driving.js';
 import {sweptContact} from './contact-geometry.js';
 import {annotateJunctions,annotateCrossings,annotateTramRelations,annotateTramSignals,signalGreen as phaseGreen,tramThreat,boxesOverlap,carBox,oncomingPasses,CAR_HALF_LENGTH} from './lane-model.js';
+const STANDING_PROBES=[3,6,10,15]; // metres ahead checked for a standing bus
+const NEXT_ONE=[null],NO_EDGES=[]; // the next planned edge, passed to cornerSpeedLimit without a fresh array per car
+// Walker grid cells (mobility step): a 1024-slot hash of 1.5 m cells; collisions only cost a distance test.
+const WALK_CELLS=1024,walkCell=(gx,gz)=>(Math.imul(gx,73856093)^Math.imul(gz,19349663))&(WALK_CELLS-1);
 import {mergeGraph} from './graph-extension.js';
+import {copenhagenStyle} from './city-style.js';
 export const TRAFFIC_MAX_SPEED=50/3.6;
 export const nearStation=p=>Math.hypot(p.x+620,p.z+45)<430;
 export const inStationTrafficArea=p=>p.x>-885&&p.x<-440&&p.z>-145&&p.z<55;
@@ -17,6 +22,8 @@ export function prepareGraph(graph){
 // corners (CORNER_BLEND metres each side) so a car does not jump sideways and snap its heading at every vertex.
 const CORNER_BLEND=2.5;
 const edgeStartDirection=e=>{const a=e.points[0],b=e.points[1],l=e.cumulative[1]||1;return [(b[0]-a[0])/l,(b[1]-a[1])/l];};
+// A vehicle longer than a car (1760: coach and pair, COACH_HALF_LENGTH) carries its size to the footprints it is tested with.
+const sized=(p,a)=>{if(a.halfLength!==undefined){p.halfLength=a.halfLength;p.halfWidth=a.halfWidth;}return p;};
 const edgeEndDirection=e=>{const n=e.points.length,a=e.points[n-2],b=e.points[n-1],l=e.cumulative[n-1]-e.cumulative[n-2]||1;return [(b[0]-a[0])/l,(b[1]-a[1])/l];};
 // nextDir/prevDir: unit directions of the adjacent edges, so the blend also runs across junction nodes.
 export function routePoint(edge,distance,offset=edge.lane,nextDir,prevDir){
@@ -38,11 +45,21 @@ export function signalGreen(edge,time){
  // Road edges carry their junction's own axes (lane-model.js); other edges fall back to north/south.
  return phaseGreen(edge.signal,edge.signalGroup??Math.abs(Math.cos(routePoint(edge,Math.max(0,edge.length-4),0).heading))>.707,time);
 }
-export function approachingPedestrian(person,car){
+export function approachingPedestrian(person,car,lateral=5.5){ // lateral: how far from the car's line the person counts as in its way
  const speed=Math.abs(car.speed||0);if(speed<2)return false;
  const vx=-Math.sin(car.heading||0)*car.speed,vz=-Math.cos(car.heading||0)*car.speed,dx=person.x-car.x,dz=person.z-car.z;
  const t=(dx*vx+dz*vz)/(speed*speed);
- return t>-.15&&t<2.2&&Math.hypot(dx-vx*Math.max(0,t),dz-vz*Math.max(0,t))<5.5&&Math.hypot(dx,dz)<Math.min(28,8+speed*1.7);
+ return t>-.15&&t<2.2&&Math.hypot(dx-vx*Math.max(0,t),dz-vz*Math.max(0,t))<lateral&&Math.hypot(dx,dz)<Math.min(28,8+speed*1.7);
+}
+// Whether the player's approach makes a walker run (flee below). Only a car (or the 1760 coach) does: on foot, on a bike
+// or a scooter the player passes without anyone running. A walker on the pavement beside a car that keeps to the road
+// runs only when the car would pass within 2 m (about to mount the kerb); a car off the road, on a square or the
+// pavement, sends anyone within 5.5 m of its line running. Before, a car driving down any street at more than 7 km/h
+// set the whole pavement running.
+export function threatens(person,player,roads){
+ if(player.travelMode&&player.travelMode!=='car')return false;
+ const lateral=roads?.at(player.x,player.z)&&!roads.at(person.x,person.z)?2:5.5;
+ return approachingPedestrian(person,player,lateral);
 }
 // Recycle a car that has made no real progress this long when it is away from the player (last resort).
 const STALLED_AFTER=40;
@@ -52,14 +69,19 @@ const LOOKAHEAD=45;
 // Side by side, the lower id goes first. Previously both refused to move and deadlocked forever.
 const yieldsTo=(a,b)=>{if(Math.cos(a.heading-b.heading)<.9)return true;const forward=(b.x-a.x)*-Math.sin(a.heading)+(b.z-a.z)*-Math.cos(a.heading);return forward>.3||(forward>-.3&&b.id<a.id);};
 export class Mobility {
- constructor(data,world,{cars=52,people=100,stationCars=0,corridorCars=0,corridor=null,random=Math.random}={}){
+ constructor(data,world,{cars=52,people=100,stationCars=0,corridorCars=0,corridor=null,random=Math.random,walkSpawn=200,walkRecycle=330,refined=copenhagenStyle()}={}){
+  // refined (Copenhagen): walkers keep their own side of the path and a step's gap, only a car makes them run, at most one
+  // walker per 8 m of footway, ground lookups memoised on a 25 cm grid and a few respawns per frame. Other cities keep the
+  // original crowd behaviour.
+  this.refined=refined;this.walkSpawn=walkSpawn;this.walkRecycle=walkRecycle;this.spawnBudget=refined?6:Infinity; // walkers appear within walkSpawn m of the player and are recycled past walkRecycle
   this.roads=prepareGraph(data.roads);this.walks=prepareGraph(data.walks);this.signals=data.signals;this.signalControl=annotateJunctions(this.roads,data.signals||[]);annotateCrossings(this.walks,this.signalControl);this.signalAxes=this.signalControl.axes;this.world=world;this.random=random;this.time=0;this.collisions=0;this.externalObstacles=[];this.externalBodies=[];this.trams=null;this.edgeCars=new Map();this.boxCars=new Map();this.approaching=new Map();
   this.stationEdges=this.roads.edges.filter(e=>e.points.some(([x,z])=>inStationTrafficArea({x,z})));
   // Main-road pool: extra cars that live only on a busy corridor (e.g. Olympia terminal → Kauppatori), both directions.
   this.corridor=corridor;this.corridorEdges=corridor?this.roads.edges.filter(e=>e.length>10&&corridor(...e.points[Math.floor(e.points.length/2)])):[];
   this.corridorIds=new Set(this.corridorEdges.map(e=>e.id));
   this.cars=Array.from({length:cars+stationCars+(this.corridorEdges.length?corridorCars:0)},(_,id)=>({id,stationOnly:id>=cars&&id<cars+stationCars,corridorOnly:id>=cars+stationCars,walking:false,edge:null,s:0,speed:0,cruise:6+random()*5,x:0,z:0,heading:0}));
-  this.people=Array.from({length:people},(_,id)=>({id,walking:true,edge:null,s:0,speed:0,cruise:.85+random()*.65,x:0,z:0,heading:0}));
+  // side: each walker's own distance to the right of the path's line (0.2-0.9 m, spread by id so seeded runs keep their random sequence)
+  this.people=Array.from({length:people},(_,id)=>({id,walking:true,edge:null,s:0,speed:0,cruise:.85+random()*.65,side:.2+(id*.6180339887%1)*.7,x:0,z:0,heading:0}));
  }
  // Trams share the street: tracks are related to lanes once, and their positions are read every step.
  attachTrams(trams){this.trams=trams;annotateTramRelations(this.roads.edges,trams.paths);annotateTramSignals(trams.paths,this.signals||[],this.signalControl);}
@@ -69,7 +91,7 @@ export class Mobility {
  // streamed region. Only derived junction and route lookup data is refreshed.
  appendRegion(data){
   const offset=this.signals.length,roads=this.roads.edges.length,walks=this.walks.edges.length;
-  this.signals.push(...data.signals);mergeGraph(this.roads,data.roads,offset);mergeGraph(this.walks,data.walks,offset);
+  this.signals.push(...data.signals);mergeGraph(this.roads,data.roads,offset);mergeGraph(this.walks,data.walks,offset);this.roads._grid=this.walks._grid=null;
   for(const e of this.roads.edges)if(e.mappedSignal!==undefined)e.signal=e.mappedSignal;
   this.signalControl=annotateJunctions(this.roads,this.signals);annotateCrossings(this.walks,this.signalControl);this.signalAxes=this.signalControl.axes;
   this.stationEdges=this.roads.edges.filter(e=>e.points.some(([x,z])=>inStationTrafficArea({x,z})));
@@ -117,36 +139,96 @@ export class Mobility {
   else if(!a.walking&&this.standing?.length){const lane=a.edge.lane,ahead=s=>routePoint(a.edge,Math.min(a.edge.length,a.s+s),lane);
    if(this.standingAt(p)||this.standingAt(ahead(5))||this.standingAt(ahead(10)))for(const offset of [lane-1.1,lane-1.7,lane-2.3,lane+.9,lane+1.6]){const candidate=routePoint(a.edge,a.s,offset,nextDir,prevDir),further=routePoint(a.edge,Math.min(a.edge.length,a.s+8),offset);
     if(vehicleFitsRoad(candidate,this.world)&&vehicleFitsRoad(further,this.world)&&!this.standingAt(candidate)&&!this.standingAt(further)){target=offset;p=candidate;break;}}}
-  if(a.walking)return p;
+  if(a.walking)return this.refined?this.walkerPlace(a,p):p;
   // Slide to the new lateral offset at a walking pace rather than jumping 1.8 m sideways in one frame.
   if(a.offset===undefined||!(this.dt>0))a.offset=target;else{const max=1.4*this.dt;a.offset+=Math.max(-max,Math.min(max,target-a.offset));}
-  if(Math.abs(a.offset-target)>.01){const eased=routePoint(a.edge,a.s,a.offset,nextDir,prevDir);if(vehicleFitsRoad(eased,this.world))return eased;a.offset=target;}
-  return p;
+  if(Math.abs(a.offset-target)>.01){const eased=routePoint(a.edge,a.s,a.offset,nextDir,prevDir);if(vehicleFitsRoad(eased,this.world))return sized(eased,a);a.offset=target;}
+  return sized(p,a);
+ }
+ // Back onto the lane from where a knock left the car: the nearest point of its own edge, if it is close and the car still
+ // faces roughly that way; the lateral offset then eases back to the lane (position()) instead of jumping.
+ rejoinLane(a){
+  const e=a.edge;if(!e?.points?.length)return false;let best=Infinity,bs=0,acc=0;
+  for(let i=1;i<e.points.length;i++){const [ax,az]=e.points[i-1],[bx,bz]=e.points[i],dx=bx-ax,dz=bz-az,l=Math.hypot(dx,dz);if(!l)continue;const t=Math.max(0,Math.min(1,((a.x-ax)*dx+(a.z-az)*dz)/(l*l))),d=Math.hypot(a.x-ax-dx*t,a.z-az-dz*t);if(d<best){best=d;bs=acc+t*l;}acc+=l;}
+  const c=routePoint(e,Math.min(e.length,bs),0),turn=Math.abs(Math.atan2(Math.sin(a.heading-c.heading),Math.cos(a.heading-c.heading)));
+  if(best>4||turn>1.1)return false;
+  a.s=Math.min(e.length-.01,bs);a.offset=(a.x-c.x)*Math.cos(c.heading)-(a.z-c.z)*Math.sin(c.heading);a.speed=0;a.waiting=0;a.stuck=0;return true;
+ }
+ // A walker's place across the path: its own side distance to the right of the way it walks, halved where the
+ // path is too narrow for it, and eased (round corners, onto a reversed edge) rather than jumped. Everybody used
+ // to walk the line itself, so people walking together, or waiting at the same kerb, stood inside one another.
+ walkerPlace(a,p){
+  const rx=Math.cos(p.heading),rz=-Math.sin(p.heading);let side=a.side||0;
+  while(side>.08&&!this.walkable(p.x+rx*side,p.z+rz*side,a.edge))side*=.5;
+  if(side<=.08)side=0;
+  const tx=rx*side,tz=rz*side;
+  if(a.ox===undefined||!(this.dt>0)){a.ox=tx;a.oz=tz;}
+  else{const ex=tx-a.ox,ez=tz-a.oz,l=Math.hypot(ex,ez),max=.7*this.dt;if(l>max){a.ox+=ex/l*max;a.oz+=ez/l*max;}else{a.ox=tx;a.oz=tz;}}
+  if(!this.walkable(p.x+a.ox,p.z+a.oz,a.edge)){a.ox=tx;a.oz=tz;}
+  p.x+=a.ox;p.z+=a.oz;return p;
+ }
+ // How fast a walker may go so as to stay a step behind whoever walks ahead of it the same way (a queue at a
+ // kerb, a pair on a narrow pavement), or to leave room for someone standing just in front on another path (the
+ // higher id waits). Walkers by 1.5 m cell come from step(); the limiting walker is kept in a.gapBy.
+ walkGap(a,dx,dz){
+  let v=Infinity;a.gapBy=null;const head=this._walkHead,next=this._walkNext,gx=Math.floor(a.x/1.5),gz=Math.floor(a.z/1.5);
+  for(let ix=-1;ix<=1;ix++)for(let iz=-1;iz<=1;iz++)for(let j=head[walkCell(gx+ix,gz+iz)];j>=0;j=next[j]){const b=this.people[j];if(b===a)continue;
+   const x=b.x-a.x,z=b.z-a.z,forward=x*dx+z*dz;if(forward<=.05||forward>1.6)continue;
+   const lateral=Math.abs(x*dz-z*dx),same=-Math.sin(b.heading)*dx-Math.cos(b.heading)*dz>.3;
+   if(same?lateral>=.5:forward*forward+lateral*lateral>=.6||a.id<b.id)continue;
+   const u=Math.max(0,(forward-.7)*1.5);if(u<v){v=u;a.gapBy=b;}}
+  return v;
+ }
+ // What lies under a point (0 building, 1 road, 2 pavement, 3 neither), memoised on a 25 cm grid: walkers ask
+ // this for every 25 cm of every step, and three polygon lookups each was the biggest cost in a frame.
+ groundKind(x,z){
+  const w=this.world;if(this._kindOf!==w.buildings||this._kindRoads!==w.roads||this._kindPave!==w.pavement||this._kinds.size>500000){this._kinds=new Map();this._kindOf=w.buildings;this._kindRoads=w.roads;this._kindPave=w.pavement;}
+  const X=Math.round(x*4),Z=Math.round(z*4),k=(X+60000)*120000+(Z+60000);let v=this._kinds.get(k);
+  if(v===undefined){const px=X/4,pz=Z/4;v=w.buildings.at(px,pz)?0:w.roads.at(px,pz)?1:w.pavement?.at(px,pz)?2:3;this._kinds.set(k,v);}
+  return v;
  }
  walkable(x,z,edge){
-  if(this.world.buildings.at(x,z))return false;
-  if(this.world.roads.at(x,z))return !!edge?.crossing;
-  return !!this.world.pavement?.at(x,z);
+  if(!this.refined){if(this.world.buildings.at(x,z))return false;if(this.world.roads.at(x,z))return !!edge?.crossing;return !!this.world.pavement?.at(x,z);}
+  const v=this.groundKind(x,z);
+  return v===2||v===1&&!!edge?.crossing;
  }
  safeWalkSegment(a,p,edge){
   const distance=Math.hypot(p.x-a.x,p.z-a.z);if(distance>2)return false;
   for(let i=1,n=Math.max(1,Math.ceil(distance/.25));i<=n;i++)if(!this.walkable(a.x+(p.x-a.x)*i/n,a.z+(p.z-a.z)*i/n,edge))return false;
   return true;
  }
+ // Edges whose midpoint lies near the player, from a 100 m grid built once per graph (spawning used to scan
+ // every edge in the city per agent: a long frame whenever many respawned at once).
+ edgesNear(graph,player,r){
+  const C=100;if(!graph._grid){const g=new Map();graph.edges.forEach((e,i)=>{e._gi=i;const p=e.points[Math.floor(e.points.length/2)],k=Math.floor(p[0]/C)+','+Math.floor(p[1]/C);let l=g.get(k);if(!l)g.set(k,l=[]);l.push(e);});graph._grid=g;}
+  if(!player)return graph.edges;const out=[],x0=Math.floor((player.x-r)/C),x1=Math.floor((player.x+r)/C),z0=Math.floor((player.z-r)/C),z1=Math.floor((player.z+r)/C);
+  for(let i=x0;i<=x1;i++)for(let j=z0;j<=z1;j++){const l=graph._grid.get(i+','+j);if(l)for(const e of l)out.push(e);}
+  return out.sort((a,b)=>a._gi-b._gi); // graph order, so seeded spawns pick the same edges as a full scan
+ }
+ // Spawn candidates are the same for every agent of a kind spawned in one frame from one spot: computed once.
+ spawnCandidates(a,player,graph,compute){
+  const key=(a.stationOnly?'s':a.corridorOnly?'c':a.walking?'w':'r')+Math.round(player.x/4)+','+Math.round(player.z/4)+','+this.time;
+  if(!this._spawnCache||this._spawnCache.time!==this.time)this._spawnCache={time:this.time,lists:new Map()};
+  let l=this._spawnCache.lists.get(key);if(!l)this._spawnCache.lists.set(key,l=compute());return l;
+ }
  nearCorridor(player){return this.corridorEdges.some(e=>{const p=e.points[Math.floor(e.points.length/2)];return Math.hypot(p[0]-player.x,p[1]-player.z)<420;});}
  spawn(a,player){
   if(a.playerTaken){a.edge=null;a.speed=0;return;}
-  delete a.knocked;delete a.damage;
+  a.knocked=undefined;a.damage=undefined; // not delete: a deleted property turns the agent into a slow dictionary object (and deoptimises step)
   if(a.stationOnly&&!nearStation(player)){a.edge=null;a.speed=0;return;}
   if(a.corridorOnly&&!this.nearCorridor(player)){a.edge=null;a.speed=0;return;}
   const graph=a.walking?this.walks:this.roads;
   // Prefer nearby routes; edge midpoint avoids choosing a remote end of a long road.
-  const nearby=(a.stationOnly?this.stationEdges:a.corridorOnly?this.corridorEdges:graph.edges).filter(e=>{const p=e.points[Math.floor(e.points.length/2)],d=Math.hypot(p[0]-player.x,p[1]-player.z);return (!a.walking||!e.crossing)&&d<(a.walking?200:a.corridorOnly?520:320)&&e.length>(a.walking?3:10)&&!(!a.walking&&(this.obstructed?.has(e)||this.trap(e,2)));});
+  const nearby=this.spawnCandidates(a,player,graph,()=>(a.stationOnly?this.stationEdges:a.corridorOnly?this.corridorEdges:this.edgesNear(graph,player,a.walking?this.walkSpawn:320)).filter(e=>{const p=e.points[Math.floor(e.points.length/2)],d=Math.hypot(p[0]-player.x,p[1]-player.z);return (!a.walking||!e.crossing)&&d<(a.walking?200:a.corridorOnly?520:320)&&e.length>(a.walking?3:10)&&!(!a.walking&&(this.obstructed?.has(e)||this.trap(e,2)));}));
+  let occupancy=null; // walkers per edge, counted once per spawn rather than once per trial
   for(let trial=0;trial<80&&nearby.length;trial++){
-   a.edge=nearby[Math.floor(this.random()*nearby.length)];a.s=this.random()*a.edge.length;a.plan=[];a.prevDir=undefined;
+   a.edge=nearby[Math.floor(this.random()*nearby.length)];a.s=this.random()*a.edge.length;a.plan=[];a.prevDir=undefined;a.ox=undefined;a.gapBy=null;a.gapHeld=0;
    const p=this.position(a);
    if(a.stationOnly&&!inStationTrafficArea(p))continue;
    if(!a.walking&&(this.cars.some(b=>b!==a&&b.edge&&trafficFootprintsOverlap(p,b))||this.hitsBody(carBox(p,1))||this.inConflict(a.edge,a.s)))continue;
+   // Walkers spread out: at most one per 8 m of footway. Where few paths are near (a pier, a quay between
+   // canals) the 300 walkers otherwise all landed on the same few edges and moved about as one clump.
+   if(a.walking&&this.refined){if(!occupancy){occupancy=new Map();for(const b of this.people)if(b!==a&&b.edge)occupancy.set(b.edge,(occupancy.get(b.edge)||0)+1);}if((occupancy.get(a.edge)||0)>=Math.max(1,a.edge.length/8))continue;}
    if(this.world.buildings.at(p.x,p.z)||(a.walking?!this.walkable(p.x,p.z,a.edge):!vehicleFitsRoad(p,this.world)))continue;
    // A long straight main road is almost always in view; corridor cars may appear there, but only in the far haze.
    const distance=Math.hypot(p.x-player.x,p.z-player.z);
@@ -157,7 +239,7 @@ export class Mobility {
   }
   a.edge=null;a.speed=0;
  }
- reset(player){this.updateParked();for(const a of [...this.cars,...this.people]){a.edge=null;delete a.playerTaken;delete a.conversation;}for(const a of [...this.cars,...this.people])this.spawn(a,player);}
+ reset(player){this.updateParked();for(const a of [...this.cars,...this.people]){a.edge=null;a.playerTaken=undefined;a.conversation=undefined;}for(const a of [...this.cars,...this.people])this.spawn(a,player);}
  canRecycle(a,player){return Math.hypot(a.x-player.x,a.z-player.z)>80&&(a.hiddenFor||0)>2;}
  retire(a,player,force=false){a.speed=0;if(force||a.walking||this.canRecycle(a,player))a.edge=null;}
  // Lanes a parked bus stands in (mapped bays on the carriageway) are avoided when routing allows; a car that
@@ -211,7 +293,7 @@ export class Mobility {
  }
  hold(a,seconds){if(a.walking)a.holdUntil=this.time+seconds;}
  flee(a,player){
-  const threatened=approachingPedestrian(a,player);
+  const threatened=this.refined?threatens(a,player,this.world.roads):approachingPedestrian(a,player);
   if(threatened){
    if(!a.running||this.time>(a.turnAfter||0)){
     const ahead=routePoint(a.edge,Math.min(a.edge.length,a.s+5),0),behind=routePoint(a.edge,Math.max(0,a.s-5),0),px=player.x-Math.sin(player.heading)*player.speed*.5,pz=player.z-Math.cos(player.heading)*player.speed*.5;
@@ -288,11 +370,11 @@ export class Mobility {
   if(start-CAR_HALF_LENGTH<-.3)return false;
   const limit=end+3*CAR_HALF_LENGTH+1;let base=-a.s;
   for(let i=-1;i<plan.length&&base<limit;i++){const e=i<0?a.edge:plan[i],cars=this.edgeCars.get(e);
-   if(cars)for(const b of cars){if(b===a||b.speed>4||b===a.unjam)continue;const d=base+b.s;if(d>start&&d<=limit){this.zoneBy=b;return true;}}
+   if(cars)for(let ci=0;ci<cars.length;ci++){const b=cars[ci];if(b===a||b.speed>4||b===a.unjam)continue;const d=base+b.s;if(d>start&&d<=limit){this.zoneBy=b;return true;}}
    base+=e.length;}
   // The way through the block itself: a stopped car standing in it (waiting at another approach's stop line
   // on a corner the lane cuts) would leave this car stuck half way.
-  const still=[];for(const b of this.cars)if(b!==a&&b.edge&&b.speed<3&&b!==a.unjam&&Math.abs(b.x-a.x)<end+8&&Math.abs(b.z-a.z)<end+8)still.push(b);
+  const still=this._still||(this._still=[]);still.length=0;for(let ci=0;ci<this.cars.length;ci++){const b=this.cars[ci];if(b!==a&&b.edge&&b.speed<3&&b!==a.unjam&&Math.abs(b.x-a.x)<end+8&&Math.abs(b.z-a.z)<end+8)still.push(b);} // reused list: called per car per step near junctions
   if(still.length)for(let d=Math.max(start,CAR_HALF_LENGTH+1);d<=end+CAR_HALF_LENGTH;d+=2){const p=this.routeAt(a,plan,d);if(!p)break;for(const b of still)if(Math.abs(b.x-p.x)<6&&Math.abs(b.z-p.z)<6&&boxesOverlap(carBox(p),carBox(b))){this.zoneBy=b;return true;}}
   if(this.externalBodies.length){const p=this.routeAt(a,plan,end+CAR_HALF_LENGTH+.5);if(p)for(const body of this.externalBodies){if(Math.abs(body.x-p.x)>20||Math.abs(body.z-p.z)>20||(body.speed||0)>2)continue;if(boxesOverlap(carBox(p),body)){this.zoneBy=body.ref||body;return true;}}}
   return false;
@@ -311,17 +393,25 @@ export class Mobility {
   return ![player,...this.cars,...this.externalObstacles].some(c=>c.edge!==null&&(Math.hypot(c.x-middle.x,c.z-middle.z)<(Math.abs(c.speed||0)<.5?3:5)||approachingPedestrian(middle,c)));
  }
  step(dt,player){
-  this.time+=dt;this.dt=dt;
+  this.time+=dt;this.dt=dt;let spawns=0;
   // Per step rather than per car: who is on which edge, and everything a car must not drive into.
   this.edgeCars.clear();this.boxCars.clear();this.approaching.clear();
   const add=(map,key,c)=>{const list=map.get(key);if(list)list.push(c);else map.set(key,[c]);};
-  for(const c of this.cars)if(c.edge&&!c.knocked){add(this.edgeCars,c.edge,c);const e=c.edge,remaining=e.length-c.s;
+  for(let ci=0;ci<this.cars.length;ci++){const c=this.cars[ci];if(!c.edge||c.knocked)continue;add(this.edgeCars,c.edge,c);const e=c.edge,remaining=e.length-c.s;
    // Junction boxes: cars inside one (front past the stop line, or rear not yet out), and cars about to enter.
    if(e.junction&&remaining<e.stopGap-.3)add(this.boxCars,e.to,c);else if(e.junction&&remaining<e.stopGap+5)add(this.approaching,e.to,c);
    if(e.startGap&&c.s<e.startGap&&this.roads.junctionNode?.[e.from])add(this.boxCars,e.from,c);}
-  const traffic=[player,...this.cars,...this.externalObstacles];for(const p of this.people)if(p.edge?.crossing&&this.world.roads.at(p.x,p.z))traffic.push(p);
+  // Indexed loops and reused lists in here: this runs every step for every agent, and for-of iteration and spread
+  // copies were most of the garbage the game made per frame (collection pauses while driving).
+  const traffic=this._traffic||(this._traffic=[]);traffic.length=0;traffic.push(player);for(let i=0;i<this.cars.length;i++)traffic.push(this.cars[i]);for(let i=0;i<this.externalObstacles.length;i++)traffic.push(this.externalObstacles[i]);
+  for(let i=0;i<this.people.length;i++){const p=this.people[i];if(p.edge?.crossing&&this.world.roads.at(p.x,p.z))traffic.push(p);}
+  // Walkers by 1.5 m cell in a fixed hash table (no garbage), for walkGap.
+  {const head=this._walkHead||(this._walkHead=new Int32Array(WALK_CELLS)),chain=this._walkNext?.length>=this.people.length?this._walkNext:(this._walkNext=new Int32Array(this.people.length));head.fill(-1);
+  for(let i=0;i<this.people.length;i++){const p=this.people[i];if(!p.edge||p.knockdown)continue;const h=walkCell(Math.floor(p.x/1.5),Math.floor(p.z/1.5));chain[i]=head[h];head[h]=i;}}
   const tramList=this.trams?.trams||[];this.updateParked();
-  for(const a of [...this.cars,...this.people]){
+  const undo=(a,oldS,oldEdge,oldPrev,by)=>{if(a.edge!==oldEdge){a.plan?.unshift(a.edge);a.prevDir=oldPrev;}a.s=oldS;a.edge=oldEdge;a.speed=0;a.waiting=(a.waiting||0)+dt;a.stuck=(a.stuck||0)+dt;if(!a.walking){a.hold=by?'contact':'road';a.holdBy=by;}};
+  const nCars=this.cars.length,nAgents=nCars+this.people.length;
+  for(let ai=0;ai<nAgents;ai++){const a=ai<nCars?this.cars[ai]:this.people[ai-nCars];
    if(a.playerTaken)continue;
    a.hiddenFor=(this.visibilityTest?this.visibilityTest(a):Math.hypot(a.x-player.x,a.z-player.z)<350)?0:(a.hiddenFor||0)+dt;
    if(a.knockdown){a.speed=0;a.running=false;continue;}
@@ -329,7 +419,10 @@ export class Mobility {
    if(a.walking&&a.conversation){a.speed=0;continue;}
    // A car the player crashed into coasts on its own momentum, then sits where it stopped as an obstacle
    // until it is out of sight (or long enough has passed) and gets recycled like any other car.
-   if(a.knocked){if(!stepKnocked(a,dt,this.world,this.time,{cars:this.cars,obstacles:this.externalObstacles,knock:(b,pose,impulse)=>{if(this.cars[b.id]===b&&b.edge){knockCar(b,impulse,this.time);this.collisions++;}}})&&(this.time-a.knocked.rest>REST_RECYCLE_AFTER&&Math.hypot(a.x-player.x,a.z-player.z)>80||this.canRecycle(a,player)&&Math.hypot(a.x-player.x,a.z-player.z)>160)){delete a.knocked;delete a.damage;a.edge=null;this.spawn(a,player);}continue;}
+   // A coach (1760: recoverKnocked set) that was shoved and has come to rest pulls back into its lane after a few seconds;
+   // like a wrecked car it used to stand in the street, horses frozen, until you drove 80 m away.
+   if(a.knocked&&this.recoverKnocked&&a.knocked.rest!=null&&this.time-a.knocked.rest>this.recoverKnocked&&this.rejoinLane(a)){a.knocked=undefined;continue;}
+   if(a.knocked){if(!stepKnocked(a,dt,this.world,this.time,{cars:this.cars,obstacles:this.externalObstacles,knock:(b,pose,impulse)=>{if(this.cars[b.id]===b&&b.edge){knockCar(b,impulse,this.time);this.collisions++;}}})&&(this.time-a.knocked.rest>REST_RECYCLE_AFTER&&Math.hypot(a.x-player.x,a.z-player.z)>80||this.canRecycle(a,player)&&Math.hypot(a.x-player.x,a.z-player.z)>160)){a.knocked=undefined;a.damage=undefined;a.edge=null;this.spawn(a,player);}continue;}
    if(a.stationOnly){
     if(!nearStation(player)){this.retire(a,player);continue;}
     // Leaving the area: keep driving normally and recycle once unseen. (retire() would zero the speed every
@@ -342,7 +435,7 @@ export class Mobility {
     if(a.edge&&!this.corridorIds.has(a.edge.id)&&this.canRecycle(a,player))a.edge=null;
     if(!a.edge){if(this.time<(a.retryAt||0))continue;a.retryAt=this.time+.5;this.spawn(a,player);continue;}
    }
-   if(!a.edge||(Math.hypot(a.x-player.x,a.z-player.z)>(a.walking?330:500)&&(a.walking||this.canRecycle(a,player)))){this.spawn(a,player);continue;}
+   if(!a.edge||(Math.hypot(a.x-player.x,a.z-player.z)>(a.walking?this.walkRecycle:500)&&(a.walking||this.canRecycle(a,player)))){if(spawns++<this.spawnBudget||!a.edge&&this.time<3)this.spawn(a,player);continue;} // a few respawns per frame: after a turn dozens went at once (a hitch)
    // A car that has made no progress for a long time is holding up a queue: recycle it unless it is close by.
    // Away from the player a deadlocked car is recycled rather than squeezing through another one.
    if(!a.walking&&((a.waiting||0)>STALLED_AFTER||a.deadlocked)&&Math.hypot(a.x-player.x,a.z-player.z)>60){a.deadlocked=false;this.spawn(a,player);continue;}
@@ -351,9 +444,17 @@ export class Mobility {
    if(a.walking){
     if(!running){const x=player.x-a.x,z=player.z-a.z,forward=x*dx+z*dz;if(forward>0&&forward<5&&Math.abs(x*dz-z*dx)<1.7)desired=Math.min(desired,Math.max(0,(forward-2.8)*.85));}
     if(a.edge.crossing&&a.s<.35&&!running&&!this.world.roads.at(a.x,a.z)&&!this.crossingClear(a.edge,player))desired=0;
+    // Never on a crossing: someone waiting for a gap out on the carriageway would hold up the cars (and the cars them).
+    if(this.refined&&!running&&desired>0&&!a.edge.crossing){const g=this.walkGap(a,dx,dz);
+     if(g<desired){a.gapHeld=(a.gapHeld||0)+dt;let ring=false;
+      // Walkers each waiting for the next round a ring would never move: after a while the lowest id in it steps on.
+      if(a.gapHeld>4){let b=a.gapBy,min=a.id;for(let k=0;k<8&&b;k++){if(b===a){ring=min===a.id;break;}min=Math.min(min,b.id);b=b.gapBy;}}
+      if(!ring)desired=g;}
+     else a.gapHeld=0;}
+    else{a.gapBy=null;a.gapHeld=0;}
    }else{
     const plan=this.plan(a);let hold=null,holdBy=null;
-    desired=cornerSpeedLimit(a.edge,a.s,approachCruise(edgeCruise(a.edge,desired),plan[0],desired,remaining),plan.length?[plan[0]]:[]);
+    if(plan.length)NEXT_ONE[0]=plan[0];desired=cornerSpeedLimit(a.edge,a.s,approachCruise(edgeCruise(a.edge,desired),plan[0],desired,remaining),plan.length?NEXT_ONE:NO_EDGES);
     if(a.edge.roundabout)desired=Math.min(desired,6);
     // Yield to circulating traffic before entering, never to an imaginary signal in the middle of the roundabout.
     if(!a.edge.roundabout&&remaining<10&&this.roads.outgoing[a.edge.to].some(e=>e.roundabout)){
@@ -368,12 +469,12 @@ export class Mobility {
     const zone=this.zoneLimit(a,plan,tramList);
     if(zone<desired){desired=zone;hold=this.zoneWhy;holdBy=this.zoneBy;}
     if(a.passing!=null&&!(this.cars[a.passing]?.edge&&trafficFootprintsOverlap(a,this.cars[a.passing])))a.passing=null;
-    for(const b of traffic){if(b===a||b.edge===null)continue;const x=b.x-a.x,z=b.z-a.z;if(x>20||x<-20||z>20||z<-20)continue;
+    for(let ti=0;ti<traffic.length;ti++){const b=traffic[ti];if(b===a||b.edge===null)continue;const x=b.x-a.x,z=b.z-a.z;if(x>20||x<-20||z>20||z<-20)continue;
      if(b.ref?.parked||b.ref?.standing)continue; // standing buses: checked along the lane actually driven, below
      const forward=x*dx+z*dz;if(forward<=0||forward>=20||Math.abs(x*dz-z*dx)>=2.1||this.passes(a,b)||oncomingPasses(a,b))continue;
-     const v=Math.max(0,(forward-6)*.85);if(v<desired){desired=v;hold='follow';holdBy=b.ref||b;}
+     const gap=a.halfLength===undefined&&b.halfLength===undefined?6:(a.halfLength??CAR_HALF_LENGTH)+(b.halfLength??CAR_HALF_LENGTH)+1.3,v=Math.max(0,(forward-gap)*.85);if(v<desired){desired=v;hold='follow';holdBy=b.ref||b;} // stops ~1.3 m behind (6 m centres for two cars)
     }
-    if(this.standing?.length)for(const d of [3,6,10,15]){if(a.s+d>a.edge.length)break;const q=routePoint(a.edge,a.s+d,a.offset??a.edge.lane);if(this.standingAt(q)){const v=Math.max(0,(d-3.5)*.85);if(v<desired){desired=v;hold='follow';holdBy=null;}break;}}
+    if(this.standing?.length)for(const d of STANDING_PROBES){if(a.s+d>a.edge.length)break;const q=routePoint(a.edge,a.s+d,a.offset??a.edge.lane);if(this.standingAt(q)){const v=Math.max(0,(d-3.5)*.85);if(v<desired){desired=v;hold='follow';holdBy=null;}break;}}
     a.hold=hold;a.holdBy=holdBy;a.atSignal=hold==='signal';
    }
    a.speed+=Math.max(-7*dt,Math.min((running?8:a.walking?2:2.2)*dt,desired-a.speed));
@@ -381,23 +482,22 @@ export class Mobility {
    const oldS=a.s,oldEdge=a.edge,oldPrev=a.prevDir;a.s+=a.speed*dt;
    if(a.s>=a.edge.length){const next=a.walking?this.nextEdge(a):a.plan.length?a.plan.shift():this.pickNext(a.edge);if(!a.walking)a.prevDir=edgeEndDirection(a.edge);if(!next){a.s=oldS;this.retire(a,player,!a.walking&&Math.hypot(a.x-player.x,a.z-player.z)>40);continue;}if(a.walking&&next.crossing&&!this.world.roads.at(a.x,a.z)&&!this.crossingClear(next,player)){a.s=oldS;a.speed=0;continue;}a.s-=a.edge.length;a.edge=next;}
    const p=this.position(a);
-   // Undo a step that cannot be taken; a car keeps its planned route.
-   const undo=by=>{if(a.edge!==oldEdge){a.plan?.unshift(a.edge);a.prevDir=oldPrev;}a.s=oldS;a.edge=oldEdge;a.speed=0;a.waiting=(a.waiting||0)+dt;a.stuck=(a.stuck||0)+dt;if(!a.walking){a.hold=by?'contact':'road';a.holdBy=by;}};
+   // A step that cannot be taken is undone (undo, above the loop); a car keeps its planned route.
    if(!a.walking){let by=sweptContact(a,p,player)?player:null;
-    if(!by)for(const b of this.cars){if(b===a||!b.edge)continue;const x=b.x-p.x,z=b.z-p.z;if(x>5.2||x<-5.2||z>5.2||z<-5.2||!trafficFootprintsOverlap(p,b)||!yieldsTo(a,b))continue;if(this.passes(a,b)){a.passing=b.id;continue;}by=b;break;}
+    if(!by)for(let bi=0;bi<nCars;bi++){const b=this.cars[bi];if(b===a||!b.edge)continue;const x=b.x-p.x,z=b.z-p.z,r=(a.halfLength??CAR_HALF_LENGTH)+(b.halfLength??CAR_HALF_LENGTH)+.5;if(x>r||x<-r||z>r||z<-r||!trafficFootprintsOverlap(p,b)||!yieldsTo(a,b))continue;if(this.passes(a,b)){a.passing=b.id;continue;}by=b;break;}
     by||=this.bodyBlocking(a,p);
-    if(by){undo(by);if(a.stuck>4)this.retire(a,player);continue;}}
+    if(by){undo(a,oldS,oldEdge,oldPrev,by);if(a.stuck>4)this.retire(a,player);continue;}}
    // The last half-step out of a crossing is still part of that crossing. Testing
    // it as an ordinary footway strands pedestrians on the road and blocks cars.
    const segmentEdge=a.walking&&oldEdge.crossing?oldEdge:a.edge;
-   if(this.world.buildings.at(p.x,p.z)||(a.walking?(!this.walkable(p.x,p.z,a.edge)||!this.safeWalkSegment(a,p,segmentEdge)):!safeVehicleSegment(a,p,this.world))){undo(null);
+   if(this.world.buildings.at(p.x,p.z)||(a.walking?(!this.walkable(p.x,p.z,a.edge)||!this.safeWalkSegment(a,p,segmentEdge)):!safeVehicleSegment(a,p,this.world))){undo(a,oldS,oldEdge,oldPrev,null);
     // A lane that runs off the mapped carriageway never clears; recycle it once it is not right beside the player.
     if(a.stuck>3)this.retire(a,player,!a.walking&&a.stuck>8&&Math.hypot(a.x-player.x,a.z-player.z)>40);continue;}
    // Tiny successful steps between repeated failures are not real progress.
    // Previously they reset the recovery timer, leaving actors stuck indefinitely.
-   if(!a.progressPoint||Math.hypot(p.x-a.progressPoint.x,p.z-a.progressPoint.z)>.5){a.stuck=0;a.progressPoint={x:p.x,z:p.z};}
+   if(!a.progressPoint||Math.hypot(p.x-a.progressPoint.x,p.z-a.progressPoint.z)>.5){a.stuck=0;if(a.progressPoint){a.progressPoint.x=p.x;a.progressPoint.z=p.z;}else a.progressPoint={x:p.x,z:p.z};}
    // Time spent without real progress (2 m), red lights included: a queue that never clears is stalled.
-   if(!a.walking){if(!a.waitFrom||Math.hypot(p.x-a.waitFrom.x,p.z-a.waitFrom.z)>2){a.waitFrom={x:p.x,z:p.z};a.waiting=0;}else a.waiting=(a.waiting||0)+dt;}
+   if(!a.walking){if(!a.waitFrom||Math.hypot(p.x-a.waitFrom.x,p.z-a.waitFrom.z)>2){if(a.waitFrom){a.waitFrom.x=p.x;a.waitFrom.z=p.z;}else a.waitFrom={x:p.x,z:p.z};a.waiting=0;}else a.waiting=(a.waiting||0)+dt;}
    Object.assign(a,p);
   }
   // The impact pass owns contact resolution. Do not push the player sideways

@@ -13,15 +13,23 @@ test('physical player cap is 140 km/h with gradual upper-end acceleration; traff
  const graph={nodes:[[0,0],[0,-1000]],edges:[{from:0,to:1,points:[[0,0],[0,-1000]],length:1000,lane:0,signal:-1}]},sim=new Mobility({roads:graph,walks:{nodes:[],edges:[]},signals:[]},world,{cars:1,people:0});
  Object.assign(sim.cars[0],{edge:sim.roads.edges[0],s:30,x:0,z:-30,cruise:90,speed:14});for(let i=0;i<120;i++){sim.step(1/60,{x:40,z:0,speed:0});assert.ok(sim.cars[0].speed<=TRAFFIC_MAX_SPEED);}
 });
-function pedestrianWorld(){
+function pedestrianWorld(options={}){
  const graph={nodes:[[3,-100],[3,100]],edges:[{from:0,to:1,points:[[3,-100],[3,100]],length:200,lane:0,signal:-1,crossing:false},{from:1,to:0,points:[[3,100],[3,-100]],length:200,lane:0,signal:-1,crossing:false}]};
- return new Mobility({roads:{nodes:[],edges:[]},walks:graph,signals:[]},{roads:{at:x=>Math.abs(x)<2},pavement:{at:x=>x>=2&&x<=5},buildings:clear},{cars:0,people:1});
+ return new Mobility({roads:{nodes:[],edges:[]},walks:graph,signals:[]},{roads:{at:x=>Math.abs(x)<2},pavement:{at:x=>x>=2&&x<=5},buildings:clear},{cars:0,people:1,...options});
 }
 test('pedestrians run away from a car on a collision course, then calm down',()=>{
  const sim=pedestrianWorld(),p=sim.people[0];Object.assign(p,{edge:sim.walks.edges[0],s:100,x:3,z:0,heading:Math.PI,speed:1});
  const car={x:3,z:10,heading:0,speed:10};assert.ok(approachingPedestrian(p,car));assert.equal(approachingPedestrian(p,{...car,speed:0}),false);assert.equal(approachingPedestrian(p,{...car,heading:Math.PI}),false);
  for(let i=0;i<60;i++)sim.step(1/60,car);assert.ok(p.running);assert.ok(p.speed>3);assert.ok(p.z<0,'escape runs away, not toward the car');assert.equal(sim.world.roads.at(p.x,p.z),false);
  for(let i=0;i<240;i++)sim.step(1/60,{...car,speed:0});assert.equal(p.running,false);assert.ok(p.speed<2);
+});
+test('Copenhagen crowd: a car that keeps to the road does not set the pavement running; one about to mount the kerb, or off the road, does',()=>{
+ const walker=()=>{const sim=pedestrianWorld({refined:true}),p=sim.people[0];Object.assign(p,{edge:sim.walks.edges[0],s:100,x:3,z:0,heading:Math.PI,speed:1});return [sim,p];};
+ let [sim,p]=walker();for(let i=0;i<60;i++)sim.step(1/60,{x:0,z:10,heading:0,speed:10});assert.equal(p.running,false,'driving past in the lane, 3 m from the kerb walker');
+ [sim,p]=walker();for(let i=0;i<60;i++)sim.step(1/60,{x:1.5,z:10,heading:0,speed:10});assert.ok(p.running,'swerving to 1.5 m of the walker');
+ [sim,p]=walker();for(let i=0;i<60;i++)sim.step(1/60,{x:3,z:10,heading:0,speed:4.5,travelMode:'walk'});assert.equal(p.running,false,'the player sprinting at them on foot');
+ [sim,p]=walker();for(let i=0;i<60;i++)sim.step(1/60,{x:3,z:10,heading:0,speed:6,travelMode:'bike'});assert.equal(p.running,false,'a bike');
+ [sim,p]=walker();for(let i=0;i<60;i++)sim.step(1/60,{x:3,z:10,heading:0,speed:10,travelMode:'car'});assert.ok(p.running,'the car up on the pavement');
 });
 test('walking routes cannot enter a carriageway except a designated crossing',()=>{
  const sim=pedestrianWorld();assert.equal(sim.walkable(0,0,{crossing:false}),false);assert.equal(sim.walkable(0,0,{crossing:true}),true);assert.equal(sim.walkable(3,0,{crossing:false}),true);assert.equal(sim.walkable(6,0,{crossing:false}),false);

@@ -39,3 +39,5 @@
  #app .speedometer .battery-row{font-size:8px}
 }
 @media(min-width:1600px){#app{--hud-bottom:55px}}
+/* Cities without the battery (Copenhagen, both eras): the gauge is hidden. */
+body.no-battery .speedometer :is(.battery-row,.battery-track){display:none}

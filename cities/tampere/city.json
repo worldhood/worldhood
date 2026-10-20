@@ -8,7 +8,9 @@
   61.4978
  ],
  "radiusMetres": 1500,
- "maintainers": [],
+ "maintainers": [
+  "vedvekkuli"
+ ],
  "status": "draft",
  "note": "Origin and radius define the playable circle. Starts are chosen automatically from well-known named places; add your own in \"starts\".",
  "starts": [],

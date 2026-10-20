@@ -13,18 +13,18 @@ async function decodePixels(image){
  const {data}=ctx.getImageData(0,0,canvas.width,canvas.height);return {data,width:canvas.width,height:canvas.height};
 }
 
-async function handle({id,array,parts,pixels}){
+async function handle({id,array,parts,pixels,styled=false}){
  try{
   const images={};for(const [file,image] of Object.entries(pixels||{}))images[file]=await decodePixels(image);
   const buildings=[],transfer=new Set(),heroes=new Set();
   for(const part of parts){
    const texture=part.texture?new THREE.Texture():null;
-   const detail=createModelledBuilding(array,part,images[part.texture],texture,!heroes.has(part.ratu));heroes.add(part.ratu);
+   const detail=createModelledBuilding(array,part,images[part.texture],texture,!heroes.has(part.ratu),{styled});heroes.add(part.ratu);
    const meshes=detail.meshes.map(m=>{
     const attributes={};for(const [name,a] of Object.entries(m.geometry.attributes)){attributes[name]={array:a.array,itemSize:a.itemSize,normalized:a.normalized};transfer.add(a.array.buffer);}
     const index=m.geometry.index?.array;if(index)transfer.add(index.buffer);
     const mat=m.material;
-    return {attributes,index,shell:!!m.userData.shell,role:m.userData.role,provisional:!!m.userData.provisional,material:{color:mat.color.getHex(),roughness:mat.roughness,metalness:mat.metalness,side:mat.side,vertexColors:mat.vertexColors,textured:!!mat.map}};
+    return {attributes,index,shell:!!m.userData.shell,role:m.userData.role,provisional:!!m.userData.provisional,material:{color:mat.color.getHex(),roughness:mat.roughness,metalness:mat.metalness,side:mat.side,vertexColors:mat.vertexColors,textured:!!mat.map,signs:!!mat.userData?.signs,combined:!!mat.userData?.facadeCombined}};
    });
    buildings.push({part,meshes,windows:detail.windows});texture?.dispose();detail.meshes.forEach(m=>{m.geometry.dispose();m.material.dispose();});
   }

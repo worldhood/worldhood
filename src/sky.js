@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import {copenhagenStyle} from './city-style.js';
 
 // Helsinki late-summer sky (reference: Kauppatori / Kanavakatu, August):
 // deep blue zenith, pale milky haze on the horizon, scattered cumulus and faint cirrus,
@@ -64,7 +65,7 @@ void main(){
 
 const fragmentShader = /* glsl */`
 uniform vec3 uZenith,uMid,uHorizon,uSunGlow,uCloudLit,uCloudShade,uSunDir;
-uniform float uTime,uCoverage,uSunDisc;
+uniform float uTime,uCoverage,uSunDisc,uCirrus;
 uniform vec2 uDrift;
 varying vec3 vDir;
 float hash(vec2 p){p=fract(p*vec2(123.34,456.21));p+=dot(p,p+45.32);return fract(p.x*p.y);}
@@ -98,7 +99,7 @@ void main(){
   cloud+=uSunGlow*pow(mu,10.0)*(1.0-d)*.5; // silver lining near the sun
   // Faint streaky cirrus higher up.
   vec2 ci=vec2(p.x*.18+p.y*.05,p.y*.7-p.x*.2)+uDrift*.6+vec2(uTime*.006,0.0);
-  float c=smoothstep(.5,.85,fbm3(ci*vec2(1.0,3.5)))*.38;
+  float c=smoothstep(.5,.85,fbm3(ci*vec2(1.0,3.5)))*uCirrus; // Copenhagen .2: at .38 a streak ran straight up from the end of the street like a searchlight (it lines up with the view and converges on the horizon)
   float fade=smoothstep(.015,.28,dir.y);
   // Distant clouds sink into the horizon haze.
   vec3 haze=mix(uHorizon,col,.35);
@@ -116,7 +117,7 @@ export function createSky({scene, camera} = {}) {
  const uniforms = {
   uZenith: {value: SKY_COLORS.zenith.clone()}, uMid: {value: SKY_COLORS.mid.clone()}, uHorizon: {value: SKY_COLORS.horizon.clone()},
   uSunGlow: {value: SKY_COLORS.sunGlow.clone()}, uCloudLit: {value: SKY_COLORS.cloudLit.clone()}, uCloudShade: {value: SKY_COLORS.cloudShade.clone()},
-  uSunDir: {value: SUN_DIRECTION.clone()}, uTime: {value: 0}, uDrift: {value: new THREE.Vector2()},
+  uSunDir: {value: SUN_DIRECTION.clone()}, uTime: {value: 0}, uCirrus: {value: .38}, uDrift: {value: new THREE.Vector2()},
   uCoverage: {value: .5}, uSunDisc: {value: 1},
  };
  const material = new THREE.ShaderMaterial({
@@ -138,7 +139,8 @@ export function createSky({scene, camera} = {}) {
   mesh.updateMatrix(); mesh.matrixWorld.copy(mesh.matrix);
   // Slight parallax so the cloud layer is not glued to the camera when driving.
   uniforms.uDrift.value.set(e[12] * 1.2e-4, e[14] * 1.2e-4);
-  uniforms.uTime.value = ((typeof performance !== 'undefined' ? performance.now() : 0) - start) / 1000 % 100000;
+  uniforms.uCirrus.value = copenhagenStyle() ? .2 : .38;
+  uniforms.uTime.value = ((globalThis.__skyClock ? globalThis.__skyClock() : typeof performance !== 'undefined' ? performance.now() : 0) - start) / 1000 % 100000; // __skyClock: a frame-by-frame capture's clock (main.js ?fixed)
  };
  if (scene) {
   scene.add(mesh);

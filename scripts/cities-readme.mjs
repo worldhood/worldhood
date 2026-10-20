@@ -9,12 +9,14 @@ import {execFileSync} from 'node:child_process';
 
 const START='<!-- CITIES:START -->',END='<!-- CITIES:END -->';
 const registry=fs.existsSync('public/cities/index.json')?JSON.parse(fs.readFileSync('public/cities/index.json')).cities:[];
-const rows=[{id:'helsinki',name:'Helsinki',country:'Finland',status:'playable',maintainers:[],source:'City of Helsinki 3D city model + open data, HSL',radius:2000},
+const rows=[{id:'helsinki',name:'Helsinki',country:'Finland',status:'playable',maintainers:['vedvekkuli'],source:'City of Helsinki 3D city model + open data, HSL',radius:2000},
  ...registry.map(c=>({...c,country:(c.country||'').split(' / ').at(-1),source:'OpenStreetMap'}))];
+// "maintainers" in city.json are GitHub user names: shown as linked profiles.
+const builtBy=list=>list?.length?list.map(u=>/^[A-Za-z0-9-]+$/.test(u)?`[@${u}](https://github.com/${u})`:u).join(', '):'wanted';
 const play=c=>`https://worldhood.org/?city=${c.id}`;
 const thumb=c=>fs.existsSync(`docs/media/cities/${c.id}.jpg`)?`<a href="${play(c)}"><img src="docs/media/cities/${c.id}.jpg" width="160" alt="${c.name}"></a>`:'';
-const table=['| | City | Play | Status | Data | Maintainers |','| --- | --- | --- | --- | --- | --- |',
- ...rows.map(c=>`| ${thumb(c)} | ${c.name}${c.country?`, ${c.country}`:''} | [\`?city=${c.id}\`](${play(c)}) | ${c.status||'draft'}${Number.isInteger(c.helpWanted)?` · [help wanted → #${c.helpWanted}](https://github.com/worldhood/worldhood/issues/${c.helpWanted})`:''} | ${c.source} | ${c.maintainers?.length?c.maintainers.join(', '):'wanted'} |`)].join('\n');
+const table=['| | City | Play | Status | Data | Built by |','| --- | --- | --- | --- | --- | --- |',
+ ...rows.map(c=>`| ${thumb(c)} | ${c.name}${c.country?`, ${c.country}`:''} | [\`?city=${c.id}\`](${play(c)}) | ${c.status||'draft'}${Number.isInteger(c.helpWanted)?` · [help wanted → #${c.helpWanted}](https://github.com/worldhood/worldhood/issues/${c.helpWanted})`:''} | ${c.source} | ${builtBy(c.maintainers)} |`)].join('\n');
 const readme=fs.readFileSync('README.md','utf8');
 if(!readme.includes(START))throw Error('README.md has no CITIES markers');
 const next=readme.replace(new RegExp(`${START}[\\s\\S]*?${END}`),`${START}\n${table}\n${END}`);

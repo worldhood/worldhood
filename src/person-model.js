@@ -1,8 +1,10 @@
 import * as THREE from 'three';
 import {mergeGeometries} from 'three/addons/utils/BufferGeometryUtils.js';
 import {RoundedBoxGeometry} from 'three/addons/geometries/RoundedBoxGeometry.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
 import {applyImpactPose} from './impact-pose.js';
 import {groundAt} from './terrain.js';
+import {copenhagenStyle} from './city-style.js';
 
 // Shared low-poly person: one rounded torso, head, hair cap, coat/skirt and bag
 // batch plus a single "segment" batch (thighs, shins, feet, arms, hands,
@@ -68,7 +70,24 @@ export function personLook(seed=0,overrides={}){
  look.stoop=look.age==='senior'?.08+tone*.08:0;
  // Keep facial variation after the established appearance draws.
  look.eyeSpacing=.94+r()*.12;look.mouthWidth=.91+r()*.18;look.browTilt=(r()-.5)*.0025;
+ if(PERIOD.year===1760)dress1760(look,r);
  return Object.assign(look,overrides);
+}
+// Copenhagen 1760 (set by main.js for the era city): long coats and breeches for men, long skirts and
+// aprons for women, wool and linen colours, no phones, backpacks or strollers.
+export const PERIOD={year:null};
+const PERIOD_1760={coats:['#1f2c4a','#5a2a22','#3b2f25','#4a3b2a','#2f3a2a','#7a2a20','#2a2a2e','#6b5a3a','#8a6b3a','#3a4a5a'],
+ skirts:['#5a2a22','#2f3a52','#6b5a3a','#3b2f25','#7a6a4a','#8a3a2a','#2a3a2a'],linen:['#e9e3d4','#ddd3bd','#cfc4ab'],stockings:['#e6e0d0','#3a3530','#d8d0bf'],hats:['#1d1b19','#2a2622','#3b2f25','#e9e3d4']};
+function dress1760(look,r){
+ const fem=look.figure>0;
+ look.shirt=fem?pick(r,PERIOD_1760.linen):pick(r,PERIOD_1760.coats);
+ look.trousers=fem?pick(r,PERIOD_1760.skirts):pick(r,PERIOD_1760.coats);
+ look.skirt=fem;look.coat=fem?.95+r()*.05:.75+r()*.2;look.outer='coat';
+ look.shoes=r()<.7?'#1b1714':'#3a2a20';look.tights=pick(r,PERIOD_1760.stockings);
+ look.hat=pick(r,PERIOD_1760.hats);look.hairStyle=fem?(r()<.6?'bun':'beanie'):(r()<.55?'cap':'short');
+ if(!fem&&look.hairStyle==='short'&&r()<.5)look.hair=pick(r,PALETTE.greys); // powdered wigs
+ look.scarf=fem&&r()<.4?pick(r,PERIOD_1760.linen):null;look.phoneWalk=false;look.bagType=r()<.12?'shoulder':null;look.bagColor='#6b4a32';
+ look.accessory=look.accessory==='dog'?'dog':null;
 }
 const smooth=(a,b,v)=>{const t=Math.min(1,Math.max(0,(v-a)/(b-a)));return t*t*(3-2*t);};
 
@@ -194,7 +213,7 @@ export function posePerson(actor,look,gait,out,time=0){
    // Pedal under the ball of the foot; knee points forward and up.
    const fp=-.25+.2*Math.sin(ang),ball=.06656*H,drop=.028*H;
    const ankleY=b.pedalX?b.crankY+b.crankR*Math.cos(ang)+(b.pedalTop||0)+.036*k-Math.sin(fp)*ball+Math.cos(fp)*drop:b.crankY+b.crankR*Math.cos(ang)+ankleH*.9;
-   const ankleZ=b.pedalX?b.crankZ+b.crankR*Math.sin(ang)+Math.cos(fp)*ball+Math.sin(fp)*drop:b.crankZ+b.crankR*Math.sin(ang)+.05;
+   const fw=copenhagenStyle()?-1:1,ankleZ=b.pedalX?b.crankZ+fw*b.crankR*Math.sin(ang)+Math.cos(fp)*ball+Math.sin(fp)*drop:b.crankZ+fw*b.crankR*Math.sin(ang)+.05; // Copenhagen: pedalling forward, matching its ride models' cranks (player-ride-models.js)
    ik(out,hj,JOINT.kneeL+side*3,JOINT.ankleL+side*3,sgn*(b.pedalX||P.hipX*H*hw*1.1),ankleY,ankleZ,Lt,Ls,0,.5,-1);
   }
  }else if(scooterFeet){
@@ -226,7 +245,7 @@ export function posePerson(actor,look,gait,out,time=0){
  const weights=poseWeights(actor,gait),phoneLook=Math.max(weights.phone,look.phoneWalk&&!actor.pose?1:0);
  // Browsing only reaches out when (nearly) standing; chat gestures fade in the same way.
  const browseW=weights.browse*(1-smooth(.35,.6,w)),chatW=weights.chat*(1-smooth(.1,.4,w));
- const stoop=cycle?0:(look.stoop||0)+(actor.lean||0),lean=cycle?.62:scooter?.25:.035*w+.2*r+.03*phoneLook+(1-w)*.01*Math.sin(clock*1.1)+stoop,twist=cycle?0:-.11*w*(1-.4*r)*Math.sin(phase);
+ const stoop=cycle?0:(look.stoop||0)+(actor.lean||0),lean=cycle?(actor.bike.lean??.62):scooter?.25:.035*w+.2*r+.03*phoneLook+(1-w)*.01*Math.sin(clock*1.1)+stoop,twist=cycle?0:-.11*w*(1-.4*r)*Math.sin(phase);
  const yy=Math.cos(lean),yz=-Math.sin(lean);let xx=Math.cos(twist),xy=0,xz=Math.sin(twist);
  const d=xy*yy+xz*yz;xy-=d*yy;xz-=d*yz;const xl=Math.hypot(xx,xy,xz);xx/=xl;xy/=xl;xz/=xl;
  const zx=xy*yz-xz*yy,zy=xz*0-xx*yz,zz=xx*yy-xy*0;
@@ -234,7 +253,7 @@ export function posePerson(actor,look,gait,out,time=0){
  const bx=out[JOINT.pelvis],by=py-.026*H,bz=out[JOINT.pelvis+2];set(out,JOINT.base,bx,by,bz);
  const up=(j,ox,oy,oz)=>set(out,j,bx+xx*ox+zx*oz,by+xy*ox+yy*oy+zy*oz,bz+xz*ox+yz*oy+zz*oz);
  up(JOINT.neck,0,P.torso*H*.97,.008*H);
- const hp=lean*.45-stoop*.75-(cycle?.13:0)+.33*phoneLook+.03*Math.sin(clock*.9)+(actor.headPitch||0),hy=Math.cos(hp),hz=-Math.sin(hp);
+ const hp=lean*.45-stoop*.75-(cycle&&!actor.bike.seated?.13:0)+.33*phoneLook+.03*Math.sin(clock*.9)+(actor.headPitch||0),hy=Math.cos(hp),hz=-Math.sin(hp);
  set(out,JOINT.headY,0,hy,hz);
  set(out,JOINT.head,out[JOINT.neck],out[JOINT.neck+1]+hy*.09*H,out[JOINT.neck+2]+hz*.09*H-.01*H);
  // Arms: swing opposite to the same-side leg; more swing and a bent elbow when running.
@@ -470,6 +489,85 @@ function faceMaterial(){
  material.customProgramCacheKey=()=>'person-face-v1';return material;
 }
 
+// Every crowd in one set of draw calls. Each person batch still writes its own instances (begin/draw/end as before);
+// flushPeople(), once a frame before rendering (main.js), copies the instances of every visible batch into one shared
+// batch per body part and keeps the batch's own meshes out of the render: nine draw calls for all pedestrians, riders,
+// guests and vendors instead of nine for each system. A batch under a moved parent (people aboard a vehicle) or with
+// extra uniform meshes (police) keeps drawing itself.
+const SHARED={batches:new Set(),meshes:null,group:null,faceState:null,faceShape:null},sharedAt=new Int32Array(9);
+// Dogs on leads: the dog model where it loads (loadDogModel + setDogModel: public/models/animals/dog.glb, made by
+// scripts/models/dog.py, a body and four legs), five instanced meshes for every crowd. The legs swing about their
+// shoulders and hips at the trot (diagonal pairs) and each dog's grey coat takes its colour. Each batch lists its dogs
+// while it draws; flushPeople writes those of the batches it shows. Without the model, the capsule dog (drawDog).
+const DOG_PARTS=['body','leg_fl','leg_fr','leg_bl','leg_br'],DOG_PHASE={leg_fl:0,leg_br:0,leg_fr:Math.PI,leg_bl:Math.PI};
+const DOGS={pivots:null,collar:null,base:1,meshes:null,group:null,cap:48};
+export async function loadDogModel(url){
+ try{const gltf=await new GLTFLoader().loadAsync(url),ex=gltf.parser.json.scenes?.[0]?.extras||{},parts={};
+  gltf.scene.traverse(o=>{if(o.isMesh&&DOG_PARTS.includes(o.name)){const g=o.geometry;for(const k of Object.keys(g.attributes))if(!['position','normal','color'].includes(k))g.deleteAttribute(k);parts[o.name]=g;}});
+  if(!DOG_PARTS.every(k=>parts[k])||!ex.pivots)throw Error('a body, four legs and their pivots expected');
+  return {parts,pivots:ex.pivots,collar:ex.collar||[0,.32,-.24],base:ex.base||.3};
+ }catch(e){console.warn('Dog model not loaded, the capsule dogs stay:',e?.message||e);return null;}
+}
+export function setDogModel(model){
+ if(!model||DOGS.meshes)return;Object.assign(DOGS,{pivots:model.pivots,collar:model.collar,base:model.base});
+ const material=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.85});DOGS.group=new THREE.Group();DOGS.group.name='Dogs on leads';
+ DOGS.meshes=DOG_PARTS.map(k=>{const m=new THREE.InstancedMesh(model.parts[k],material,DOGS.cap);m.name=`Dogs (${k})`;m.count=0;m.frustumCulled=false;m.castShadow=true;
+  m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(DOGS.cap*3),3).setUsage(THREE.DynamicDrawUsage);DOGS.group.add(m);return m;});
+}
+const dogRoot=new THREE.Matrix4(),dogLeg=new THREE.Matrix4(),dogTint=new THREE.Color();
+// Walkers drawn rigged or baked (skinned-people.js) bring their dog here: on their left, a little ahead, at the trot.
+const LOOSE={list:[],n:0},dogColour=new THREE.Color();
+export function drawLooseDog(walker,look){ // walker: {x,z,y,heading,phase,walking}
+ if(!DOGS.meshes||look?.accessory!=='dog')return;const D=look.dogSize||1,q=(look.height||1.72)/1.74,lx=-.6*q,lz=-.62*q,c=Math.cos(walker.heading),s=Math.sin(walker.heading);
+ const w=walker.walking?1:0,ph=walker.phase*Math.PI*4,d=LOOSE.list[LOOSE.n]??=({});LOOSE.n++;dogColour.set(look.dogColor||'#5a4030');
+ Object.assign(d,{x:walker.x+lx*c+lz*s,y:walker.y+.01*D*Math.abs(Math.sin(ph))*w,z:walker.z-lx*s+lz*c,c,s,D,ph,w,rgb:[dogColour.r,dogColour.g,dogColour.b]});
+}
+function writeDog(d,i){
+ const e=dogRoot.elements,D=d.D;e.fill(0);e[0]=d.c*D;e[2]=-d.s*D;e[5]=D;e[8]=d.s*D;e[10]=d.c*D;e[12]=d.x;e[13]=d.y;e[14]=d.z;e[15]=1;
+ DOGS.meshes[0].setMatrixAt(i,dogRoot);
+ for(let k=1;k<5;k++){const name=DOG_PARTS[k],p=DOGS.pivots[name],a=.3*d.w*Math.sin(d.ph+DOG_PHASE[name]),ca=Math.cos(a),sa=Math.sin(a);
+  dogLeg.set(1,0,0,0, 0,ca,-sa,p[1]-(ca*p[1]-sa*p[2]), 0,sa,ca,p[2]-(sa*p[1]+ca*p[2]), 0,0,0,1).premultiply(dogRoot); // the leg turned about its pivot
+  DOGS.meshes[k].setMatrixAt(i,dogLeg);}
+ dogTint.setRGB(Math.min(4,d.rgb[0]/DOGS.base),Math.min(4,d.rgb[1]/DOGS.base),Math.min(4,d.rgb[2]/DOGS.base));for(const m of DOGS.meshes)m.setColorAt(i,dogTint);
+}
+function sharedMeshes(){
+ if(SHARED.meshes)return SHARED.meshes;
+ const cloth=new THREE.MeshStandardMaterial({roughness:.9}),skin=new THREE.MeshStandardMaterial({roughness:.7,vertexColors:true}),group=new THREE.Group();group.name='People (all crowds)';
+ const make=(geometry,material,name)=>{const m=new THREE.InstancedMesh(geometry,material,1);m.name=name;m.castShadow=false;m.receiveShadow=false;m.frustumCulled=false;m.count=0;m.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  m.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(3),3).setUsage(THREE.DynamicDrawUsage);group.add(m);return m;};
+ SHARED.meshes=[make(torsoGeometry(),cloth,'Person torsos and jackets'),make(headGeometry(),faceMaterial(),'Person heads'),make(hairGeometry(),cloth,'Person hair and hats'),make(limbGeometry(),cloth,'Person limbs, hips, neck and feet'),
+  make(coatGeometry(),cloth,'Long coats and skirts'),make(new RoundedBoxGeometry(1,1,1,1,.12).translate(0,-.5,0),cloth,'Bags, backpacks, caps, phones and strollers'),
+  make(torsoLowGeometry(),cloth,'Distant person torsos and coats'),make(headLowGeometry(),skin,'Distant person heads'),make(limbLowGeometry(),cloth,'Distant person limbs')];
+ SHARED.group=group;growShared(1,1,true);return SHARED.meshes;
+}
+function growShared(m,n,force=false){
+ const mesh=SHARED.meshes[m];if(!force&&mesh.instanceMatrix.count>=n)return;const cap=Math.max(n,force?1:mesh.instanceMatrix.count*2);
+ if(!force){mesh.instanceMatrix=new THREE.InstancedBufferAttribute(new Float32Array(cap*16),16).setUsage(THREE.DynamicDrawUsage);mesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(cap*3),3).setUsage(THREE.DynamicDrawUsage);}
+ if(m===1){SHARED.faceState=new THREE.InstancedBufferAttribute(new Float32Array(cap*4),4).setUsage(THREE.DynamicDrawUsage);SHARED.faceShape=new THREE.InstancedBufferAttribute(new Float32Array(cap*4),4).setUsage(THREE.DynamicDrawUsage);
+  mesh.geometry.setAttribute('faceState',SHARED.faceState);mesh.geometry.setAttribute('faceShape',SHARED.faceShape);}
+}
+const unmoved=o=>{const e=o.matrixWorld.elements;return e[0]===1&&e[5]===1&&e[10]===1&&e[12]===0&&e[13]===0&&e[14]===0&&e[1]===0&&e[2]===0&&e[4]===0&&e[6]===0&&e[8]===0&&e[9]===0;};
+const shown=o=>{for(let q=o;q;q=q.parent){if(!q.visible)return false;if(q.isScene)return true;}return false;};
+export function flushPeople(scene){
+ if(!SHARED.batches.size)return;
+ const meshes=sharedMeshes();if(SHARED.group.parent!==scene)scene.add(SHARED.group);
+ sharedAt.fill(0);
+ for(const b of SHARED.batches){const take=shown(b.group)&&unmoved(b.group);b.take=take;for(let m=0;m<9;m++){b.list[m].visible=!take;if(take)sharedAt[m]+=b.list[m].count;}}
+ for(let m=0;m<9;m++)growShared(m,sharedAt[m]);
+ sharedAt.fill(0);
+ for(const b of SHARED.batches){if(!b.take)continue;
+  for(let m=0;m<9;m++){const src=b.list[m],n=Math.min(src.count,src.userData.capacity??src.count);if(!n)continue;const dst=meshes[m],o=sharedAt[m];
+   dst.instanceMatrix.array.set(src.instanceMatrix.array.subarray(0,n*16),o*16);dst.instanceColor.array.set(src.instanceColor.array.subarray(0,n*3),o*3);
+   if(m===1){SHARED.faceState.array.set(b.faceState.array.subarray(0,n*4),o*4);SHARED.faceShape.array.set(b.faceShape.array.subarray(0,n*4),o*4);}
+   sharedAt[m]+=n;}}
+ for(let m=0;m<9;m++){const dst=meshes[m],n=sharedAt[m];dst.count=n;dst.instanceMatrix.clearUpdateRanges();dst.instanceColor.clearUpdateRanges();
+  if(n){dst.instanceMatrix.addUpdateRange(0,n*16);dst.instanceColor.addUpdateRange(0,n*3);}dst.instanceMatrix.needsUpdate=true;dst.instanceColor.needsUpdate=true;}
+ for(const a of [SHARED.faceState,SHARED.faceShape]){a.clearUpdateRanges();if(sharedAt[1])a.addUpdateRange(0,sharedAt[1]*4);a.needsUpdate=true;}
+ if(DOGS.meshes){if(DOGS.group.parent!==scene)scene.add(DOGS.group);let n=0;
+  for(const b of SHARED.batches)if(b.take&&b.dogs)for(let i=0;i<b.dogs.n&&n<DOGS.cap;i++)writeDog(b.dogs.list[i],n++);
+  for(let i=0;i<LOOSE.n&&n<DOGS.cap;i++)writeDog(LOOSE.list[i],n++);LOOSE.n=0;
+  for(const m of DOGS.meshes){m.count=n;m.instanceMatrix.needsUpdate=true;m.instanceColor.needsUpdate=true;}}
+}
 export function createPersonBatch(capacity,options={}){
  const group=new THREE.Group();group.name=options.name||'Pedestrians';
  const luggage=!!options.luggage,culled=!!options.frustumCulled,lod={...PERSON_LOD,...(options.lod||{})};
@@ -503,6 +601,7 @@ export function createPersonBatch(capacity,options={}){
  const UNIFORM={jacket:list.indexOf(meshes.jacket),vest:list.indexOf(meshes.vest)},BAG=5,WHITE=[1,1,1];
  const SEG=3,LOW_TORSO=6,LOW_HEAD=7,LOW_SEG=8;
  const J=createJoints();let px=0,pz=0,c=1,s=0,ground=0,minX=0,maxX=0,minZ=0,maxZ=0,minY=0,maxY=0,focus=null,far=false;
+ const dogs={list:[],n:0},modelDogs=!options.police&&options.shared!==false; // dogs drawn as the model (flushPeople), where it is loaded
  function write(mesh,idx,Xx,Xy,Xz,Yx,Yy,Yz,Zx,Zy,Zz,tx,ty,tz,rgb){
   // Body-space basis/translation to world, column-major.
   if(idx>=mesh.userData.capacity)return;
@@ -525,7 +624,7 @@ export function createPersonBatch(capacity,options={}){
  const jsegFree=(ax,ay,az,bx,by,bz,rx,rz,rgb)=>seg(ax,ay,az,bx,by,bz,rx,rz,1,0,0,rx*.6,rx*.6,rgb);
  const jseg=(a,b,rx,rz,ea,eb,rgb,hx=1,hy=0,hz=0)=>seg(J[a],J[a+1],J[a+2],J[b],J[b+1],J[b+2],rx,rz,hx,hy,hz,ea,eb,rgb);
  // `viewer` ({x,z}) selects each person's level by distance; without one everybody is drawn in full.
- function begin(viewer=null){cursor.fill(0);minX=minZ=minY=Infinity;maxX=maxZ=maxY=-Infinity;focus=viewer&&Number.isFinite(viewer.x)&&Number.isFinite(viewer.z)?viewer:null;}
+ function begin(viewer=null){cursor.fill(0);dogs.n=0;minX=minZ=minY=Infinity;maxX=maxZ=maxY=-Infinity;focus=viewer&&Number.isFinite(viewer.x)&&Number.isFinite(viewer.z)?viewer:null;}
  function draw(actor,look=actor,gait=actor,time=0){
   const distance=focus?Math.hypot(actor.x-focus.x,actor.z-focus.z):0;
   if(distance>lod.hide)return false;
@@ -623,7 +722,13 @@ export function createPersonBatch(capacity,options={}){
    seg(0,.62,z-.78,0,.86,z-.98,.21*q,.16,1,0,0,0,0,col.bag);}
  }
  // A dog on a lead at the walker's left, trotting at twice the walker's cadence.
+ function drawModelDog(look,gait,H,col){
+  const D=look.dogSize||1,q=H/1.74,x=-.6*q,z=-.62*q,w=gait.gaitWalk||0,ph=(gait.gaitPhase||0)*2,lift=.01*D*Math.abs(Math.sin(ph))*w;
+  const d=dogs.list[dogs.n]??=({});dogs.n++;Object.assign(d,{x:px+x*c+z*s,y:ground+lift,z:pz-x*s+z*c,c,s,D,ph,w,rgb:col.dog}); // body space to world, as write() does
+  const k=DOGS.collar,hand=JOINT.handL;seg(J[hand],J[hand+1],J[hand+2],x+k[0]*D,k[1]*D+lift,z+k[2]*D,.006,.006,1,0,0,0,0,col.black); // the lead
+ }
  function drawDog(look,gait,H,col){
+  if(DOGS.meshes&&modelDogs)return drawModelDog(look,gait,H,col);
   const D=look.dogSize||1,q=H/1.74,x=-.6*q,z=-.62*q,h=.36*D,L=.26*D,w=gait.gaitWalk||0,ph=(gait.gaitPhase||0)*2,c=col.dog;
   const lift=.012*D*Math.abs(Math.sin(ph))*w,y=h+lift,chest=[x,y,z-L],hip=[x,y+.01,z+L],head=[x,y+.17*D,z-L-.12*D];
   seg(...hip,...chest,.1*D,.13*D,1,0,0,.07*D,.09*D,c);
@@ -670,5 +775,7 @@ export function createPersonBatch(capacity,options={}){
    if(culled){mesh.boundingSphere??=new THREE.Sphere();if(minX>maxX)mesh.boundingSphere.makeEmpty();else{mesh.boundingSphere.center.set((minX+maxX)/2,(minY+maxY)/2+1,(minZ+maxZ)/2);mesh.boundingSphere.radius=Math.hypot(maxX-minX,maxZ-minZ,maxY-minY)/2+2.5;}}}
   for(const attribute of [faceState,faceShape]){attribute.clearUpdateRanges();if(meshes.head.count)attribute.addUpdateRange(0,meshes.head.count*4);attribute.needsUpdate=true;}
  }
- return {group,meshes,list,begin,draw,end,joints:J,drawCalls:list.length,segmentsPerPerson:segPer,lod};
+ const batch={group,meshes,list,begin,draw,end,joints:J,drawCalls:list.length,segmentsPerPerson:segPer,lod};
+ if(copenhagenStyle()&&!options.police&&options.shared!==false)SHARED.batches.add({group,list,faceState,faceShape,dogs}); // Copenhagen: drawn through the shared batches (flushPeople); other cities keep each batch's own meshes
+ return batch;
 }

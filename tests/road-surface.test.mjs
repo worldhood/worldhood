@@ -136,3 +136,9 @@ test('drive camera returns the cobble sway as a separate rumble field, leaving i
  const follow=stepDriveCamera(createDriveCameraState(),car,1/60,{drive:false,rumble:{bob:.04,roll:.006}});
  assert.deepEqual(follow.rumble,[0,0,0],'overview cameras do not rumble');
 });
+
+test('Copenhagen: a gentler rumble, capped at 4 cm',async()=>{
+ const {setCityStyle}=await import('../src/city-style.js');setCityStyle({id:'copenhagen'});
+ try{assert.ok(rumbleAmplitude(20/3.6)>=.015&&rumbleAmplitude(20/3.6)<=.021);assert.ok(rumbleAmplitude(50/3.6)>=.034&&rumbleAmplitude(50/3.6)<=.04);assert.equal(rumbleAmplitude(140/3.6),.04);}
+ finally{setCityStyle(null);}
+});

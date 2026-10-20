@@ -10,7 +10,14 @@ export function busSamples(p){const d=dims(p),c=Math.cos(p.heading),s=Math.sin(p
 // still road if there is mapped road on both sides of it. Buses used to stall on those for good.
 const SEAM=.4;
 function onRoad(world,x,z){if(world.roads.at(x,z))return true;return (world.roads.at(x+SEAM,z)&&world.roads.at(x-SEAM,z))||(world.roads.at(x,z+SEAM)&&world.roads.at(x,z-SEAM));}
-export function busFitsRoad(p,world){const free=(x,z)=>onRoad(world,x,z)&&!world.buildings.at(x,z)&&!world.trafficForbidden?.at(x,z);if(!free(p.x,p.z))return false;return busSamples(p).every(([x,z])=>free(x,z));}
+// The footprint points of busSamples, tested one by one (no list, no closures: every bus, every step).
+function freeAt(world,x,z){return onRoad(world,x,z)&&!world.buildings.at(x,z)&&!world.trafficForbidden?.at(x,z);}
+export function busFitsRoad(p,world){
+ if(!freeAt(world,p.x,p.z))return false;
+ const d=dims(p),c=Math.cos(p.heading),s=Math.sin(p.heading),w=d.width/2;
+ for(let along=-d.length/2;along<=d.length/2+.01;along+=.5)for(let k=-1;k<=1;k++){const side=k*w;if(!freeAt(world,p.x+c*side+s*along,p.z-s*side+c*along))return false;}
+ return true;
+}
 export function busOverlaps(a,b,margin=0){const da=dims(a),db=dims(b),dx=b.x-a.x,dz=b.z-a.z;if(Math.hypot(dx,dz)>(da.length+db.length)/2+margin+3)return false;const axes=p=>[[Math.cos(p.heading),-Math.sin(p.heading)],[Math.sin(p.heading),Math.cos(p.heading)]],aa=axes(a),bb=axes(b);for(const v of [...aa,...bb]){const dot=u=>Math.abs(v[0]*u[0]+v[1]*u[1]);if(Math.abs(dx*v[0]+dz*v[1])>=(da.width/2+margin)*dot(aa[0])+(da.length/2+margin)*dot(aa[1])+db.width/2*dot(bb[0])+db.length/2*dot(bb[1]))return false;}return true;}
 export function safeBusSweep(a,b,world){const distance=Math.hypot(b.x-a.x,b.z-a.z),angle=turn(a.heading,b.heading);if(distance>.02&&Math.abs(angle)/distance>1/8)return false;const n=Math.max(1,Math.ceil(distance/.35),Math.ceil(Math.abs(angle)*dims(a).length/.35));for(let i=0;i<=n;i++){const t=i/n;if(!busFitsRoad({...a,x:a.x+(b.x-a.x)*t,z:a.z+(b.z-a.z)*t,heading:a.heading+angle*t},world))return false;}return true;}
 // Lane assignment: a route line from GTFS or OpenStreetMap usually follows the middle of the street, so
@@ -161,7 +168,7 @@ export class BusSimulation{
   // A bus that cannot restart leaves the street; the supply brings a new one in later.
   if(this.buses.some(b=>b.done)){this.buses=this.buses.filter(b=>!b.done);this.buses.forEach((b,i)=>b.id=i);}
   // Stop player contact against the actual 12/13 m body, never a tiny car box.
-  for(const b of this.buses)if(busOverlaps(b,player)){if(!leavingBody(player,dt,b))player.speed=0;b.speed=0;const side=(player.x-b.x)*Math.cos(b.heading)-(player.z-b.z)*Math.sin(b.heading);nudgeOut(player,b.heading,(BUS_DIMENSIONS[b.kind].width/2+(player.halfWidth??.98)+.05-Math.abs(side))*(side<0?-1:1),this.world);}
+  for(const b of this.buses)if(!player.cinematic&&busOverlaps(b,player)){ /* the trailer's car is placed, not pushed: it keeps behind the bus instead (cine-drive.js) */if(!leavingBody(player,dt,b))player.speed=0;b.speed=0;const side=(player.x-b.x)*Math.cos(b.heading)-(player.z-b.z)*Math.sin(b.heading);nudgeOut(player,b.heading,(BUS_DIMENSIONS[b.kind].width/2+(player.halfWidth??.98)+.05-Math.abs(side))*(side<0?-1:1),this.world);}
   this.refreshObstacles();
  }
  snapshot(){return this.buses.map(({id,kind,path,x,z,heading,speed,parked,stopId,platform,dwell,doorsOpen,stop})=>({id,kind,line:path.line,destination:path.destination,x,z,heading,speed,parked:!!parked,stopId,platform,dwelling:dwell>0,doorsOpen:!!doorsOpen,busStop:dwell>0?stop?.name||null:null}));}

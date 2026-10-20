@@ -1,4 +1,4 @@
-import { insidePlayable, pointInPolygon, segmentDistance } from './geo.js';
+import { insidePlayable, pointInPolygon, segmentDistance, inWaterPolygons } from './geo.js';
 import {consumeBattery} from './battery.js';
 import {groundPose,lakeAt} from './terrain.js';
 export const GRAVITY=9.81;
@@ -16,7 +16,10 @@ export function simulationSteps(elapsed){
 // After a spike strip (src/roadblock.js): `car.flat` 1 = shredded tyres. The
 // car sheds speed hard down to a rim-scraping crawl, has little drive and wobbles.
 export const FLAT_TYRES={speed:3.2,drag:11,power:.3,wobble:.35};
-export function makeCar(x,z,heading=0){return settleOnGround({x,z,heading,speed:0,steer:0,distance:0,battery:1});}
+// A city can switch the battery off (Copenhagen, both eras): the car then never runs out.
+let batteryOn=true;
+export function setBattery(on){batteryOn=!!on;}
+export function makeCar(x,z,heading=0){return settleOnGround({x,z,heading,speed:0,steer:0,distance:0,...(batteryOn?{battery:1}:{})});}
 // Height, pitch and roll from the ground under the wheels (all 0 in a flat city).
 export function settleOnGround(car){const p=groundPose(car.x,car.z,car.heading,1.4,.8);car.y=p.y;car.pitch=p.pitch;car.roll=p.roll;return car;}
 export function carSamples(car,x=car.x,z=car.z) {
@@ -80,10 +83,10 @@ export function driveStep(car,keys,dt,world) {
    const samples=carSamples(car,nx,nz);
    const from={...car,heading:i?car.heading:oldHeading},next={...car,x:nx,z:nz};
    if(world.objects?.blocksStep(from,next)||samples.some(([x,z])=>collisionBuildings.at(x,z))&&!canExitBuildings(from,next,collisionBuildings)){collision='building';break;}
-   if(samples.some(([x,z])=>!world.roads.at(x,z)&&!world.pavement.at(x,z)&&(world.water.some(w=>pointInPolygon(x,z,w.rings))||lakeAt(x,z)!==null))){collision='water';break;}
+   if(samples.some(([x,z])=>!world.roads.at(x,z)&&!world.pavement.at(x,z)&&(inWaterPolygons(world.water,x,z)||lakeAt(x,z)!==null))){collision='water';break;}
    car.distance+=Math.hypot(nx-car.x,nz-car.z);car.x=nx;car.z=nz;
  }
- car.battery=consumeBattery(car.battery??1,car.distance-distanceBefore,car.speed);
+ if(batteryOn)car.battery=consumeBattery(car.battery??1,car.distance-distanceBefore,car.speed);
  if(collision){if(car.distance===distanceBefore)car.heading=oldHeading;car.speed=0;}
  settleOnGround(car);
  return {collision,onRoad};

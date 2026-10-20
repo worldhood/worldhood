@@ -1,15 +1,24 @@
+import {WEATHER_UNIFORMS} from './weather.js';
 import * as THREE from 'three';
 import {createVehicle,animateVehicle,VEHICLE_TYPES} from './vehicles.js';
 import {registerEnvMaterial} from './environment.js';
 import {groundPose} from './terrain.js';
+import {finishMaterial,finishGeometry} from './car-finishes.js';
+import {copenhagenStyle} from './city-style.js';
 
-// Keep independent animation transforms, but draw all NPCs together: fourteen
-// material/part batches instead of fourteen draw submissions for every vehicle.
-// Beyond `detail` a vehicle is two instance-coloured boxes (body + cabin) in two extra
-// batches per family, and past `hide` it is skipped: cars near the player keep full detail.
+// Keep independent animation transforms, but draw all NPCs together. Two renderers share one interface:
+// - classic (Helsinki and the other cities): one batch per material/part per body style; beyond `detail` a
+//   vehicle is two instance-coloured boxes (body + cabin) in two extra batches per family.
+// - batched (Copenhagen): three batches per body style (paint, the other finishes from one palette material,
+//   wheels; car-finishes.js), far boxes shared by every body style, and head/tail lamp glows after dark.
+// Past `hide` a vehicle is skipped: cars near the player keep full detail.
 // Moving cars keep their full model until they are small on screen; a shape swap at 150 m was a visible pop.
 export const TRAFFIC_LOD={detail:260,hide:650};
-export function createTrafficRenderer(actors,{types=VEHICLE_TYPES,paintColors=null,lod=TRAFFIC_LOD}={}){
+let paintShared=null;
+// One paint material for every body style: colour comes per car (instance colour).
+function paintMaterial(source){if(!paintShared){paintShared=registerEnvMaterial(source.clone());paintShared.color.set('#ffffff');}return paintShared;}
+export function createTrafficRenderer(actors,options={}){return copenhagenStyle()?createBatchedTrafficRenderer(actors,options):createClassicTrafficRenderer(actors,options);}
+function createClassicTrafficRenderer(actors,{types=VEHICLE_TYPES,paintColors=null,lod=TRAFFIC_LOD}={}){
  const families=types.map(type=>({type,entries:[],batches:[],low:[]}));
  actors.forEach((actor,i)=>{const family=families[i%families.length],model=createVehicle(1+(i*5)%8,false,family.type),parts=[];model.traverse(m=>{if(m.isMesh){if(m.material.name==='paint'){if(paintColors?.length)m.material.color.set(paintColors[i%paintColors.length]);
   // Subtle per-car variety within each palette colour: hue drift, saturation and lightness.
@@ -41,5 +50,60 @@ export function createTrafficRenderer(actors,{types=VEHICLE_TYPES,paintColors=nu
    batches.forEach((m,j)=>{m.setMatrixAt(visible,parts[j].matrixWorld);if(m.userData.colored)m.setColorAt(visible,parts[j].material.color);});visible++;
   }batches.forEach(m=>{m.count=visible;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;});
   low.forEach(m=>{m.count=far;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;});}
+ }};
+}
+function createBatchedTrafficRenderer(actors,{types=VEHICLE_TYPES,paintColors=null,lod=TRAFFIC_LOD}={}){
+ const families=types.map(type=>({type,entries:[],batches:[],low:[]}));
+ actors.forEach((actor,i)=>{const family=families[i%families.length],model=createVehicle(1+(i*5)%8,false,family.type),parts=[];model.traverse(m=>{if(m.isMesh){if(m.material.name==='paint'){if(paintColors?.length)m.material.color.set(paintColors[i%paintColors.length]);
+  // Subtle per-car variety within each palette colour: hue drift, saturation and lightness.
+  m.material.color.offsetHSL(((i*37)%7-3)*.006,((i*53)%5-2)*.035,((i*71)%9-4)*.018);}parts.push(m);}});model.rotation.order='YXZ';family.entries.push({actor,model,parts});});
+ // Model size and paint per actor, for overlays that must match the car (angry-drivers.js door).
+ const byActor=new Map();for(const family of families)for(const {actor,model,parts}of family.entries){const m=parts.find(p=>p.material.name==='paint')?.material;byActor.set(actor,{type:family.type,spec:model.userData.spec,paint:m?.color||new THREE.Color('#9aa0a0'),material:m||null});}
+ const group=new THREE.Group();group.name='Instanced traffic fleet';
+ const bodyMaterial=new THREE.MeshStandardMaterial({color:'#ffffff',roughness:.45,metalness:.25}),cabinMaterial=new THREE.MeshStandardMaterial({color:'#182328',roughness:.25,metalness:.5});
+ const tmp=new THREE.Matrix4(),slope={y:0,pitch:0,roll:0};
+ for(const family of families)if(family.entries.length){
+  // Three batches a family: the paint (coloured per car), every other body finish (glass, trim, lamps, plate) as
+  // one palette-textured mesh, and the four wheels (tyre and hub together). It was ten: one per material and wheel part.
+  const first=family.entries[0],parts=first.parts;first.model.updateMatrixWorld(true);
+  const wheelOf=new Map();(first.model.userData.wheels||[]).forEach((w,k)=>w.spin.traverse(o=>{if(o.isMesh)wheelOf.set(o,k);}));
+  const paint=parts.findIndex(p=>p.material.name==='paint'),trim=[],wheels=[];
+  parts.forEach((p,i)=>{if(i===paint)return;const k=wheelOf.get(p);if(k===undefined)trim.push(i);else(wheels[k]??=[]).push(i);});
+  const batch=(geometry,material,partIdx,colored)=>{const mesh=new THREE.InstancedMesh(geometry,material,family.entries.length*partIdx.length);mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.frustumCulled=false;mesh.castShadow=true;mesh.receiveShadow=true;mesh.count=0;
+   if(colored)family.entries.forEach((p,i)=>partIdx.forEach((part,k)=>mesh.setColorAt(i*partIdx.length+k,p.parts[part].material.color)));mesh.userData={colored,type:family.type,parts:partIdx};group.add(mesh);return mesh;};
+  const frame=paint>=0?paint:trim[0],finishes=finishMaterial();
+  if(paint>=0)family.batches.push(batch(parts[paint].geometry,paintMaterial(parts[paint].material),[paint],true));
+  if(trim.length)family.batches.push(batch(finishGeometry(trim.map(i=>parts[i]),parts[frame]),finishes,[frame],false));
+  const wheelSet=wheels.filter(w=>w?.length);
+  if(wheelSet.length)family.batches.push(batch(finishGeometry(wheelSet[0].map(i=>parts[i]),parts[wheelSet[0][0]]),finishes,wheelSet.map(w=>w[0]),false));
+  // Far level from the family's measured spec: a body box up to the belt line and a cabin box above it, as
+  // scaled unit boxes in the two batches every body style shares (two draws for all distant cars, not fourteen).
+  const s=first.model.userData.spec;family.paint=paint;
+  family.low=[new THREE.Matrix4().compose(new THREE.Vector3(0,(s.belt+.3)/2,0),new THREE.Quaternion(),new THREE.Vector3(s.w,s.belt-.3,s.l)),
+   new THREE.Matrix4().compose(new THREE.Vector3(0,(s.h+s.belt)/2,(s.rr+s.rf)/2),new THREE.Quaternion(),new THREE.Vector3(s.w*.84,s.h-s.belt,s.rr-s.rf))];
+ }
+ const lowBatch=(material,coloured)=>{const mesh=new THREE.InstancedMesh(new THREE.BoxGeometry(1,1,1),material,Math.max(1,actors.length));mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);mesh.frustumCulled=false;mesh.castShadow=false;mesh.receiveShadow=true;mesh.count=0;mesh.userData={lod:'far',coloured};
+  if(coloured)mesh.instanceColor=new THREE.InstancedBufferAttribute(new Float32Array(Math.max(1,actors.length)*3),3).setUsage(THREE.DynamicDrawUsage);group.add(mesh);return mesh;};
+ const lowBody=lowBatch(bodyMaterial,true),lowCabin=lowBatch(cabinMaterial,false);
+ // Lamps after dark: head and tail lamp glows for every car in range (one instanced batch, four per car).
+ const lampGeo=new THREE.SphereGeometry(.11,6,4),lamps=new THREE.InstancedMesh(lampGeo,new THREE.MeshBasicMaterial({color:'#ffffff',toneMapped:false}),actors.length*4);
+ lamps.name='Traffic lamps';lamps.userData.lod='lamps';lamps.frustumCulled=false;lamps.count=0;lamps.visible=false;lamps.instanceMatrix.setUsage(THREE.DynamicDrawUsage);group.add(lamps);
+ const HEAD=new THREE.Color('#fff4dc'),TAIL=new THREE.Color('#ff2a1a'),lampLocal=new THREE.Matrix4(),lampOut=new THREE.Matrix4();
+ for(let i=0;i<actors.length*4;i++)lamps.setColorAt(i,i%4<2?HEAD:TAIL);
+ return {group,vehicleOf:actor=>byActor.get(actor)||null,batchCount:group.children.length,types:families.filter(f=>f.entries.length).map(f=>f.type),lod,update(dt,player){
+  let lampN=0,far=0;
+  for(const {entries,batches,low,paint}of families){let visible=0;
+  for(const {actor:a,model,parts}of entries){if(!a.edge)continue;const night=WEATHER_UNIFORMS.night.value>.5;
+   const d=player?Math.hypot(a.x-player.x,a.z-player.z):0;if(d>lod.hide)continue;
+   groundPose(a.x,a.z,a.heading,2.1,.85,slope);model.position.set(a.x,.12+slope.y,a.z);const delta=Math.atan2(Math.sin(a.heading-model.rotation.y),Math.cos(a.heading-model.rotation.y));model.rotation.set(slope.pitch,a.heading,slope.roll);
+   if(d>lod.detail){model.updateMatrixWorld(true);lowBody.setMatrixAt(far,tmp.multiplyMatrices(model.matrixWorld,low[0]));lowCabin.setMatrixAt(far,tmp.multiplyMatrices(model.matrixWorld,low[1]));if(paint>=0)lowBody.setColorAt(far,parts[paint].material.color);far++;continue;}
+   animateVehicle(model,a.speed,Math.max(-1,Math.min(1,delta*3)),dt,a.braking);model.updateMatrixWorld(true);
+   if(night&&d<lod.detail){const sp=model.userData.spec||{w:1.8,l:4.4,belt:.9};const l=sp.l||4.4,w=sp.w||1.8,y=(sp.belt||.9)-.15;
+    for(let q=0;q<4;q++){lampLocal.makeTranslation((q%2?1:-1)*(w/2-.28),y,q<2?-l/2:l/2);lamps.setMatrixAt(lampN++,lampOut.multiplyMatrices(model.matrixWorld,lampLocal));}}
+   for(const m of batches){const ps=m.userData.parts,n=ps.length;for(let k=0;k<n;k++){m.setMatrixAt(visible*n+k,parts[ps[k]].matrixWorld);if(m.userData.colored)m.setColorAt(visible*n+k,parts[ps[k]].material.color);}}visible++;
+  }batches.forEach(m=>{m.count=visible*m.userData.parts.length;m.visible=m.count>0;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;});
+  }
+  for(const m of [lowBody,lowCabin]){m.count=far;m.visible=far>0;m.instanceMatrix.needsUpdate=true;if(m.instanceColor)m.instanceColor.needsUpdate=true;}
+  lamps.count=lampN;lamps.visible=lampN>0;lamps.instanceMatrix.needsUpdate=true;
  }};
 }

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import * as THREE from 'three';
-import {LOD,tileLevel,mergedShellRanges,createMergedShells,applyTileLod,applyTreeLod,treeLeafDetail,createStaticShadowCuller,freezeTileGroup} from '../src/tile-lod.js';
+import {LOD,tileLevel,mergedShellRanges,createMergedShells,applyTileLod,applyTreeLod,treeLeafDetail,createStaticShadowCuller,freezeTileGroup,createShellMask,configureTileLod} from '../src/tile-lod.js';
 import {createSourceShell,materialiseBuilding} from '../src/building-loader.js';
 import {tilePriority,aheadPoint,createFrameQueue,createDetailScheduler} from '../src/tile-streaming.js';
 
@@ -134,4 +134,33 @@ test('frame queue rations jobs per step and the scheduler runs nearest-first wit
  await Promise.resolve();assert.deepEqual(order,['a']);assert.equal(s.inFlight,1);
  release();await new Promise(r=>setTimeout(r,0));
  assert.deepEqual(order,['a','b']);assert.equal(s.waiting,0);assert.equal(s.inFlight,0);
+});
+
+test('meshes whose tile shadow casters cast for them never cast themselves; casters are left to the shadow pass',()=>{
+ const {group,parts,textures}=tileGroup(),focus=new THREE.Vector3(0,0,0);
+ const building={part:parts[0],windows:0,meshes:[{attributes:{position:{array:new Float32Array(9),itemSize:3,normalized:false}},shell:true,role:'facade',material:{color:0xffffff,roughness:.8,metalness:0,side:2,vertexColors:false,textured:true}}]};
+ const meshes=materialiseBuilding(building,textures);for(const m of [...meshes,...group.children])m.userData.castByTile=true;group.add(...meshes);
+ const caster=new THREE.Mesh(group.children[0].geometry,new THREE.MeshBasicMaterial());caster.visible=false;caster.castShadow=true;caster.userData.shadowCaster=true;group.add(caster);
+ applyTileLod(group,'near',focus);
+ assert.ok(group.children.filter(m=>m!==caster).every(m=>!m.castShadow),'nothing but the caster casts');
+ assert.equal(caster.visible,false);assert.equal(caster.castShadow,true);
+});
+
+test('landed buildings beyond LOD.building hand back to the merged shell, with hysteresis (Copenhagen bands)',()=>{
+ const B={...LOD,building:140}; // configureTileLod: Copenhagen hands back at 140 m; other cities keep every near building detailed
+ const textures=new Map([['a.jpg',new THREE.Texture()]]),parts=[part(0,6,'a.jpg','p0'),part(6,6,'a.jpg','p1')],mask=createShellMask(parts.length),group=new THREE.Group();
+ group.add(...createMergedShells(array,parts,textures,mask));
+ const building={part:parts[0],windows:0,meshes:[{attributes:{position:{array:new Float32Array(9),itemSize:3,normalized:false}},shell:true,role:'facade',material:{color:0xffffff,roughness:.8,metalness:0,side:2,vertexColors:false,textured:true}}]};
+ const meshes=materialiseBuilding(building,textures);for(const m of meshes){m.userData.part=0;m.userData.mask=mask;}group.add(...meshes);mask.set(0,0);mask.set(1,0); // both parts landed
+ const lod=group.children.find(m=>m.userData.lod),at=x=>new THREE.Vector3(10+x,0,5); // x metres east of the part's box
+ applyTileLod(group,'near',at(20),B);assert.ok(meshes[0].visible);assert.equal(mask.get(0),0);assert.equal(lod.visible,false,'everything detailed: no merged shell');
+ applyTileLod(group,'near',at(B.building+10),B);assert.ok(meshes[0].visible,'inside the hysteresis band it stays detailed');
+ applyTileLod(group,'near',at(B.building+30),B);assert.equal(meshes[0].visible,false);assert.equal(mask.get(0),1);assert.ok(lod.visible,'the merged shell draws it now');
+ applyTileLod(group,'near',at(B.building+10),B);assert.equal(meshes[0].visible,false,'and does not flick back inside the band');
+ applyTileLod(group,'near',at(B.building-10),B);assert.ok(meshes[0].visible);assert.equal(mask.get(0),0);assert.equal(lod.visible,false);
+});
+
+test('Copenhagen tile bands: building hand-back and a shorter shadow range; other cities keep the earlier bands',()=>{
+ assert.equal(LOD.building,Infinity);assert.equal(LOD.shadow,130);
+ const saved={...LOD};configureTileLod(true);assert.equal(LOD.building,140);assert.equal(LOD.shadow,95);Object.assign(LOD,saved);
 });

@@ -104,11 +104,13 @@ npm run build     # static build in dist/, deployable to any static host
 ## Cities
 
 <!-- CITIES:START -->
-| | City | Play | Status | Data | Maintainers |
+| | City | Play | Status | Data | Built by |
 | --- | --- | --- | --- | --- | --- |
-| <a href="https://worldhood.org/?city=helsinki"><img src="docs/media/cities/helsinki.jpg" width="160" alt="Helsinki"></a> | Helsinki, Finland | [`?city=helsinki`](https://worldhood.org/?city=helsinki) | playable | City of Helsinki 3D city model + open data, HSL | wanted |
-| <a href="https://worldhood.org/?city=tampere"><img src="docs/media/cities/tampere.jpg" width="160" alt="Tampere"></a> | Tampere, Finland | [`?city=tampere`](https://worldhood.org/?city=tampere) | draft | OpenStreetMap | wanted |
-| <a href="https://worldhood.org/?city=oulu"><img src="docs/media/cities/oulu.jpg" width="160" alt="Oulu"></a> | Oulu, Finland | [`?city=oulu`](https://worldhood.org/?city=oulu) | draft · [help wanted → #68](https://github.com/worldhood/worldhood/issues/68) | OpenStreetMap | zaw-ye-tun |
+| <a href="https://worldhood.org/?city=helsinki"><img src="docs/media/cities/helsinki.jpg" width="160" alt="Helsinki"></a> | Helsinki, Finland | [`?city=helsinki`](https://worldhood.org/?city=helsinki) | playable | City of Helsinki 3D city model + open data, HSL | [@vedvekkuli](https://github.com/vedvekkuli) |
+| <a href="https://worldhood.org/?city=tampere"><img src="docs/media/cities/tampere.jpg" width="160" alt="Tampere"></a> | Tampere, Finland | [`?city=tampere`](https://worldhood.org/?city=tampere) | draft | OpenStreetMap | [@vedvekkuli](https://github.com/vedvekkuli) |
+| <a href="https://worldhood.org/?city=oulu"><img src="docs/media/cities/oulu.jpg" width="160" alt="Oulu"></a> | Oulu, Finland | [`?city=oulu`](https://worldhood.org/?city=oulu) | draft · [help wanted → #68](https://github.com/worldhood/worldhood/issues/68) | OpenStreetMap | [@zaw-ye-tun](https://github.com/zaw-ye-tun) |
+|  | Copenhagen, Denmark | [`?city=copenhagen`](https://worldhood.org/?city=copenhagen) | draft | OpenStreetMap | [@babaliba-oss](https://github.com/babaliba-oss) |
+|  | Copenhagen 1760, Denmark | [`?city=copenhagen-1760`](https://worldhood.org/?city=copenhagen-1760) | draft | OpenStreetMap | [@babaliba-oss](https://github.com/babaliba-oss) |
 <!-- CITIES:END -->
 
 Running it locally? Use `http://localhost:5173/?city=<id>`.
@@ -203,6 +205,22 @@ Runtime data is bundled in `public/data` and `public/cities/<id>`; optional regi
 npm run data:fetch && npm run data:build
 npm run data:textured
 npm run data:mobility
+```
+
+## Rebuilding the Blender models
+
+Copenhagen's cars, buses, boats, bikes, scooter, 1760 coach and horses, and street furniture are original models made by Python scripts in `scripts/blender/`, run headless with Blender's `bpy` module. Each script writes GLB files to `public/models/`, and the game falls back to its procedural models when a file is missing. Add `?car=classic` to the URL to see the procedural versions.
+
+```sh
+uv venv -p 3.11 bpyenv && uv pip install --python bpyenv bpy==4.2.0
+bpyenv/bin/python scripts/blender/player-car.py public/models/player-car.glb
+bpyenv/bin/python scripts/blender/vehicles.py   public/models/vehicles
+bpyenv/bin/python scripts/blender/bus.py        public/models/buses
+bpyenv/bin/python scripts/blender/boats.py      public/models/boats
+bpyenv/bin/python scripts/blender/bikes.py      public/models/bikes
+bpyenv/bin/python scripts/blender/scooter.py    public/models/bikes/scooter.glb
+bpyenv/bin/python scripts/blender/carriage.py   public/models/carriage
+bpyenv/bin/python scripts/blender/furniture.py  public/models/furniture
 ```
 
 ## Contributing

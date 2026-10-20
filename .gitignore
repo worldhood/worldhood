@@ -22,3 +22,4 @@ docs/RELEASE_REVIEW.md
 # Staging folders of an interrupted city:build (scripts/city-build-tools.mjs)
 public/cities/.*.staging/
 public/cities/.*.previous/
+__pycache__/

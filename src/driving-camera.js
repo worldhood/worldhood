@@ -1,3 +1,4 @@
+import {copenhagenStyle} from './city-style.js';
 import {groundAt} from './terrain.js';
 // Pure pose function: used by both the renderer and camera regression tests.
 export function overviewCameraPose(car,heading,zoom=240,high=false){
@@ -17,22 +18,33 @@ export function welcomeCameraPose(focus,heading,height,behind,ground=groundAt,cl
  for(let i=2;i<=16;i++){const t=i/16,h=ground(focus.x+(px-focus.x)*t,focus.z+(pz-focus.z)*t)+clearance;y=Math.max(y,g+(h-g)/t);}
  return {position:[px,y,pz],target:[focus.x,g,focus.z]};
 }
+let swing=0;
 export function drivingCameraPose(car,heading,zoom=240,look=0,buildings=null){
  // Close and low, more behind the car than above it, so the street ahead reads
  // on a phone screen (arcade-style: ~8.3 m back, 3.3 m up at the default zoom 150). Zoom (36–240) still pulls it back.
  let distance=4.5+Math.max(36,Math.min(240,zoom))/40;
  // A turn near Forum can put a fixed-length camera boom inside the building
  // across the road. Shorten it before the wall, retaining the driving target.
- if(buildings)for(let d=1;d<=distance;d+=.25){
-  const x=car.x+Math.sin(heading)*d,z=car.z+Math.cos(heading)*d;
-  if([[0,0],[.25,0],[-.25,0],[0,.25],[0,-.25]].some(([dx,dz])=>buildings.at(x+dx,z+dz))){distance=Math.max(.5,d-.5);break;}
- }
+ // Copenhagen: the boom swings to an open side and rises before a wall; elsewhere it only shortens.
+ const cph=copenhagenStyle();
+ const clear=(h,max)=>{for(let d=1;d<=max;d+=.25){const x=car.x+Math.sin(h)*d,z=car.z+Math.cos(h)*d;
+  if([[0,0],[.25,0],[-.25,0],[0,.25],[0,-.25]].some(([dx,dz])=>buildings.at(x+dx,z+dz)))return Math.max(.5,d-.5);}return max;};
+ const aim=heading; // the target stays straight ahead of the car even when the boom swings
+ if(buildings){const full=distance;distance=clear(heading,full);
+  // Backed up against a wall: swing the boom up to 40 degrees to whichever side is open, rather than a lens
+  // half a metre behind the roof.
+  let want=0;if(cph&&distance<full*.6)for(const off of [.35,-.35,.7,-.7]){const d=clear(heading+off,full);if(d>distance+1.5){want=off;break;}}
+  // eased, so the boom swings round instead of jumping a frame
+  swing+=(want-swing)*.18;if(Math.abs(swing)<.01&&want===0)swing=0;if(swing){heading+=swing;distance=clear(heading,full);}}
  // Turn the view, not the camera's orbit: orbiting sideways puts the lens
  // inside the roadside trees precisely when the player looks at the harbour.
  const ahead=3+Math.abs(look)*15;
  // Hills: the camera rides at the car's ground height, never below the slope behind it.
  const y=car.y??groundAt(car.x,car.z),px=car.x+Math.sin(heading)*distance,pz=car.z+Math.cos(heading)*distance;
- return {position:[px,Math.max(y+2.4+distance*.11,groundAt(px,pz)+1.4),pz],target:[car.x-Math.sin(heading+look)*ahead,y+1.15,car.z-Math.cos(heading+look)*ahead]};
+ // A wall right behind: the short boom rises instead, looking down over the vehicle (at 0.5 m back and 2.5 m up
+ // the lens sat inside the 1760 coach's body).
+ const short=cph?Math.max(0,3.6-distance):0,lift=short*1.05,far=ahead+short*2.2; // and aims further ahead, so it never looks straight down on the roof
+ return {position:[px,Math.max(y+2.4+distance*.11+lift,groundAt(px,pz)+1.4),pz],target:[car.x-Math.sin(aim+look)*far,y+1.15,car.z-Math.cos(aim+look)*far]};
 }
 
 // ---- Drive-camera feel: speed FOV, heading lag/settle, roll, look, shake ----

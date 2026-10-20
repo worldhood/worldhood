@@ -61,3 +61,33 @@ test('a car stranded at a dead end with no way back stays beside the player but 
  for(let i=0;i<60;i++)far.step(1/60,{x:100,z:100,heading:0,speed:0});
  assert.ok(farCar.edge===null||farCar.z>-195,'a distant stranded car is recycled instead of blocking the lane');
 });
+
+test('walkers keep their own place on the pavement and a step behind the one ahead, not inside each other (Copenhagen crowd)',()=>{
+ const pave={rings:[[[-6,5],[6,5],[6,-125],[-6,-125]]],kind:'Jalkakäytävä'},none=new SpatialIndex([]);
+ const sim=new Mobility({roads:{nodes:[],edges:[]},walks:{nodes:[[0,0],[0,-120]],edges:[{from:0,to:1,points:[[0,0],[0,-120]],lane:0}]},signals:[]},{buildings:none,roads:none,pavement:new SpatialIndex([pave])},{cars:0,people:2,refined:true});
+ const edge=sim.walks.edges[0],[a,b]=sim.people;
+ // the same line, a slow walker 3 m ahead of a fast one: they used to merge into one body and split again
+ Object.assign(a,{edge,s:10,speed:1.4,cruise:1.45,side:.4});Object.assign(b,{edge,s:13,speed:.9,cruise:.9,side:.45});
+ for(const p of [a,b])Object.assign(p,sim.position(p));
+ const player={x:30,z:-60,speed:0};let closest=Infinity; // near enough that nobody is recycled, off the pavement
+ for(let i=0;i<600;i++){sim.step(1/30,player);closest=Math.min(closest,Math.hypot(a.x-b.x,a.z-b.z));}
+ assert.ok(closest>.6,`never closer than a step: ${closest.toFixed(2)} m`);assert.ok(b.s>13+.9*15,'the one ahead walks on at its own pace');
+ assert.ok(Math.abs(a.x)>.15&&Math.abs(a.x)<.9,`off the line, to the right of the way it walks: x=${a.x.toFixed(2)}`);
+});
+test('a shoved coach (1760) pulls back into its lane once it has come to rest, instead of standing in the street',()=>{
+ const graph={nodes:[[0,0],[0,-200]],edges:[{from:0,to:1,points:[[0,0],[0,-200]],length:200,lane:1.5,signal:-1}]};
+ const sim=new Mobility({roads:structuredClone(graph),walks:{nodes:[],edges:[]},signals:[]},{roads:{at:()=>true},pavement:{at:()=>false},buildings:{at:()=>undefined},water:[]},{cars:1,people:0});
+ sim.recoverKnocked=3;const a=sim.cars[0];
+ Object.assign(a,{edge:sim.roads.edges[0],s:40,x:2.6,z:-40,heading:.25,speed:0,cruise:6,knocked:{vx:0,vz:0,spin:0,rest:0,pushedAt:-9}});
+ const player={x:40,z:-100,speed:0};
+ for(let i=0;i<60;i++)sim.step(1/30,player);assert.ok(a.knocked,'still shaken for a moment');
+ for(let i=0;i<240;i++)sim.step(1/30,player);
+ assert.equal(a.knocked,undefined);assert.ok(a.z<-45,`drives on along its lane, z=${a.z.toFixed(1)}`);assert.ok(Math.abs(a.x-1.5)<.3,`back in the lane, x=${a.x.toFixed(2)}`);
+});
+test('the refined crowd is Copenhagen\'s: other cities keep the original walkers',async()=>{
+ const {setCityStyle}=await import('../src/city-style.js');
+ const empty={roads:{nodes:[],edges:[]},walks:{nodes:[],edges:[]},signals:[]},world={roads:{at:()=>false},buildings:{at:()=>false}};
+ setCityStyle({id:'helsinki'});const h=new Mobility(structuredClone(empty),world,{cars:0,people:0});assert.equal(h.refined,false);assert.equal(h.spawnBudget,Infinity);
+ setCityStyle({id:'copenhagen-1760',era:1760});const c=new Mobility(structuredClone(empty),world,{cars:0,people:0});assert.equal(c.refined,true);
+ setCityStyle(null);
+});

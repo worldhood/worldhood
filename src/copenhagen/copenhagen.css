@@ -1,0 +1,166 @@
+/* Copenhagen game layer: same paper/ink language as the rest of the HUD (Spectral headings, Manrope text). */
+#cph-hud{position:fixed;top:96px;left:38px;z-index:30;display:grid;gap:10px;width:min(340px,calc(100vw - 76px));pointer-events:none;font-family:Manrope,sans-serif;color:#30312e}
+body:not(.driving) #cph-hud,body.busted #cph-hud,body.clean-capture #cph-hud{visibility:hidden}
+.cph-money{justify-self:start;padding:6px 12px;border-radius:999px;background:rgba(248,245,238,.94);box-shadow:0 4px 18px rgba(30,30,28,.14);font-family:Spectral,Georgia,serif;font-weight:600;font-size:20px;font-variant-numeric:tabular-nums}
+.cph-card{padding:12px 15px;border-radius:14px;background:rgba(248,245,238,.94);box-shadow:0 6px 24px rgba(30,30,28,.16)}
+.cph-card h3{margin:2px 0 4px;font-family:Spectral,Georgia,serif;font-weight:600;font-size:21px;line-height:1.1;letter-spacing:-.01em}
+.cph-card p{margin:0;font-size:12.5px;line-height:1.45;color:#5d5b55}
+.cph-card .cph-go{margin-top:6px;color:#30312e}
+.cph-card .cph-go b{color:#b36a12}
+.cph-kick{margin:0;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:#8a867c}
+.cph-kick kbd,#cph-hud kbd{font:600 10px Manrope,sans-serif;border:1px solid rgba(48,49,46,.25);border-bottom-width:2px;border-radius:4px;padding:0 4px;background:#fff}
+.cph-saga{border-left:4px solid #c8202a}
+.cph-saga h3{color:#9e1b2c}
+.cph-saga ol{margin:4px 0 0;padding-left:18px;font-size:12.5px;color:#8a867c;display:grid;gap:2px}
+.cph-saga li.d{text-decoration:line-through;opacity:.6}
+.cph-saga li.c{color:#30312e;font-weight:600}
+.cph-saga li span{color:#b36a12;font-weight:500}
+.cph-timer{font-family:Spectral,Georgia,serif;font-size:22px!important;color:#2f7d6c!important;margin-top:4px!important}
+.cph-low{color:#c8202a!important}
+#cph-lore,#cph-journal,#cph-tmap{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:rgba(30,30,28,.45);font-family:Manrope,sans-serif}
+#cph-lore[hidden],#cph-journal[hidden],#cph-tmap[hidden]{display:none}
+.cph-lore-card{width:min(560px,100%);padding:24px 26px 20px;border-radius:16px;background:#f3ead6;color:#2a2118;box-shadow:0 22px 70px rgba(0,0,0,.4);border-top:6px solid #c8202a;display:grid;gap:10px}
+.cph-lore-card .cph-kick{color:#9e1b2c}
+.cph-lore-card h2{margin:0;font-family:Spectral,Georgia,serif;font-weight:700;font-size:clamp(26px,5vw,36px);line-height:1}
+.cph-lore-card p{margin:0;font-size:15px;line-height:1.65}
+.cph-lore-card button,.cph-jcard button,.cph-tmap-wrap button{justify-self:end;cursor:pointer;border:0;border-radius:999px;padding:8px 16px;background:#30312e;color:#f8f5ee;font:600 12px Manrope,sans-serif}
+.cph-lore-card kbd{color:#f8f5ee;margin-left:6px;font-size:10px}
+.cph-jcard{width:min(760px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:20px;border-radius:16px;background:#f8f5ee;color:#30312e;display:grid;gap:14px}
+.cph-jtop{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+.cph-jcard h2{margin:2px 0 0;font-family:Spectral,Georgia,serif;font-size:34px}
+.cph-jlist{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:10px}
+.cph-jq{border:1px solid rgba(48,49,46,.15);border-left:4px solid #c8202a;border-radius:12px;padding:12px 14px;display:grid;gap:6px;background:#fff}
+.cph-jq.done{border-left-color:#2f7d6c;opacity:.85}
+.cph-jq.act{background:#fff6f2}
+.cph-jq h3{margin:0;font-family:Spectral,Georgia,serif;font-size:21px}
+.cph-jh{font-size:11px;color:#b36a12}
+.cph-js{margin:0;font-size:12px;color:#747168}
+.cph-jq details{font-size:13px;line-height:1.55;border-top:1px solid rgba(48,49,46,.12);padding-top:6px}
+.cph-jq summary{cursor:pointer}
+.cph-jq button{justify-self:start;background:#fff;color:#30312e;border:1px solid rgba(48,49,46,.25)}
+.cph-tmap-wrap{display:grid;gap:10px;justify-items:center;color:#f8f5ee;font-size:13px}
+.cph-tmap-wrap canvas{width:min(520px,calc(100vw - 32px),calc(100vh - 120px));height:auto;border-radius:6px;transform:rotate(1.2deg);box-shadow:0 18px 50px rgba(0,0,0,.5)}
+.cph-tmap-wrap p{margin:0}
+@media (max-width:760px){#cph-hud{top:calc(var(--mobile-top,12px) + 74px);left:12px;width:min(280px,calc(100vw - 24px))}.cph-card p:not(.cph-go):not(.cph-kick){display:none}.cph-saga ol{display:none}}
+#era-card{position:fixed;inset:0;z-index:60;display:grid;place-content:center;text-align:center;gap:6px;padding:24px;background:radial-gradient(circle at 50% 45%,rgba(44,33,22,.86),rgba(18,14,10,.96));color:#f3ead6;font-family:Manrope,sans-serif;opacity:0;pointer-events:none;transition:opacity .6s ease}
+#era-card.show{opacity:1}
+#era-card h2{margin:0;font-family:Spectral,Georgia,serif;font-weight:600;font-size:clamp(34px,7vw,64px);letter-spacing:-.01em}
+#era-card p{margin:0;font-size:14px;letter-spacing:.06em;color:#d8c9a8}
+#era-card p:first-child{text-transform:uppercase;font-size:11px;letter-spacing:.2em}
+body.city-copenhagen .nav-btn{white-space:nowrap}
+/* 1760: no dashboard card at all. A coach has no speedometer, and a dark box reading "HORSES AT REST" with the damage
+   line over it looked broken. main.js still keeps the coach's pace readout (#coach-gait) current inside it, and its
+   styling below is kept, so it can come back. */
+body.era-1760 #app .speedometer{display:none!important}
+/* the coach shows the horses' pace instead of a speedometer */
+body.era-1760 #app .speedometer .speed-dial{display:none}
+body.era-1760 #app .speedometer{background:#2b2116ed;border-color:#d8b77a40}
+body.era-1760 .coach-gait{display:grid;gap:6px;justify-items:center;padding:10px 0 4px}
+.coach-gait[hidden]{display:none!important}
+.coach-gait-title{font:600 9px Manrope,sans-serif;letter-spacing:.24em;color:#cdb68a}
+.coach-gait-pace{font-family:Spectral,Georgia,serif;font-size:30px;line-height:1;font-style:italic;color:#f3ead6}
+.coach-gait-shoes{display:flex;gap:9px}
+.coach-gait-shoes i{width:14px;height:16px;border:3px solid #6b5636;border-bottom:none;border-radius:8px 8px 0 0;opacity:.55;transition:border-color .25s,opacity .25s}
+.coach-gait-shoes i.on{border-color:#e2b65c;opacity:1}
+body.era-1760 #app .speedometer .gear{color:#cdb68a}
+/* The morning paper */
+#cph-paper{position:fixed;inset:0;z-index:45;display:grid;place-items:center;padding:16px;background:rgba(30,30,28,.35)}
+.cph-paper-card{width:min(720px,100%);max-height:calc(100vh - 32px);overflow:auto;padding:22px 26px 18px;background:#f4efe2;color:#22201c;box-shadow:0 24px 70px rgba(0,0,0,.45);font-family:Spectral,Georgia,serif;transform:rotate(-.6deg);display:grid;gap:10px}
+.cph-paper-card h2{margin:0;text-align:center;font-family:Spectral,Georgia,serif;font-style:italic;font-size:clamp(22px,4.2vw,36px);font-weight:700;letter-spacing:-.01em;border-top:3px double #22201c;border-bottom:3px double #22201c;padding:6px 0}
+.cph-paper-date{margin:0;text-align:center;font:600 11px Manrope,sans-serif;letter-spacing:.16em;text-transform:uppercase;color:#6b665b}
+.cph-paper-cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.cph-paper-cols article{border-top:1px solid rgba(34,32,28,.35);padding-top:6px}
+.cph-paper-cols h3{margin:0 0 4px;font-size:17px;line-height:1.15}
+.cph-paper-cols p{margin:0;font-size:13.5px;line-height:1.45}
+.cph-paper-card button{justify-self:end;cursor:pointer;border:0;border-radius:999px;padding:8px 16px;background:#22201c;color:#f4efe2;font:600 12px Manrope,sans-serif}
+.cph-paper-card kbd{margin-left:6px;font-size:10px}
+
+/* Whole-city map (M) */
+#big-map{width:min(1400px,96vw);height:min(940px,94vh);max-width:none;max-height:none;padding:16px 18px 10px;border:0;border-radius:18px;background:#f6f3ea;color:#25292b;display:none;flex-direction:column;gap:10px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+#big-map[open]{display:flex}
+#big-map::backdrop{background:rgba(18,24,28,.55);backdrop-filter:blur(3px)}
+#big-map .bm-top{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+#big-map .bm-top>div:first-child{flex:1;min-width:160px}
+#big-map .eyebrow{margin:0;font:700 10px/1.2 Manrope,sans-serif;letter-spacing:.14em;color:#8a8a80}
+#big-map h2{margin:2px 0 0;font:500 26px/1.1 'Source Serif 4',Georgia,serif}
+#big-map .bm-legend{display:flex;gap:14px;font:600 12px Manrope,sans-serif;color:#4a4f52;flex-wrap:wrap}
+#big-map .bm-legend i{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:2px solid #fff;box-shadow:0 0 0 1px #0002}
+#big-map .bm-legend i.bm-you{background:#dc5b36;border-radius:2px;transform:rotate(45deg)}
+#big-map .bm-tools{display:flex;gap:6px;align-items:center}
+#big-map .bm-tools button{min-width:38px;height:38px;padding:0 12px;border-radius:10px;background:#fff;box-shadow:0 0 0 1px #0001,0 2px 6px #0001;font:700 15px Manrope,sans-serif}
+#big-map .bm-tools button:hover{background:#efe9dc}
+#big-map canvas{flex:1;min-height:0;width:100%;border-radius:12px;background:#b3ced0;cursor:grab;touch-action:none}
+#big-map .bm-hint{margin:0;font:500 12px Manrope,sans-serif;color:#77786f;text-align:center}
+#big-map kbd{font:700 10px Manrope,sans-serif;padding:1px 5px;border-radius:4px;background:#fff;box-shadow:0 0 0 1px #0002}
+@media (max-width:640px){#big-map{padding:10px;gap:6px}#big-map .bm-legend{display:none}#big-map h2{font-size:20px}}
+
+/* Rank under the money */
+.cph-money b{font-weight:600}
+.cph-money{display:flex;flex-wrap:wrap;align-items:baseline;gap:0 8px}
+.cph-rank{flex-basis:100%;font:700 10px/1.4 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;color:#7a6a4a}
+.cph-rank i{display:block;height:3px;margin-top:2px;border-radius:2px;background:linear-gradient(90deg,#c8902a var(--p),#0001 var(--p))}
+/* Full-width banner for big moments */
+#cph-banner{position:fixed;left:0;right:0;top:40%;z-index:70;text-align:center;pointer-events:none;animation:cph-ban 3.4s ease both}
+#cph-banner.cph-banner-rank{animation-duration:4.6s}
+#cph-banner h2{margin:0;font:800 clamp(34px,6vw,72px)/1 'Spectral',Georgia,serif;letter-spacing:.02em;text-transform:uppercase;color:#f3c64b;-webkit-text-stroke:1.5px #1b1a16;paint-order:stroke fill;text-shadow:0 4px 0 #1b1a16,0 10px 30px rgba(0,0,0,.45)}
+#cph-banner p{margin:10px auto 0;display:inline-block;padding:6px 14px;border-radius:8px;background:rgba(20,22,24,.72);color:#f6f1e4;font:600 clamp(13px,1.6vw,18px)/1.3 Manrope,sans-serif}
+#cph-banner.cph-banner-fail h2{color:#e2483a}
+#cph-banner.cph-banner-pick h2{color:#f6f1e4;font-size:clamp(26px,4vw,48px)}
+#cph-banner.cph-banner-rank h2{color:#7fd6c2}
+@keyframes cph-ban{0%{opacity:0;transform:scale(1.25)}8%{opacity:1;transform:scale(1)}85%{opacity:1}100%{opacity:0}}
+.cph-race-time{font:700 34px/1.1 'Spectral',Georgia,serif !important;font-variant-numeric:tabular-nums;margin:2px 0 !important;color:#7b2fbe}
+
+/* Postcards */
+.cph-card-hint{justify-self:start;padding:5px 10px;border-radius:8px;background:rgba(20,22,24,.72);color:#f6f1e4;font:600 12px Manrope,sans-serif}
+.cph-card-hint kbd{font:700 10px Manrope,sans-serif;padding:1px 5px;border-radius:4px;background:#f6f1e4;color:#222}
+#cph-flash{position:fixed;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:75}
+#cph-flash.on{animation:cph-flash .5s ease-out}
+@keyframes cph-flash{0%{opacity:.85}100%{opacity:0}}
+.cph-album-h{margin:18px 0 2px;font:500 22px/1.2 'Spectral',Georgia,serif}
+.cph-album{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+.cph-pc{margin:0;padding:6px 6px 4px;background:#fffdf7;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.15);transform:rotate(-.6deg)}
+.cph-pc:nth-child(2n){transform:rotate(.7deg)}
+.cph-pc img,.cph-pc-blank{display:block;width:100%;aspect-ratio:16/10;object-fit:cover;border-radius:3px}
+.cph-pc-blank{display:grid;place-items:center;background:#e9e4d6;color:#b7ad94;font:700 28px Spectral,serif}
+.cph-pc figcaption{font:600 11px Manrope,sans-serif;margin-top:4px;color:#3a3a36;text-align:center}
+.cph-pc.empty{opacity:.6}
+body.mobile-controls-ready.era-1760 #app .speedometer .coach-gait{padding:12px 0 0;gap:0}
+body.mobile-controls-ready.era-1760 #app .speedometer :is(.coach-gait-title,.coach-gait-shoes){display:none}
+body.mobile-controls-ready.era-1760 #app .speedometer .coach-gait-pace{font-size:15px}
+
+/* Car radio (src/copenhagen/radio.js): a "now playing" card at the top right, on screen exactly while the radio is on
+   (today's car, sound on: main.js frame loop), so you see there is a radio and how to tune it. Click or tap it for the
+   next station. Under the police stars when they show: #wanted is the element just before it and about 49 px tall
+   (4 px padding, 24 px stars, 5 px gap, 12 px status line). A long CC BY credit gets two lines, all of it in the tooltip. */
+#radio-now{position:absolute;top:94px;right:38px;z-index:25;display:flex;align-items:flex-start;gap:10px;width:min(320px,calc(100% - 76px));padding:9px 14px 10px 11px;border:1px solid #afc4b83a;border-radius:12px;background:#102321e6;color:#eef3ea;box-shadow:0 0 0 0 #ffe9a800,0 8px 26px #10252130;text-align:left;font:500 12px/1.35 'DM Sans',sans-serif;transform-origin:100% 0;transition:top .25s ease,background .2s}
+#radio-now[hidden]{display:none}
+@media(hover:hover){#radio-now:hover{background:#173430f0}} /* touch: no hover tint left behind after a tap */
+#wanted:not([hidden])+#radio-now{top:152px}
+body.clean-capture.driving #radio-now{top:24px}
+body.clean-capture.driving #wanted:not([hidden])+#radio-now{top:82px}
+.radio-now-icon{font-size:20px;line-height:1;margin-top:1px}
+.radio-now-body{display:grid;gap:2px;min-width:0}
+#radio-station{overflow:hidden;font:800 13px/1.25 Manrope,sans-serif;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap;text-overflow:ellipsis;color:#ffe9a8}
+#radio-now.off #radio-station{color:#d3ddd6}
+#radio-track{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;line-clamp:2;overflow:hidden;overflow-wrap:anywhere;color:#dde7e0}
+#radio-track:empty{display:none}
+.radio-now-hint{margin-top:3px;font-size:10.5px;line-height:1.6;color:#9db3a6}
+#radio-now kbd{min-width:0;padding:1px 4px;font:700 9.5px/1.2 Manrope,sans-serif;color:#f4f3e9;border-color:#e8efe64d;background:#ffffff14;vertical-align:1px}
+/* Hint: keys on a keyboard, "tap" on a touch screen; "tune in" while the radio is off. */
+#radio-now .rh-touch,#radio-now.off .rh-on,#radio-now:not(.off) .rh-off{display:none}
+/* A new station, or the card coming up: a short glow */
+#radio-now.flash{animation:radio-flash .8s ease-out}
+@keyframes radio-flash{from{transform:scale(1.05);border-color:#ffe9a8;box-shadow:0 0 0 4px #ffe9a866,0 8px 26px #10252130}}
+.era-1760 #radio-btn,.era-1760 #radio-now{display:none!important}
+body.busted #radio-now,body.arrest-cinematic #radio-now{visibility:hidden}
+@media(max-width:700px){#radio-now{top:116px;right:12px;width:min(300px,calc(100% - 24px))}#wanted:not([hidden])+#radio-now{top:174px}#radio-btn #radio-label{display:none}}
+/* Touch screens hide the top bar (and its radio button), so the card is how you tune: placed like the stars (mobile-controls.css). */
+@media(pointer:coarse){
+ #radio-now .rh-key{display:none}#radio-now .rh-touch{display:inline}
+ body.mobile-controls-ready #radio-now{top:calc(var(--mobile-top) + 53px);right:var(--mobile-right);width:min(250px,calc(100% - 24px));min-height:44px;padding:8px 11px 8px 9px;gap:8px;font-size:11px}
+ body.mobile-controls-ready #wanted:not([hidden])+#radio-now{top:calc(var(--mobile-top) + 105px)}
+ body.mobile-controls-ready #radio-station{font-size:12px}
+ body.mobile-controls-ready .radio-now-icon{font-size:17px}
+}
+@media(pointer:coarse) and (max-height:500px){body.mobile-controls-ready #radio-now{top:calc(var(--mobile-top) + 52px)}body.mobile-controls-ready #wanted:not([hidden])+#radio-now{top:calc(var(--mobile-top) + 104px)}}
+@media(prefers-reduced-motion:reduce){#radio-now.flash{animation:none}}

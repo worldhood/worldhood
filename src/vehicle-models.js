@@ -17,6 +17,12 @@ const specs={
 };
 const palette=['#b8bcb8','#e5e7e1','#284c65','#be3529','#344a3e','#393b41','#a29b8b','#577383','#794537'];
 const templates=new Map();
+// Blender-modelled bodies (scripts/blender/vehicles.py), per type a Map of material name -> geometry in the
+// model's frame. Installed before traffic is built; a type without one keeps the procedural body below.
+const bodies=new Map();
+export const VEHICLE_SPECS=specs;
+export function vehicleBodyParts(type){return bodies.get(type)||null;} // Blender body (material name -> geometry), if installed
+export function installVehicleBodies(map){for(const [type,parts] of Object.entries(map||{}))if(specs[type]&&parts?.get?.('paint')){bodies.set(type,parts);templates.delete(type);}return bodies.size;}
 // Showroom finishes: clearcoated paint, dark reflective glazing, polished
 // trim and satin rubber. Every reflective material shares the one sky PMREM
 // (see environment.js), so instanced traffic batches reflect the same sky as
@@ -85,12 +91,15 @@ function build(type,detailed){
   const pivot=new THREE.Group();pivot.position.set(side*(W-.055),s.r,z);group.add(pivot);const spin=new THREE.Group();pivot.add(spin);
   const tire=new THREE.Mesh(new THREE.CylinderGeometry(s.r,s.r,.205,detailed?32:16),mats.rubber);tire.rotation.z=Math.PI/2;spin.add(tire);
   const hub=new THREE.Mesh(new THREE.CylinderGeometry(s.r*.65,s.r*.65,.214,detailed?24:12),mats.chrome);hub.rotation.z=Math.PI/2;spin.add(hub);
-  if(detailed)for(let i=0;i<5;i++){const spoke=new THREE.Mesh(new THREE.BoxGeometry(.22,.034,s.r*1.22),mats.black);spoke.rotation.x=i*Math.PI/5;spin.add(spoke);}
+  if(detailed){const gs=[];for(let i=0;i<5;i++){const g=new THREE.BoxGeometry(.22,.034,s.r*1.22).toNonIndexed();g.rotateX(i*Math.PI/5);gs.push(g);}spin.add(new THREE.Mesh(mergeGeometries(gs),mats.black));gs.forEach(g=>g.dispose());} // five spokes, one draw
   spin.children.forEach(m=>m.castShadow=true);
  }
  // Body panels hang under one pivot (after the four wheel pivots) so braking
  // dive, acceleration squat and roll can tilt the shell without the wheels.
  const body=new THREE.Group();body.name='body';group.add(body);
+ if(!detailed&&bodies.has(type)){for(const gs of batches.values())gs.forEach(g=>g.dispose());batches.clear();
+  for(const [name,g] of bodies.get(type)){const mesh=new THREE.Mesh(g,mats[name]||mats.black);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;body.add(mesh);}
+  return group;}
  for(const [name,gs]of batches){const mesh=new THREE.Mesh(mergeGeometries(gs),mats[name]);mesh.name=name;mesh.castShadow=true;mesh.receiveShadow=true;body.add(mesh);gs.forEach(g=>g.dispose());}
  return group;
 }

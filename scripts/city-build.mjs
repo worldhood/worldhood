@@ -294,7 +294,7 @@ const headingAt=(x,z)=>{let best=null;for(const e of mobility.roads.edges)for(le
  return best?+Math.atan2(-best.dx,-best.dz).toFixed(4):0;};
 const snap=p=>nearestRoadPoint(p[0],p[1],drivable,buildingIndex);
 for(const c of [...manual,...candidates]){
- if(city.landmarks.length>=8)break;if(seen.has(c.name))continue;
+ if(city.landmarks.length>=(def.maxStarts||8))break;if(seen.has(c.name))continue;
  try{const start=placeStart(c,{snap,headingAt,district:def.name});
   if(!c.manual&&city.landmarks.some(l=>Math.hypot(l.x-start.x,l.z-start.z)<40))continue; // one start per spot
   city.landmarks.push(start);seen.add(c.name);}
@@ -336,7 +336,7 @@ function dissolve(){
 }
 const rendered=dissolve();
 const chunks=surfaceChunks(rendered);const surfaceIndex=[];
-for(const [k,values] of chunks){const file=`surfaces/${k}.bin`;fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push(surfaceRecord(file,values));}
+for(const [k,values] of chunks){const file=`surfaces/${k.replace(",","_")}.bin`; /* no commas: static hosts redirect-loop on them */fs.writeFileSync(path.join(OUT,file+'.pack'),gzipSync(Buffer.from(new Float32Array(values).buffer),{level:9}));surfaceIndex.push(surfaceRecord(file,values));}
 fs.writeFileSync(path.join(OUT,'surface-index.json'),JSON.stringify(surfaceIndex));
 fs.writeFileSync(path.join(OUT,'mobility.json'),JSON.stringify(mobility));
 fs.writeFileSync(path.join(OUT,'trams.json'),JSON.stringify({source:'OpenStreetMap route=tram relations, ODbL',limitations:['Route geometry as mapped in OSM; timetables and frequencies are simulated.'],paths:tramPaths,stops:transitStops.filter(s=>s.tram).map(({bus,...s})=>s)}));
@@ -355,7 +355,7 @@ fs.mkdirSync(path.join(OUT,'extensions'),{recursive:true});
 const extensionCatalog=path.join(OUT,'extensions/index.json');
 if(!fs.existsSync(extensionCatalog))fs.writeFileSync(extensionCatalog,JSON.stringify({schemaVersion:1,extensions:[]}));
 const counts={official:officialCount,buildings:registry,roads:city.roads.length,pavement:city.pavement.length,parks:city.parks.length,water:city.water.length,trees:city.trees.length,passages:passages.size,collision:collision.stats,roadEdges:mobility.roads.edges.length,walkEdges:mobility.walks.edges.length,signals:signals.length,starts:city.landmarks.length,tramRoutes:tramPaths.length,tramLines:[...new Set(tramPaths.map(p=>p.line))].join(' '),busRoutes:busPaths.length,busCorridors:usableBuses.length,stops:transitStops.length};
-const entry={id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,police:def.police||undefined,helpWanted:def.helpWanted||undefined,
+const entry={id,name:def.name,country:def.country,dataRoot:URL_DIR,origin:def.origin,radius:R,projection,defaultStart,status:def.status,maintainers:def.maintainers,liveries:def.liveries||undefined,era:def.era||undefined,police:def.police||undefined,helpWanted:def.helpWanted||undefined,
  attribution:'Map data © OpenStreetMap contributors, ODbL 1.0 (openstreetmap.org/copyright).'+(def.official?` ${def.official.attribution}.`:'')+' Building heights from OSM tags or estimated by building type.',fetchedAt:city.fetchedAt,counts};
 // Hills: ground elevation from open terrain tiles (scripts/city-terrain.mjs); "terrain": false in city.json keeps the city flat.
 // A terrain failure stops the build, so a hilly city is never replaced by a flat one.
@@ -374,7 +374,7 @@ console.log(JSON.stringify({city:def.name,counts,starts:city.landmarks.map(l=>`$
 
 // ---------- Street furniture from Mapillary detections (optional: runs when MAPILLARY_TOKEN is set) ----------
 // Lamps, signals, signs, bins and boxes at their photographed positions; see scripts/mapillary-features.mjs.
-if((await import('./env.mjs')).env('MAPILLARY_TOKEN'))await (await import('./mapillary-features.mjs')).buildFurniture(id,{refresh});
+if(!def.era&&(await import('./env.mjs')).env('MAPILLARY_TOKEN'))await (await import('./mapillary-features.mjs')).buildFurniture(id,{refresh});
 // The README cities table and map (scripts/cities-readme.mjs). Run from here, not chained in package.json,
 // because npm passes `-- <id>` only to the last command of a script.
 execFileSync(process.execPath,['scripts/cities-readme.mjs'],{stdio:'inherit'});

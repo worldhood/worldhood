@@ -1,0 +1,130 @@
+{
+ "schemaVersion": 1,
+ "id": "copenhagen",
+ "name": "Copenhagen",
+ "country": "Denmark",
+ "origin": [
+  12.576,
+  55.68
+ ],
+ "radiusMetres": 2200,
+ "maintainers": [
+  "babaliba-oss"
+ ],
+ "status": "draft",
+ "starts": [
+  {
+   "name": "Nyhavn",
+   "at": [
+    12.5905,
+    55.6798
+   ]
+  },
+  {
+   "name": "Kongens Nytorv",
+   "at": [
+    12.5856,
+    55.6797
+   ]
+  },
+  {
+   "name": "Rådhuspladsen",
+   "at": [
+    12.5695,
+    55.6759
+   ]
+  },
+  {
+   "name": "Amalienborg",
+   "at": [
+    12.593,
+    55.684
+   ]
+  },
+  {
+   "name": "Christiansborg",
+   "at": [
+    12.5799,
+    55.6761
+   ]
+  },
+  {
+   "name": "Rundetårn",
+   "at": [
+    12.5758,
+    55.6814
+   ]
+  },
+  {
+   "name": "Tivoli",
+   "at": [
+    12.5682,
+    55.6737
+   ]
+  },
+  {
+   "name": "Christianshavn",
+   "at": [
+    12.5935,
+    55.673
+   ]
+  },
+  {
+   "name": "The Lakes",
+   "at": [
+    12.564,
+    55.6855
+   ]
+  },
+  {
+   "name": "Little Mermaid",
+   "at": [
+    12.599,
+    55.6926
+   ]
+  },
+  {
+   "name": "Islands Brygge",
+   "at": [
+    12.577,
+    55.6655
+   ]
+  },
+  {
+   "name": "Istedgade",
+   "at": [
+    12.556,
+    55.669
+   ]
+  },
+  {
+   "name": "Dronning Louises Bro",
+   "at": [
+    12.564,
+    55.688
+   ]
+  },
+  {
+   "name": "Torvehallerne",
+   "at": [
+    12.57,
+    55.6836
+   ]
+  }
+ ],
+ "source": {
+  "geocoder": "manual",
+  "displayName": "København, Denmark"
+ },
+ "maxStarts": 16,
+ "police": {
+  "label": "POLITI"
+ },
+ "liveries": {
+  "bus": {
+   "paint": "#f2b700",
+   "white": "#f6c935"
+  },
+  "note": "Movia city buses: yellow all over."
+ }
+}

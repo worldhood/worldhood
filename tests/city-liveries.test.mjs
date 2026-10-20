@@ -25,7 +25,7 @@ test('police config defaults are the Finnish Poliisi values Helsinki, Espoo and 
  assert.deepEqual(p.lights,['#1f5cff','#1f5cff']);
  assert.deepEqual(policeConfig(p),p,'resolving twice changes nothing');
  const registry=JSON.parse(readFileSync('public/cities/index.json','utf8'));
- for(const city of registry.cities)assert.equal(cityLiveries(city).police.label,'POLIISI',`${city.id} keeps the Finnish police`);
+ for(const city of registry.cities)assert.equal(cityLiveries(city).police.label,city.id.startsWith('copenhagen')?'POLITI':'POLIISI',`${city.id} keeps its own police`);
 });
 
 test('a city overrides police text, colours, beacons and siren; bad values fall back',()=>{

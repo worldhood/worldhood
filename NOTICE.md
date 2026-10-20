@@ -33,6 +33,12 @@ that the notices match the locked runtime packages and bundled fonts.
 | Traffic signs, traffic lights, stops and regulation stretches from Digiroad (Finnish Transport Infrastructure Agency, Väylävirasto), used by `npm run city:furniture` for Finnish cities | CC BY 4.0 | `public/cities/*/furniture.json` |
 | City of Tampere open data (pedestrian crossings, signalled junctions, public transport stops) used by `npm run city:furniture` | CC BY 4.0 | `public/cities/tampere/furniture.json` |
 | Ground elevation (hills, lake and river levels) from the National Land Survey of Finland's Elevation model 2 m, via Mapterhorn terrain tiles, used by `npm run city:terrain` | CC BY 4.0 | `public/cities/*/terrain.pack` |
+| København 3D bymodel (2013), © Københavns Kommune; split into houses, clipped and recoloured | [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/); [source](https://www.opendata.dk/city-of-copenhagen/kobenhavn-3d-bymodel) | `public/cities/copenhagen*/buildings3d*`, `kk-footprints.json`, `duplicates.json`, `insets.json`, `recolour.json` |
+| City of Copenhagen open data (street trees, lamp masts, wire-hung lamps, bike racks, bollards, SAVE register of building years) | CC BY 4.0, © Københavns Kommune | `public/cities/copenhagen*/furniture.json`; trees and building years in the Copenhagen city files |
+| ambientCG scanned ground textures (Road007, PavingStones150, PaintedPlaster017, Grass005, Bricks104, RoofingTiles014A), used in Copenhagen | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | `public/materials/` |
+| Original vehicle, bus, boat, bike, coach and street-furniture models built by `scripts/blender/*.py` (Copenhagen) | MIT | `public/models/{vehicles,buses,bikes}/`, `public/models/player-car.glb`, `public/models/boats/{sail,motor,wooden,tour,havnebus,ship}.glb`, `public/models/carriage/{coach,horse}.glb`, `public/models/furniture/` (except `bin`, `hotdog-stand`, `cargo-bike`) |
+| Pedestrian characters and animation clips by Quaternius | [CC0 1.0](https://creativecommons.org/publicdomain/zero/1.0/) | `public/models/people/M_*`, `W_*` and `anims*.glb.gz`, except the CC BY figures listed in the Copenhagen section |
+| Third-party 3D models used in Copenhagen, simplified and recoloured (credited per model in the Copenhagen section) | CC BY 4.0, © their authors | `public/models/{statues,trees,props,animals}/`, `public/models/boats/{hdms-gorm,amphion,schooner,frigate,galleon}.glb`, `public/models/furniture/{bin,hotdog-stand,cargo-bike}.glb`, `public/models/carriage/{brougham,armored-horse}*`, `public/models/people/{W_Victorian,W_Merchant,W_Dress,M_Shipboy,M_Sailor1-6}*` |
 | Original worldhood logo artwork and favicon | MIT (font files retain their own licences) | `public/branding/worldhood-*.svg`, `public/favicon.svg` |
 | Bundled interface typefaces | SIL Open Font License 1.1; notices alongside each font | `public/fonts/` |
 | Helvetiker, Optimer and Gentilis typefaces for 3D signs | MgOpen font licence (Helvetiker/Optimer); SIL OFL 1.1 (Gentilis) | Imported from `three/examples/fonts`; full notices in `public/THIRD_PARTY_LICENSES.txt` |
@@ -147,11 +153,40 @@ city's data under its licence, and update this file and the in-game Sources pane
   - The 56.5 m cathedral tower height comes from the City of Oulu high-rise report (2014); other
     dimensions are estimates. The Toripolliisi sculpture is deliberately not reproduced.
 
+- **Copenhagen and Copenhagen 1760 (draft cities, by Daniel Sfita):**
+  - Map data: © OpenStreetMap contributors, [ODbL 1.0](https://www.openstreetmap.org/copyright).
+    Copenhagen 1760 is derived from the same data by `scripts/era-1760.py`.
+  - Buildings: København 3D bymodel © Københavns Kommune 2013,
+    [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/), from
+    [opendata.dk](https://www.opendata.dk/city-of-copenhagen/kobenhavn-3d-bymodel); split into houses,
+    clipped and recoloured (`scripts/kk-buildings.py`).
+  - Street trees, lamp masts, wire-hung lamps, bike racks, bollards and the SAVE register of listed
+    buildings (construction years): City of Copenhagen open data, © Københavns Kommune, CC BY 4.0.
+  - Elevation: Mapterhorn terrain tiles; the Danish source and its licence are listed at
+    [mapterhorn.com/attribution](https://mapterhorn.com/attribution).
+  - Façade colours described in our own words from Mapillary street-level photos (CC BY-SA 4.0);
+    photo ids in `cities/copenhagen/facades.json`. Street furniture positions partly from Mapillary
+    map features (see the Mapillary row above).
+  - Car radio: recordings are streamed from the Internet Archive and Wikimedia Commons and are not
+    distributed with the game. Each track's title, artist, licence (public domain, CC0, CC BY or
+    CC BY-SA) and source are listed in `public/cities/copenhagen/radio-stations.json`, and the radio
+    shows the credit while a track plays.
+  - 3D models, today: Frederik V statue, "Equestrian Statue in Copenhagen" by alexabhisak, CC BY 4.0, sketchfab.com/3d-models/6575a75ae76f42e5909f93e8fa718445; HDMS Gorm by martyn169, CC BY 4.0, sketchfab.com/3d-models/18abc857c9bf474090ddb1ec772a05db; H.C. Andersen statue by rigsters, CC BY 4.0, sketchfab.com/3d-models/74f1cba24216401b9d843111ebae3737; hot-dog stand, "Assignment 6 - Game Object (Giant Hot Dog Stand)" by Ariel Stull, CC BY 4.0, sketchfab.com/3d-models/3bf2a7b21bc2472a9cacefb97b42b7a9; cargo bike, "Day 249: Babboe cargo bike" by alban, CC BY 4.0, sketchfab.com/3d-models/abf96aa58f734875bcacddf9d01d76b1; trees near the player, "Realistic Tree" by Daniel (danielpetrov), CC BY 4.0, sketchfab.com/3d-models/d989c0f801d847b9a74992ec4ddcfdfc, and "Tree GN" by TechArtBGN, CC BY 4.0, sketchfab.com/3d-models/40da979cb23f492583ec89c4196cff4e (both simplified).
+  - 3D models, 1760: cannon, "Pirate Cannon" by maxwellmccurry, CC BY 4.0, sketchfab.com/3d-models/3c84e18c6b24408fa55156a72bf68b57; "Merchant Schooner 3" by agt14032013, CC BY 4.0, sketchfab.com/3d-models/4be7f7564de947a0ad3fb57a54292c3b; "Swedish royal schooner yacht Amphion" by Museovirasto (Finnish Heritage Agency), CC BY 4.0, sketchfab.com/3d-models/751174e48b764e829410cd323144833c; wagons, "Horse Drawn Carriage 16" and "9" by agt14032013, CC BY 4.0, sketchfab.com/3d-models/f122ad113739424cb2960bd9f78d8385 and 911d4dc6d89b48538e04fccfe9c963d1; frigate, "Russian archipelago frigate Svjatoi Nikolai" by Museovirasto (Finnish Heritage Agency), CC BY 4.0, sketchfab.com/3d-models/3e89828a09fa4a7e840a4ab3ce5482e2; galleon, "GA Free_251_Weathered 18th Century Galleon" by Galaxy Abundant, CC BY 4.0, sketchfab.com/3d-models/b097e67c207540628828ebb55afce914; barrels, "Barrels" by RipeR, CC BY 4.0, sketchfab.com/3d-models/71b622c6e4aa4a848d9b6fcdbfc27ad7; crates, "Crate" by SomeKevin, CC BY 4.0, sketchfab.com/3d-models/45a000ef6fda466d997a487b5a9640a1; night watchman, "Augustusburger City Watchman // Stadtwächter" by augustusburg_ger, CC BY 4.0, sketchfab.com/3d-models/91067f369c4f4a6caa3076dfc515005c; spinner, "Пряха крестьянка с пряжей (low poly)" by Department Historical Information Science MSU, CC BY 4.0, sketchfab.com/3d-models/f7dc59b8b7fe4ff692aaa586940f5fd4; market stalls, "Elizabeth's Food Stand" by bpcrews, CC BY 4.0, sketchfab.com/3d-models/2f5369d4ba6448f39ea02d90163b4afa; pigs, "lowpoly pig" by fabiotambone, CC BY 4.0, sketchfab.com/3d-models/26ae14bd0d2b4650b4bf878ca85ad06a; hens, "Chicken" by pooiloui2, CC BY 4.0, sketchfab.com/3d-models/98830a78e8c54354a7fbe5ca8346fbf9; coach, "19th Century Carriage" by Digital Goblin, CC BY 4.0, sketchfab.com/3d-models/db4460e67e164cdcb33b0c3ba31c641d; coach horses, "Armored Horse" by naminoff, CC BY 4.0, sketchfab.com/3d-models/98c3f1c40a6b422dba76bf5403e0a3d8; dogs, "dog" by neighbor, CC BY 4.0, sketchfab.com/3d-models/e395f26615ca445ab32f01ded17ff3bf; geese, "Goose Low Poly" by Atlas, CC BY 4.0, sketchfab.com/3d-models/3318893e41fc4d2f9f497776da95c13a; trees near the player, "Realistic Tree" by Daniel (danielpetrov), CC BY 4.0, sketchfab.com/3d-models/d989c0f801d847b9a74992ec4ddcfdfc, and "Tree GN" by TechArtBGN, CC BY 4.0, sketchfab.com/3d-models/40da979cb23f492583ec89c4196cff4e (both simplified).
+  - More models, today: bins: "City Trash Can" by _Tempus_, CC BY 4.0, sketchfab.com/3d-models/f336a10e46084212ab33de0ff811bd78; dogs, "dog" by neighbor, CC BY 4.0, sketchfab.com/3d-models/e395f26615ca445ab32f01ded17ff3bf; geese, "Goose Low Poly" by Atlas, CC BY 4.0, sketchfab.com/3d-models/3318893e41fc4d2f9f497776da95c13a; pant cans, the shape of "Cans!" by Tiago Oliveira, CC BY 4.0, sketchfab.com/3d-models/0db78b8bfcdb4c559b3bc8f63cbb5689; Halloween pumpkins, "Halloween pumpkin" by monsieurmo, CC BY 4.0, sketchfab.com/3d-models/4484260f38114ad0b78da570afc5116c, "Halloween pumpkin" by Nick Kotik, CC BY 4.0, sketchfab.com/3d-models/fc004242f4984d129c6a174ffcf5c0f7, and "Halloween Pumpkin" by Charlie Tinley, CC BY 4.0, sketchfab.com/3d-models/abb8d12f13b44c6686628abde758bf1a (simplified and recoloured).
+  - Walkers (rigged and recoloured): "Woman Dress 2" by Ali Şahan Yalçın, CC BY 4.0, sketchfab.com/3d-models/750b068dfbcf4a27932ea3d3f742ab9b. "Victorian Woman dress 3d model" by abauerenator, CC BY 4.0, sketchfab.com/3d-models/36195b0dbc59401aab9c30439055eded; merchant's wife, "Купчиха 18-19 вв. в традиционной одежде" by Department Historical Information Science MSU, CC BY 4.0, sketchfab.com/3d-models/fa6b4c3ce6504ecdb11c66832d6a0924; "Royal Navy Shipboy" by JanPohl, CC BY 4.0, sketchfab.com/3d-models/5dacf3bcbf354273a5d2848cddc42b3c; sailors, "Pirate Crew - 3D Character Pack" by Itom, CC BY 4.0, sketchfab.com/3d-models/2c026c589630421bacc39be55c69c3f0.
+  - Pedestrian characters and animation clips: Quaternius ([quaternius.com](https://quaternius.com)), CC0.
+
 ## Assets
 
 - **Granite material:** [Poly Haven Granite Tile 03](https://polyhaven.com/a/granite_tile_03), CC0.
 - **Route trees:** [EZ-Tree](https://github.com/dgreenheck/ez-tree) by Daniel Greenheck, MIT. See
   `public/models/tree-credits.txt`.
+- **Copenhagen ground textures:** ambientCG Road007, PavingStones150, PaintedPlaster017, Grass005,
+  Bricks104 and RoofingTiles014A ([ambientcg.com](https://ambientcg.com)), CC0; cropped and resized by
+  `scripts/textures/prepare.py`.
+- **Copenhagen vehicles, boats, bikes, coach and street furniture:** original models built by the
+  scripts in `scripts/blender/`, MIT.
 - **Landmark references:** the per-landmark source files in `public/models/*-sources.json` list
   references, licences and what is measured versus interpreted. Reference photographs are not
   embedded in the game.

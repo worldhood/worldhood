@@ -1,5 +1,6 @@
 import * as THREE from 'three';
-import {groundAt,waterAt,hasTerrain,terrain,footprintBase} from './terrain.js';
+import {groundAt,waterAt,hasTerrain,terrain,footprintBase,seaLevel} from './terrain.js';
+import {copenhagenStyle} from './city-style.js';
 
 // Geometry that follows the ground (src/terrain.js). Flat cities skip all of this.
 
@@ -30,17 +31,61 @@ export function subdivideGeometry(source,maxEdge=4,{height=null,tolerance=.03}={
  return result;
 }
 
+// Older surface packs contain a second water plane at 1 cm. Its 4 mm gap
+// from the animated sea collapses in the overhead camera's depth buffer.
+// Remove those triangles, rather than lifting the sea over the quays.
+export function removeLegacyWater(geometry){
+ const p=geometry.attributes.position,source=geometry.index?.array,keep=[];
+ for(let i=0,n=source?.length??p.count;i<n;i+=3){
+  const ids=[source?.[i]??i,source?.[i+1]??i+1,source?.[i+2]??i+2];
+  if(!ids.every(j=>Math.abs(p.getY(j)-.01)<.00001))keep.push(...ids);
+ }
+ geometry.setIndex(keep);geometry.computeBoundingSphere();return geometry;
+}
+
 // Drapes a geometry (world-space positions) over the ground. `mark` keeps the added height in a
 // `terrainY` attribute, so shaders that read layer heights from position.y can subtract it again.
-export function drapeGeometry(geometry,{maxEdge=4,lift=0,water=false,mark=false,lines=false}={}){
+// styled (default: Copenhagen): over water below the sea level the sheet takes the sea level, and flat surfaces get smooth
+// normals from the terrain slope. Other cities keep per-triangle normals and the earlier water heights.
+export function drapeGeometry(geometry,{maxEdge=4,lift=0,water=false,mark=false,lines=false,tolerance=.03,styled=copenhagenStyle()}={}){
  if(!hasTerrain())return geometry;
  if(lines)geometry.userData.lines=true;
- const surface=(x,z)=>{if(water){const w=waterAt(x,z);if(w!==null)return w;}return groundAt(x,z);};
- const g=maxEdge?subdivideGeometry(geometry,maxEdge,{height:lines?null:surface}):geometry,p=g.attributes.position,added=mark?new Float32Array(p.count):null;
- for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),h=surface(x,z)+lift;p.setY(i,p.getY(i)+h);if(added)added[i]=h;}
+ const surface=(x,z)=>{if(water){const w=waterAt(x,z);if(w!==null)return w;if(!styled)return groundAt(x,z);const s=seaLevel(),g=groundAt(x,z);if(s!==null&&g<s)return s;return g;}return groundAt(x,z);};
+ const g=maxEdge?subdivideGeometry(geometry,maxEdge,{height:lines?null:surface,tolerance}):geometry,p=g.attributes.position,added=mark?new Float32Array(p.count):null;
+ const hs=new Float32Array(p.count);for(let i=0;i<p.count;i++){const x=p.getX(i),z=p.getZ(i),h=surface(x,z)+lift;hs[i]=h-lift;p.setY(i,p.getY(i)+h);if(added)added[i]=h;}
  if(added)g.setAttribute('terrainY',new THREE.BufferAttribute(added,1));
- p.needsUpdate=true;if(g.attributes.normal&&!lines)g.computeVertexNormals();g.computeBoundingSphere();g.computeBoundingBox();
+ p.needsUpdate=true;
+ if(g.attributes.normal&&!lines&&!styled)g.computeVertexNormals();
+ else if(g.attributes.normal&&!lines){
+  // Flat surfaces (roads, pavements, parks): smooth normals from the terrain slope, not per-triangle
+  // facets, which showed every 4 m triangle as a crease across open asphalt.
+  g.computeVertexNormals();const n=g.attributes.normal,e=1;
+  for(let i=0;i<p.count;i++){if(n.getY(i)<.8)continue;const x=p.getX(i),z=p.getZ(i),dx=(surface(x+e,z)-hs[i])/e,dz=(surface(x,z+e)-hs[i])/e,l=Math.hypot(dx,1,dz);n.setXYZ(i,-dx/l,1/l,-dz/l);}
+  n.needsUpdate=true;
+ }
+ g.computeBoundingSphere();g.computeBoundingBox();
  return g;
+}
+
+// Paths mapped along a quay edge are buffered half over the water; draped on the sloping canal bed they show
+// as a pale strip just above the water with a dark gap behind the quay. Drop draped surface triangles that lie
+// entirely over water and less than `clear` metres above it (real quays stand ~1.5-2 m higher and are kept).
+export function dropSunkenSurfaces(geometry,{clear=1.2,water=waterAt,mapped=null}={}){ // mapped(x,z): inside the mapped water polygons; such triangles go whatever their height (paving drawn out over a canal at quay height read as pale slabs floating on the water)
+ const p=geometry.attributes.position,y=geometry.attributes.terrainY,src=geometry.index?.array;if(!y)return geometry;
+ const n=src?src.length:p.count,keep=[];let dropped=0;
+ // per vertex once (indexed vertices are shared by up to six triangles): 0 unknown, 1 no, 2 yes
+ const wetV=new Uint8Array(p.count),mapV=new Uint8Array(p.count);
+ const sunkAt=j=>{if(!wetV[j]){const w=water(p.getX(j),p.getZ(j));wetV[j]=w!==null&&y.getX(j)<w+clear?2:1;}return wetV[j]===2;};
+ const mapAt=j=>{if(!mapV[j])mapV[j]=mapped(p.getX(j),p.getZ(j))?2:1;return mapV[j]===2;};
+ for(let i=0;i<n;i+=3){
+  const ids=[src?.[i]??i,src?.[i+1]??i+1,src?.[i+2]??i+2];
+  const sunk=sunkAt(ids[0])&&sunkAt(ids[1])&&sunkAt(ids[2]);
+  const over=!sunk&&mapped&&(mapAt(ids[0])+mapAt(ids[1])+mapAt(ids[2]))>=2&&mapped((p.getX(ids[0])+p.getX(ids[1])+p.getX(ids[2]))/3,(p.getZ(ids[0])+p.getZ(ids[1])+p.getZ(ids[2]))/3);
+  if(over){dropped++;continue;}
+  if(sunk)dropped++;else keep.push(...ids);
+ }
+ if(dropped){geometry.setIndex(keep);geometry.computeBoundingSphere();}
+ geometry.userData.sunkenDropped=dropped;return geometry;
 }
 
 // True when the ground under a triangle is a plane through its corners (edge midpoints and centre checked).
@@ -58,7 +103,7 @@ export function groundUnder(object){
 // Puts a built scene on the ground: world-space meshes are subdivided and draped, instanced meshes get
 // each instance lifted, and positioned objects move as a whole (by the lowest ground under them when
 // marked `userData.building`/`rigid`, else by the ground at their origin). Call once after building.
-export function settleObject(root,{maxEdge=4,skip=null}={}){
+export function settleObject(root,{maxEdge=4,skip=null,tolerance=.03}={}){
  if(!hasTerrain()||!root)return root;
  root.updateMatrixWorld(true);const done=new WeakSet();
  const rigid=o=>{const h=o.userData.building||o.userData.rigid?groundUnder(o):groundAt(v.setFromMatrixPosition(o.matrixWorld).x,v.z);o.position.y+=h;o.updateMatrixWorld(true);};
@@ -70,7 +115,7 @@ export function settleObject(root,{maxEdge=4,skip=null}={}){
    o.instanceMatrix.needsUpdate=true;o.computeBoundingSphere?.();o.computeBoundingBox?.();return;}
   if((o.isMesh||o.isLine||o.isPoints)&&o.geometry){
    if(!identity(o.matrixWorld)){rigid(o);return;}
-   if(done.has(o.geometry))return;const old=o.geometry,lines=!!o.isLineSegments,g=drapeGeometry(old,{maxEdge:o.isPoints?0:maxEdge,lines});
+   if(done.has(o.geometry))return;const old=o.geometry,lines=!!o.isLineSegments,g=drapeGeometry(old,{maxEdge:o.isPoints?0:maxEdge,lines,tolerance});
    if(g!==old){old.dispose();o.geometry=g;}done.add(g);return;}
   if(o!==root&&!identity(o.matrixWorld)){rigid(o);return;}
   for(const c of [...o.children])visit(c);
@@ -80,11 +125,22 @@ export function settleObject(root,{maxEdge=4,skip=null}={}){
 
 // The bare ground: chunked grids following the terrain half a metre below street level (as the flat
 // ground plane was), with a coarse skirt out to the horizon. Normals give the hills their shading.
-export function createTerrainGround(material,{cell=10,chunk=32,size=11000,depth=-.5}={}){
+export function createTerrainGround(material,{cell=10,chunk=32,size=11000,depth=-.5,wet=null}={}){
  const f=terrain(),group=new THREE.Group();group.name='Terrain ground';if(!f)return group;
  const E=Math.floor(f.extent/cell)*cell,n=Math.round(2*E/cell);
+ const shore=wet?shoreVertices(f,wet,cell,E,n):null;
  const grid=(xs,zs)=>{const pos=[],nor=[],idx=[],w=xs.length;
-  for(const z of zs)for(const x of xs){pos.push(x,groundAt(x,z)+depth,z);const dx=groundAt(x+1,z)-groundAt(x-1,z),dz=groundAt(x,z+1)-groundAt(x,z-1),l=Math.hypot(dx,2,dz);nor.push(-dx/l,2/l,-dz/l);}
+  // Under (or next to) water the ground drops 2 m below the water surface: the elevation model's ground is often
+  // above the water layer in the harbour and canals, and drawing it there hid the water (the "muddy" harbour).
+  const sink=(x,z)=>{let w=null;for(const [a,b] of [[0,0],[cell/2,0],[-cell/2,0],[0,cell/2],[0,-cell/2]]){const v=waterAt(x+a,z+b);if(v!=null)w=w==null?v:Math.min(w,v);}return w;};
+  const styled=copenhagenStyle();
+  for(const z of zs)for(const x of xs){const g0=groundAt(x,z),s=shore?.(x,z);
+   if(s!==undefined){if(s===null)pos.push(x,g0+depth,z);else pos.push(x,s+depth,z);} /* masked ground (see shoreVertices) */
+   else if(!styled)pos.push(x,g0+depth,z); // other cities: the ground as measured
+   else{const w0=sink(x,z),w=w0!=null&&(g0<w0+1||wet?.(x,z))?w0:null; /* banks well above the water (quays) keep their height: sinking every vertex near a canal dug pits beside the streets */
+    pos.push(x,w==null?g0+depth:Math.min(g0+depth,w-2),z);}
+   if(typeof s==='number'){nor.push(0,1,0);continue;} /* a shore vertex lies level with the land beside it */
+   const dx=groundAt(x+1,z)-groundAt(x-1,z),dz=groundAt(x,z+1)-groundAt(x,z-1),l=Math.hypot(dx,2,dz);nor.push(-dx/l,2/l,-dz/l);}
   for(let j=0;j+1<zs.length;j++)for(let i=0;i+1<w;i++){const a=j*w+i,b=a+1,c=a+w,d=c+1;idx.push(a,c,b,b,c,d);}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nor,3));g.setIndex(idx);g.computeBoundingSphere();g.computeBoundingBox();return g;};
  const range=(a,b,step)=>{const out=[];for(let x=a;x<b-1e-6;x+=step)out.push(x);out.push(b);return out;};
@@ -98,6 +154,32 @@ export function createTerrainGround(material,{cell=10,chunk=32,size=11000,depth=
  return group;
 }
 
+// Ground the material cuts away over the mapped water (wet(x,z): inside the water polygons; main.js masks them):
+// it no longer has to sink under the water, which made every 10 m triangle from a quay vertex to a vertex out in
+// the canal a ramp across the quay, ending in a jagged cut at the water. Per vertex of the (n+1)² grid at `cell`
+// spacing from -E: null on dry land (keeps its height); for a vertex in the water with dry land among its eight
+// neighbours, the raw height of the nearest dry sample of the height field (the quay or bank it continues, so its
+// triangles stay level to the water's edge); undefined for vertices well out in the water and off the grid (they sink).
+export function shoreVertices(f,wet,cell,E,n){
+ const N=n+1,inside=new Uint8Array(N*N);
+ for(let j=0;j<N;j++)for(let i=0;i<N;i++)inside[j*N+i]=wet(-E+i*cell,-E+j*cell)?1:0;
+ const F=f.size,fc=f.cell,fe=f.extent,seen=new Uint8Array(F*F); // field samples: 0 unknown, 1 water, 2 dry
+ const dry=k=>{if(!seen[k])seen[k]=wet(-fe+(k%F)*fc,-fe+((k/F)|0)*fc)?1:2;return seen[k]===2;};
+ const land=(x,z)=>{const ci=Math.round((x+fe)/fc),cj=Math.round((z+fe)/fc);let best=Infinity,h=null;
+  for(let r=0;r<=6&&best>(r-.5)*fc;r++)for(let j=cj-r;j<=cj+r;j++)for(let i=ci-r;i<=ci+r;i++){
+   if(Math.max(Math.abs(i-ci),Math.abs(j-cj))!==r||i<0||j<0||i>=F||j>=F)continue;const k=j*F+i;if(!dry(k))continue;
+   const d=Math.hypot(-fe+i*fc-x,-fe+j*fc-z);if(d<best){best=d;h=f.ground[k];}}
+  return h;};
+ return (x,z)=>{
+  const i=Math.round((x+E)/cell),j=Math.round((z+E)/cell);
+  if(i<0||j<0||i>=N||j>=N||Math.abs(-E+i*cell-x)>1e-6||Math.abs(-E+j*cell-z)>1e-6)return undefined;
+  if(!inside[j*N+i])return null;
+  let edge=false;for(let dj=-1;dj<=1&&!edge;dj++)for(let di=-1;di<=1;di++){const ii=i+di,jj=j+dj;if(ii>=0&&jj>=0&&ii<N&&jj<N&&!inside[jj*N+ii]){edge=true;break;}}
+  if(!edge)return undefined;
+  const h=land(x,z);return h===null?undefined:h;
+ };
+}
+
 // Open water from the elevation model's `lake` layer. Each lake's level spreads up to `reach` cells onto the
 // shore; the water ends on the contour where the drawn ground (half a metre below the height field, see
 // createTerrainGround) rises `rise` above the surface, traced by marching squares between the grid points,
@@ -108,10 +190,16 @@ export function lakeSurface({reach=8,rise=.3,below=.05}={}){
  const f=terrain();if(!f?.lake)return null;
  const key=`${reach},${rise},${below}`;if(lastLake?.f===f&&lastLake.key===key)return lastLake.w;
  const n=f.size,level=f.lake.slice();
- for(let pass=0;pass<reach;pass++){const next=level.slice();let grew=0;
-  for(let j=0;j<n;j++)for(let i=0;i<n;i++){const k=j*n+i;if(!Number.isNaN(level[k]))continue;
-   for(const [di,dj] of [[1,0],[-1,0],[0,1],[0,-1]]){const ii=i+di,jj=j+dj;if(ii<0||jj<0||ii>=n||jj>=n)continue;const v=level[jj*n+ii];if(!Number.isNaN(v)&&f.ground[jj*n+ii]<v+.5+rise){next[k]=v;grew++;break;}}}
-  level.set(next);if(!grew)break;}
+ // Grown pass by pass from a frontier (dry cells beside water), not by rescanning the whole grid each pass;
+ // the same result: a dry cell takes the first wet neighbour's level (E, W, S, N) whose bank is low enough.
+ const D=[[1,0],[-1,0],[0,1],[0,-1]],wet=k=>!Number.isNaN(level[k]),seen=new Uint8Array(n*n);
+ let front=[];const queue=k=>{if(!seen[k]&&!wet(k)){seen[k]=1;front.push(k);}};
+ const around=(k,fn)=>{const i=k%n,j=(k-i)/n;for(const [di,dj] of D){const ii=i+di,jj=j+dj;if(ii>=0&&jj>=0&&ii<n&&jj<n)fn(jj*n+ii);}};
+ for(let k=0;k<n*n;k++)if(wet(k))around(k,queue);
+ for(let pass=0;pass<reach&&front.length;pass++){const filled=[];
+  for(const k of front){seen[k]=0;let v=NaN;around(k,q=>{if(Number.isNaN(v)&&wet(q)&&f.ground[q]<level[q]+.5+rise)v=level[q];});if(!Number.isNaN(v))filled.push(k,v);}
+  for(let t=0;t<filled.length;t+=2)level[filled[t]]=filled[t+1];
+  front=[];for(let t=0;t<filled.length;t+=2)around(filled[t],queue);}
  const depth=new Float32Array(n*n);
  for(let k=0;k<n*n;k++)depth[k]=Number.isNaN(level[k])?-1:level[k]-below+.5+rise-f.ground[k];
  const w={n,level,depth};lastLake={f,key,w};return w;

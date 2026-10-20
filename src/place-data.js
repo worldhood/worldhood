@@ -1,3 +1,4 @@
+import {copenhagenStyle} from './city-style.js';
 // Pure data rules for photo-matched places (a square with its tram stop, trees and landmarks).
 // scripts/place-build.mjs turns official open data plus cities/<id>/<place>-reference.json into
 // public/cities/<id>/places/<place>.json with these functions; src/place-scene.js draws the result.
@@ -33,9 +34,11 @@ export function matchPaving(rules,{layer,street='',type='',material=''},ring){
 const FAMILIES=[[/^TILIA/,'lime'],[/^ACER/,'maple'],[/^BETULA/,'birch'],[/^PINUS/,'pine'],[/^PICEA/,'spruce'],[/^ABIES/,'fir'],[/^LARIX/,'larch'],
  [/^QUERCUS/,'oak'],[/^ULMUS/,'elm'],[/^FRAXINUS/,'ash'],[/^SORBUS/,'rowan'],[/^ALNUS/,'alder'],[/^(PRUNUS|MALUS|PYRUS|CRATAEGUS)/,'blossom'],
  [/PYLVÄSHAAPA|FASTIGIATA|ERECTA/,'columnar'],[/^POPULUS/,'poplar'],[/^SALIX/,'willow'],[/^AESCULUS/,'chestnut'],[/^(THUJA|JUNIPERUS|TAXUS)/,'spruce']];
+// Copenhagen's register has more southern genera; mapped only there, so other cities keep their families.
+const MORE_FAMILIES=[[/^PLATANUS/,'maple'],[/^(ROBINIA|GLEDITSIA|AILANTHUS|SOPHORA|STYPHNOLOBIUM)/,'ash'],[/^(CARPINUS|CORYLUS|ZELKOVA)/,'lime'],[/^(AMELANCHIER|MAGNOLIA|CERCIDIPHYLLUM)/,'blossom'],[/^(METASEQUOIA|TAXODIUM)/,'larch'],[/^GINKGO/,'columnar']];
 export function speciesFamily(species='',conifer=false){
  const s=String(species).toUpperCase().trim();
- for(const [re,f] of FAMILIES)if(re.test(s)&&!(f==='poplar'&&/PYLVÄS/.test(s)))return f;
+ for(const [re,f] of copenhagenStyle()?[...FAMILIES.slice(0,-1),...MORE_FAMILIES,FAMILIES.at(-1)]:FAMILIES)if(re.test(s)&&!(f==='poplar'&&/PYLVÄS/.test(s)))return f;
  if(/PYLVÄS/.test(s))return 'columnar';
  return conifer||/HAVU/.test(s)?'spruce':'broadleaf';
 }
